@@ -6,7 +6,7 @@
 # Throwaway scaffolding guarding the shell work (tickets 02-03);
 # removed in ticket 04. It runs the existing Tweego build and asserts
 # the external invariants of the compiled story that hold today
-# (see .scratch/centered-rail-shell/spec.md, "Testing Decisions"):
+# (see the centered-rail-shell spec, "Testing Decisions"):
 #   1. The build succeeds.
 #   2. The compiled story has exactly one #passages element — the one
 #      SugarCube appends to #main at runtime.

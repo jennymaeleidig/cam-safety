@@ -14,6 +14,9 @@ prototype/
 # Agent tooling cache
 .pi/
 
+# Local issue-tracker scratch (kept out of the repo)
+.scratch/
+
 # The global gitignore excludes .vscode/; this project's Tweego build
 # task lives there and is tracked (scripts/build-verify.sh references it)
 !.vscode/
