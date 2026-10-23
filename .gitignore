@@ -17,6 +17,9 @@ prototype/
 # Local issue-tracker scratch (kept out of the repo)
 .scratch/
 
+# SugarCube 2 format definition — build dependency (TWEEGO_PATH), not source
+.storyformats/
+
 # The global gitignore excludes .vscode/; this project's Tweego build
 # task lives there and is tracked (scripts/build-verify.sh references it)
 !.vscode/
