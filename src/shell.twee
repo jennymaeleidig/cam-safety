@@ -1,0 +1,25 @@
+:: StoryInterface
+<!--
+	Story shell — a persistent left rail beside the centered reading column
+	that holds the story's single #passages element. RAW HTML: SugarCube wraps
+	this content in its own #story element (authoring another one here is fatal)
+	and does not process macros, so the chrome is plain HTML wired to
+	SugarCube's global UI APIs with onclick. SugarCube 2.37 requires exactly
+	one #passages inside a custom StoryInterface — this is the story's one and
+	only; every passage renders inside it.
+-->
+<div class="shell">
+	<aside class="rail">
+		<h1 class="rail-title">Cam Safety</h1>
+		<nav class="rail-actions">
+			<a href="#" title="Settings" onclick="UI.settings();return false;">Settings</a>
+			<a href="#" title="Saves" onclick="UI.saves();return false;">Saves</a>
+			<a href="#" title="Restart" onclick="UI.restart();return false;">Restart</a>
+			<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
+			<!-- <a href="#" title="Previous passage" onclick="Engine.backward();return false;">‹ Prev</a> <a href="#" title="Next passage" onclick="Engine.forward();return false;">Next ›</a> -->
+		</nav>
+	</aside>
+	<div class="main">
+		<div id="passages"></div>
+	</div>
+</div>

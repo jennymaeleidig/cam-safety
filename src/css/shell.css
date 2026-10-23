@@ -1,0 +1,85 @@
+/* ===== Story shell layout — persistent left rail + centered reading column =====
+   Layout module, separate from the narrative and from the checkerboard
+   background (which renders behind #story and is left untouched). Frames
+   whatever renders into #passages — no per-passage markup.
+
+   Tunable knobs — a second layout is a value change, not a fork:
+     --shell-rail-width        width of the persistent left rail
+     --shell-column-max-width  max width of the centered reading column
+     --shell-main-padding      padding around the reading column */
+
+:root {
+  --shell-rail-width: 220px;
+  --shell-column-max-width: 66ch;
+  --shell-main-padding: clamp(28px, 8vh, 72px) 28px 96px;
+}
+
+/* The shell owns the full width. SugarCube's core display block (which
+   centers #story with a 2.5em margin) is dropped for custom StoryInterfaces,
+   but pin the value anyway so the rail can sit at the viewport edge. */
+#story {
+  margin: 0;
+  max-width: none;
+}
+
+.shell {
+  display: grid;
+  grid-template-columns: var(--shell-rail-width) 1fr;
+  min-height: 100vh;
+  box-sizing: border-box;
+}
+
+/* ---- persistent left rail ----------------------------------------------- */
+
+.rail {
+  grid-column: 1;
+  position: sticky;
+  top: 0;
+  align-self: start;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+  padding: 28px 20px;
+  background: #242429;
+  border-right: 1px solid #3a3a42;
+  box-sizing: border-box;
+}
+
+.rail-title {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1.2;
+  color: #e6e6e6;
+}
+
+.rail-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 0.95rem;
+}
+
+.rail-actions a {
+  padding: 2px 0;
+  color: #e6e6e6;
+  text-decoration: none;
+}
+
+.rail-actions a:hover {
+  text-decoration: underline;
+}
+
+/* ---- centered reading column -------------------------------------------- */
+
+.main {
+  grid-column: 2;
+}
+
+#passages {
+  width: min(var(--shell-column-max-width), 100%);
+  margin: 0 auto;
+  padding: var(--shell-main-padding);
+  box-sizing: border-box;
+}

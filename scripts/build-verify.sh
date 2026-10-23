@@ -8,12 +8,17 @@
 # the external invariants of the compiled story that hold today
 # (see the centered-rail-shell spec, "Testing Decisions"):
 #   1. The build succeeds.
-#   2. The compiled story has exactly one #passages element — the one
-#      SugarCube appends to #main at runtime.
-#   3. No authored #story or #passages element — SugarCube provides #story
-#      and the single #passages; authored duplicates are fatal.
-#   4. The checkerboard stylesheet and background script are bundled.
-#   5. The story starts on the title-screen passage (the title screen is
+#   2. SugarCube's runtime #passages literal is intact (the raw-literal count
+#      stays exactly one — authored content compiles escaped, so this sees
+#      only the runtime's own element).
+#   3. The single-#passages contract: the shell (StoryInterface) authors
+#      exactly one #passages — with a custom StoryInterface SugarCube does
+#      not append its own, it throws if the shell's is missing — and no
+#      authored #story (SugarCube provides #story; a duplicate is fatal).
+#   4. The shell rail is present and wired to SugarCube's built-in dialogs
+#      (title + Settings / Saves / Restart).
+#   5. The checkerboard, shell layout, and shell behavior modules are bundled.
+#   6. The story starts on the title-screen passage (the title screen is
 #      present in the story data and the startnode points at it).
 
 set -u
@@ -41,47 +46,72 @@ else
   exit 1 # assertions below need the artifact; a failed build is itself a failure
 fi
 
-# --- 2. Exactly one #passages ----------------------------------------------
-# SugarCube's runtime code appends exactly one literal
-# <div id="passages" ...> (the element #passages) to #main; that one must
-# be intact in the compiled story. Note: an authored duplicate compiles
+# --- 2. SugarCube's runtime #passages literal intact ------------------------
+# SugarCube's runtime code carries exactly one literal
+# <div id="passages" ...> (used when no custom StoryInterface is present);
+# it must be intact in the compiled story. An authored #passages compiles
 # HTML-escaped (&lt;div id=&quot;passages&quot;), so this raw count alone
 # cannot see it — the "exactly one" invariant is the pairing of this
-# check (SugarCube's element present) with the authored-content scan below.
+# check with the authored-content count below.
 passages_count=$(grep -o '<div id="passages"' "$OUT" | wc -l | tr -d '[:space:]')
 if [ "$passages_count" -eq 1 ]; then
-  pass "#passages: SugarCube's runtime element intact (found $passages_count)"
+  pass "#passages: SugarCube's runtime literal intact (found $passages_count)"
 else
-  fail "expected exactly one #passages, found $passages_count"
+  fail "expected exactly one #passages literal, found $passages_count"
 fi
 
-# --- 3. No authored #story / #passages --------------------------------------
-# Authored content lives in the <tw-storydata> block, where Tweego
-# HTML-escapes the passage text — an authored <div id="story"> compiles to
-# &lt;div id=&quot;story&quot;. Unescape first, then assert the authored
-# content carries neither a #story element (SugarCube provides #story; a
-# duplicate is fatal) nor a #passages element (which must stay singular).
+# --- 3. Single-#passages contract (custom StoryInterface) -------------------
+# With a custom StoryInterface, SugarCube does not append its own #passages —
+# the shell must author the story's one and only #passages (SugarCube throws
+# if it is missing) and must never author #story (SugarCube provides #story;
+# a duplicate is fatal). Authored content lives in the <tw-storydata> block,
+# where Tweego HTML-escapes the passage text — an authored
+# <div id="passages"> compiles to &lt;div id=&quot;passages&quot;. Unescape
+# first, then count.
 authored_story=$(sed -n '/<tw-storydata/,/<\/tw-storydata>/p' "$OUT" \
   | sed -e 's/&lt;/</g' -e 's/&gt;/>/g' -e 's/&quot;/"/g' -e 's/&apos;/'"'"'/g' -e 's/&amp;/\&/g')
 if [ -z "$authored_story" ]; then
   fail "could not find <tw-storydata> block in $OUT"
 else
+  if grep -q '<tw-passagedata pid="[0-9]*" name="StoryInterface"' "$OUT"; then
+    pass "StoryInterface passage present"
+  else
+    fail "StoryInterface passage not found in the story data"
+  fi
   if printf '%s\n' "$authored_story" | grep -q 'id="story"'; then
     fail "authored #story element found in the story data"
   else
     pass "no authored #story element"
   fi
-  if printf '%s\n' "$authored_story" | grep -q 'id="passages"'; then
-    fail "authored #passages element found in the story data"
+  passages_authored=$(printf '%s\n' "$authored_story" | grep -o 'id="passages"' | wc -l | tr -d '[:space:]')
+  if [ "$passages_authored" -eq 1 ]; then
+    pass "exactly one authored #passages (the shell's)"
   else
-    pass "no authored #passages element"
+    fail "expected exactly one authored #passages (the shell's), found $passages_authored"
   fi
 fi
 
-# --- 4. Checkerboard modules bundled ----------------------------------------
+# --- 4. Shell rail present and wired to the built-in dialogs ----------------
+# The rail is raw HTML in the StoryInterface (macros are not processed
+# there), so the chrome is plain links calling SugarCube's global UI APIs
+# inline: Settings / Saves / Restart each open a built-in dialog.
+missing=""
+for needle in 'class="rail"' 'class="rail-title"' 'class="main"' \
+  'onclick="UI.settings();return false;"' 'onclick="UI.saves();return false;"' \
+  'onclick="UI.restart();return false;"'; do
+  printf '%s\n' "$authored_story" | grep -qF -- "$needle" || missing="$missing $needle"
+done
+if [ -z "$missing" ]; then
+  pass "rail present and wired (title + Settings/Saves/Restart -> UI.* dialogs)"
+else
+  fail "rail wiring missing:$missing"
+fi
+
+# --- 5. Modules bundled ------------------------------------------------------
 # Tweego embeds files from src/css and src/js as style-/script- modules
 # named after the file name (hyphens become underscores in module ids).
-for module in 'style-module-checker' 'script-module-checker_bg'; do
+for module in 'style-module-checker' 'script-module-checker_bg' \
+  'style-module-shell' 'script-module-shell'; do
   if grep -q "$module" "$OUT"; then
     pass "bundled: $module"
   else
@@ -89,7 +119,7 @@ for module in 'style-module-checker' 'script-module-checker_bg'; do
   fi
 done
 
-# --- 5. Title screen + start repoint -----------------------------------------
+# --- 6. Title screen + start repoint -----------------------------------------
 # The title-screen passage (a normal, wiki-processed passage) must be present
 # in the story data, and the story's startnode must be that passage's pid —
 # opening the compiled story must land on the title screen.
