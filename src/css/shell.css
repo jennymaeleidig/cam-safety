@@ -45,27 +45,24 @@ body {
   max-width: none;
 }
 
-/* The frame: rail + card as one centred pair, inset from the viewport so the
-   checkerboard stays visible around it instead of being covered edge to edge. */
+/* The frame: rail pinned to the viewport's left edge, reading card centred in
+   the space beside it. Only vertical inset is applied — the rail sits flush
+   left so the card reads as centred on the page, not as a centred pair. */
 .shell {
   display: grid;
   grid-template-columns: var(--shell-rail-width) minmax(0, 1fr);
   gap: var(--shell-frame-gap);
-  max-width: calc(
-    var(--shell-rail-width) + var(--shell-frame-gap) +
-      var(--shell-column-max-width)
-  );
   min-height: 100vh;
-  margin-inline: auto;
-  padding: var(--shell-frame-padding);
-  /* Centre the pair in the viewport, but never clip the top of a passage
-     longer than the viewport (safe centering). */
+  padding: var(--shell-frame-padding) var(--shell-frame-padding)
+    var(--shell-frame-padding) 0;
+  /* Centre the card vertically, but never clip the top of a passage longer
+     than the viewport (safe centering). */
   align-content: center;
   align-content: safe center;
   box-sizing: border-box;
 }
 
-/* ---- compact rail panel ------------------------------------------------ */
+/* ---- compact rail panel, pinned to the far left ------------------------- */
 
 .rail {
   grid-column: 1;
@@ -78,7 +75,8 @@ body {
   padding: 22px 18px;
   background: var(--shell-rail-bg);
   border: 1px solid var(--shell-rail-border);
-  border-radius: 12px;
+  border-left: 0;
+  border-radius: 0 12px 12px 0;
   box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
   box-sizing: border-box;
 }
