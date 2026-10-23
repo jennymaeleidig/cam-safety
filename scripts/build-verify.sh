@@ -13,6 +13,8 @@
 #   3. No authored #story or #passages element — SugarCube provides #story
 #      and the single #passages; authored duplicates are fatal.
 #   4. The checkerboard stylesheet and background script are bundled.
+#   5. The story starts on the title-screen passage (the title screen is
+#      present in the story data and the startnode points at it).
 
 set -u
 
@@ -32,7 +34,7 @@ if TWEEGO_PATH=.storyformats tweego \
     -m src/css \
     -m src/js \
     -o "$OUT" \
-    src/story.twee; then
+    src; then
   pass "build succeeds"
 else
   fail "build fails (tweego exited non-zero)"
@@ -86,6 +88,25 @@ for module in 'style-module-checker' 'script-module-checker_bg'; do
     fail "missing bundled module: $module"
   fi
 done
+
+# --- 5. Title screen + start repoint -----------------------------------------
+# The title-screen passage (a normal, wiki-processed passage) must be present
+# in the story data, and the story's startnode must be that passage's pid —
+# opening the compiled story must land on the title screen.
+title_screen='Title'
+title_pid=$(grep -o "<tw-passagedata pid=\"[0-9]*\" name=\"${title_screen}\"" "$OUT" \
+  | grep -o 'pid="[0-9]*"' | head -1 | tr -dc '0-9')
+startnode=$(grep -o '<tw-storydata[^>]*' "$OUT" | grep -o 'startnode="[0-9]*"' | head -1 | tr -dc '0-9')
+if [ -n "$title_pid" ]; then
+  pass "title-screen passage present (pid $title_pid)"
+else
+  fail "title-screen passage \"$title_screen\" not found in the story data"
+fi
+if [ -n "$startnode" ] && [ "$startnode" = "$title_pid" ]; then
+  pass "story start is the title screen (startnode $startnode)"
+else
+  fail "story start is not the title screen (startnode ${startnode:-missing}, title pid ${title_pid:-missing})"
+fi
 
 echo
 if [ "$FAILURES" -eq 0 ]; then

@@ -14,7 +14,7 @@
         "src/js",
         "-o",
         "dist/story.html",
-        "src/story.twee"
+        "src"
       ],
       "options": {
         "cwd": "${workspaceFolder}",
@@ -47,7 +47,7 @@
         "src/js",
         "-o",
         "dist/story.html",
-        "src/story.twee"
+        "src"
       ],
       "options": {
         "cwd": "${workspaceFolder}",

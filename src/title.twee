@@ -1,0 +1,8 @@
+:: Title [title] {"position":"100,100"}
+<div class="title-screen">
+	<h1><<print Story.name>></h1>
+	<p>
+		<<link "Start" "Start">><</link>>
+		<<if Save.browser.size > 0>> · <<link "Load">><<run UI.saves()>>><</link>><</if>>
+	</p>
+</div>
