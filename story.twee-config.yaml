@@ -1,0 +1,5 @@
+sugarcube-2:
+  macros:
+    raise_pressure:
+      description: Increments $pressure (default 1, or pass an amount). Side-effect only; renders nothing.
+      container: false

@@ -1,0 +1,21 @@
+# macOS
+.DS_Store
+
+# Build output (regenerable via `./scripts/build-verify.sh` or the
+# "tweego: build" task in .vscode/tasks.json)
+dist/
+
+# Generated ctags index
+/tags
+
+# Throwaway prototype (deleted in ticket 04)
+prototype/
+
+# Agent tooling cache
+.pi/
+
+# The global gitignore excludes .vscode/; this project's Tweego build
+# task lives there and is tracked (scripts/build-verify.sh references it)
+!.vscode/
+.vscode/*
+!.vscode/tasks.json

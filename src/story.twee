@@ -1,0 +1,88 @@
+:: StoryData {"position":"100,700"}
+{
+  "ifid": "794AF9B1-F87E-4792-B4ED-56D95D39EE46",
+  "format": "SugarCube",
+  "format-version": "2",
+  "start": "Start"
+}
+
+:: StoryTitle {"position":"0,700"}
+Cam Safety
+
+:: StoryInit
+/* macros */
+<<script>>
+Macro.add("raise_pressure", {
+	handler : function () {
+		const amt = Number(this.args[0] ?? 1);
+		State.variables.pressure = (State.variables.pressure ?? 0) + amt;
+		jQuery(this.output).wiki(`Pressure is now ${State.variables.pressure}.`);
+	}
+});
+<</script>>
+
+:: Start
+<<set $pressure = 0>>
+[[Progress->Node 1]]
+
+:: Node 1 [checker] {"position":"0,300"}
+Pressure: $pressure
+<<raise_pressure>>
+[[Progress->Node 2]]
+
+:: Node 2 {"position":"100,100"}
+Pressure: $pressure
+<<raise_pressure>>
+[[Progress->Node 3]]
+
+:: Node 3 {"position":"300,0"}
+<<raise_pressure>>
+[[Progress->Node 4]]
+
+:: Node 4 {"position":"500,100"}
+<<raise_pressure>>
+[[Progress->Node 5]]
+
+:: Node 5 {"position":"700,500"}
+<<raise_pressure>>
+[[Progress->Node 6]]
+
+:: Node 6 {"position":"900,600"}
+<<raise_pressure>>
+[[Progress->Node 7]]
+
+:: Node 7 {"position":"1100,500"}
+<<raise_pressure>>
+[[Progress->Node 8]]
+
+:: Node 8 {"position":"1200,300"}
+<<raise_pressure>>
+[[Progress->Node 9]]
+
+:: Node 9 {"position":"1100,100"}
+<<raise_pressure>>
+[[Progress->Node 10]]
+
+:: Node 10 {"position":"900,0"}
+<<raise_pressure>>
+[[Progress->Node 11]]
+
+:: Node 11 {"position":"700,100"}
+<<raise_pressure>>
+[[Progress->Node 12]]
+
+:: Node 12 {"position":"600,300"}
+<<raise_pressure>>
+[[Progress->Node 13]]
+
+:: Node 13 {"position":"500,500"}
+<<raise_pressure>>
+[[Progress->Node 14]]
+
+:: Node 14 {"position":"300,600"}
+<<raise_pressure>>
+[[Progress->Node 15]]
+
+:: Node 15 {"position":"100,500"}
+<<raise_pressure>>
+[[Progress->Node 1]]

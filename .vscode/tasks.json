@@ -1,0 +1,76 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "tweego: build",
+      "type": "shell",
+      "command": "tweego",
+      "args": [
+        "-f",
+        "sugarcube-2",
+        "-m",
+        "src/css",
+        "-m",
+        "src/js",
+        "-o",
+        "dist/story.html",
+        "src/story.twee"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TWEEGO_PATH": ".storyformats"
+        }
+      },
+      "group": {
+        "kind": "build",
+        "isDefault": true
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
+      "label": "tweego: watch",
+      "type": "shell",
+      "command": "tweego",
+      "args": [
+        "-w",
+        "-f",
+        "sugarcube-2",
+        "-m",
+        "src/css",
+        "-m",
+        "src/js",
+        "-o",
+        "dist/story.html",
+        "src/story.twee"
+      ],
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "TWEEGO_PATH": ".storyformats"
+        }
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated"
+      }
+    },
+    {
+      "label": "run: build + open",
+      "dependsOn": ["tweego: build"],
+      "dependsOrder": "sequence",
+      "type": "shell",
+      "command": "open",
+      "args": ["dist/story.html"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": [],
+      "presentation": { "reveal": "silent" }
+    }
+  ]
+}

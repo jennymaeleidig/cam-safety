@@ -1,0 +1,128 @@
+/* Citation: Liam J — Scrolling checkerboard pattern [CC BY 4.0]
+   Source: https://codepen.io/liamj/pen/GRGRgMj
+   Accessed: 2026-10-22
+   Modified by jennymaeleidig on 2026-10-22 — compiled from SCSS to plain
+   CSS; adapted for SugarCube (passage-tag visibility via body.checker,
+   selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for JS
+   overrides, prefers-reduced-motion support added) */
+
+/* ===== Tokimeki-style animated checkerboard background ===== */
+
+html,
+body {
+  background: transparent;
+}
+
+#story {
+  position: relative;
+  z-index: 10;
+}
+
+/* Palette: single hue drives all four greens. JS overrides --tmem-hue. */
+:root {
+  --tmem-hue: 152;
+}
+
+/* Wrapper: fixed + viewport-clipped layer behind the text */
+#tmem-bg {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  z-index: 0;
+  pointer-events: none;
+  display: none;
+}
+
+/* Only visible on passages tagged [checker] — SugarCube adds passage
+   tags to <body> as CSS classes. */
+body.checker #tmem-bg {
+  display: block;
+}
+
+/* Pattern: oversized by one tile so the loop is seamless */
+#tmem-bg .pattern {
+  --size: 144px;
+  --bw: 4px;
+  --dur: 1s;
+
+  --square-color: hsl(var(--tmem-hue) 63% 55%);
+  --bg-color: hsl(var(--tmem-hue) 72% 82%);
+  --border-light: hsl(var(--tmem-hue) 91% 87%);
+  --border-dark: hsl(var(--tmem-hue) 76% 33%);
+
+  width: calc(100% + var(--size));
+  height: calc(100vh + var(--size));
+  position: absolute;
+  top: calc(var(--size) * -1);
+  transform-origin: top;
+  will-change: transform;
+
+  background:
+    conic-gradient(
+        from 180deg at var(--bw) calc(var(--size) / 2),
+        var(--border-dark) 90deg,
+        transparent 90deg
+      )
+      calc(var(--size) / 2 - var(--bw)) var(--size) / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at calc(100% - var(--bw)) 0,
+        var(--border-light) 180deg,
+        transparent 180deg
+      )
+      calc(var(--size) / 2) var(--size) / var(--size) var(--size),
+    conic-gradient(
+        from 180deg at var(--bw) calc(var(--size) / 2),
+        var(--border-light) 90deg,
+        transparent 90deg
+      )
+      calc(var(--bw) * -1) var(--size) / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at calc(100% - var(--bw)) var(--bw),
+        var(--border-dark) 180deg,
+        transparent 180deg
+      )
+      0 var(--size) / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at calc(var(--size) / 2) var(--bw),
+        var(--border-dark) 90deg,
+        transparent 90deg
+      )
+      0 calc(var(--size) / 2) / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at calc(var(--size) / 2) var(--bw),
+        var(--border-light) 90deg,
+        transparent 90deg
+      )
+      0 0 / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at 0 var(--bw),
+        var(--border-dark) 90deg,
+        transparent 90deg
+      )
+      calc(var(--size) / 2) 0 / var(--size) var(--size),
+    conic-gradient(
+        from 0deg at 0 var(--bw),
+        var(--border-light) 90deg,
+        transparent 90deg
+      )
+      0 calc(var(--size) / 2) / var(--size) var(--size),
+    repeating-conic-gradient(var(--square-color) 0% 25%, var(--bg-color) 0% 50%)
+      0 0 / var(--size) var(--size);
+
+  animation: tmem-animate var(--dur) linear infinite;
+}
+
+@keyframes tmem-animate {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(calc(var(--size) * -1), var(--size));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #tmem-bg .pattern {
+    animation: none;
+  }
+}
