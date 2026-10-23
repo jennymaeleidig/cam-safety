@@ -1,24 +1,33 @@
-/* ===== Story shell layout — persistent left rail + centered reading column =====
-   Dimensions and values borrowed verbatim from the layout study's chosen
-   variant D (prototype/layout/css/layout-prototype.css, "CENTERED + SIDEBAR"):
-   rail 230px / #242429 on #3a3a42, rail padding 28px 20px with 26px gap,
-   title 1.4rem/1.2, action list .95rem with 12px gap, column
-   min(66ch, 100%) with padding clamp(28px, 8vh, 72px) 28px 96px, and the
-   base 16px/1.6 system font on #e6e6e6.
+/* ===== Story shell layout — compact rail panel + centered reading card =====
+   Values borrowed from the layout study (prototype/layout/css/layout-
+   prototype.css): the rail is variant C/D's panel (230px, #242429 on
+   #3a3a42, 22px 18px padding, 1.4rem/1.2 title, .95rem actions) but framed
+   like variant A's floating rail (border + 12px radius, vertically centred,
+   never edge-to-edge). The reading column is variant A's page card
+   (#f4f1ea on #222, 12px radius, soft shadow) — the card is what keeps the
+   text legible over the animated checkerboard, which keeps ownership of the
+   page background.
 
    Layout module only — frames whatever renders into #passages, no
-   per-passage markup. The checkerboard (src/css/checker.css) keeps ownership
-   of the page background; this module leaves html/body transparent over it.
+   per-passage markup.
 
    Tunable knobs — a second layout is a value change, not a fork:
-     --shell-rail-width        width of the persistent left rail
-     --shell-column-max-width  max width of the centered reading column
-     --shell-main-padding      padding around the reading column */
+     --shell-rail-width        width of the compact rail panel
+     --shell-column-max-width  max width of the reading card
+     --shell-frame-gap         space between rail and card
+     --shell-frame-padding     inset of the whole frame from the viewport */
 
 :root {
   --shell-rail-width: 230px;
-  --shell-column-max-width: 66ch;
-  --shell-main-padding: clamp(28px, 8vh, 72px) 28px 96px;
+  --shell-column-max-width: 720px;
+  --shell-frame-gap: clamp(24px, 5vw, 64px);
+  --shell-frame-padding: clamp(24px, 6vh, 64px);
+
+  --shell-rail-bg: #242429;
+  --shell-rail-border: #3a3a42;
+  --shell-page-bg: #f4f1ea;
+  --shell-page-ink: #222;
+  --shell-page-border: #d9d4c7;
 }
 
 html,
@@ -29,43 +38,48 @@ body {
 }
 
 /* SugarCube's core display block (which centers #story with a 2.5em margin)
-   is dropped for custom StoryInterfaces; pin the value anyway so the rail can
-   sit at the viewport edge. */
+   is dropped for custom StoryInterfaces; pin the value so the frame can sit
+   where we put it. */
 #story {
   margin: 0;
   max-width: none;
 }
 
+/* The frame: rail + card as one centred pair, inset from the viewport so the
+   checkerboard stays visible around it instead of being covered edge to edge. */
 .shell {
   display: grid;
-  grid-template-columns: var(--shell-rail-width) 1fr;
+  grid-template-columns: var(--shell-rail-width) minmax(0, 1fr);
+  gap: var(--shell-frame-gap);
+  max-width: calc(
+    var(--shell-rail-width) + var(--shell-frame-gap) +
+      var(--shell-column-max-width)
+  );
   min-height: 100vh;
+  margin-inline: auto;
+  padding: var(--shell-frame-padding);
+  /* Centre the pair in the viewport, but never clip the top of a passage
+     longer than the viewport (safe centering). */
+  align-content: center;
+  align-content: safe center;
   box-sizing: border-box;
 }
 
-.shell a {
-  color: #8ad;
-  text-decoration: none;
-}
-
-.shell a:hover {
-  text-decoration: underline;
-}
-
-/* ---- persistent left rail ----------------------------------------------- */
+/* ---- compact rail panel ------------------------------------------------ */
 
 .rail {
   grid-column: 1;
+  align-self: center;
   position: sticky;
-  top: 0;
-  align-self: start;
-  min-height: 100vh;
+  top: var(--shell-frame-padding);
   display: flex;
   flex-direction: column;
-  gap: 26px;
-  padding: 28px 20px;
-  background: #242429;
-  border-right: 1px solid #3a3a42;
+  gap: 22px;
+  padding: 22px 18px;
+  background: var(--shell-rail-bg);
+  border: 1px solid var(--shell-rail-border);
+  border-radius: 12px;
+  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
   box-sizing: border-box;
 }
 
@@ -86,17 +100,44 @@ body {
 .rail-actions a {
   padding: 2px 0;
   color: #e6e6e6;
+  text-decoration: none;
 }
 
-/* ---- centered reading column -------------------------------------------- */
+.rail-actions a:hover {
+  text-decoration: underline;
+}
+
+.rail-icon {
+  display: inline-block;
+  width: 1.3em;
+  opacity: 0.85;
+}
+
+/* ---- centered reading card --------------------------------------------- */
 
 .main {
   grid-column: 2;
+  min-width: 0;
 }
 
 #passages {
-  width: min(var(--shell-column-max-width), 100%);
+  width: 100%;
+  max-width: var(--shell-column-max-width);
   margin: 0 auto;
-  padding: var(--shell-main-padding);
+  padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
+  background: var(--shell-page-bg);
+  color: var(--shell-page-ink);
+  border: 1px solid var(--shell-page-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
   box-sizing: border-box;
+}
+
+/* Dark-on-light links inside the page card. */
+#passages a {
+  color: #334;
+}
+
+#passages a:hover {
+  text-decoration: underline;
 }

@@ -121,6 +121,14 @@ if grep -qF 'window.SugarCube ||' "$OUT" \
 else
   fail "rail actions must dispatch through window.SugarCube"
 fi
+# The reading card's page background is what keeps passage text legible over
+# the animated checkerboard; losing it regresses readability, so pin it.
+if grep -qF 'var(--shell-page-bg)' "$OUT" \
+  && grep -qF 'var(--shell-column-max-width)' "$OUT"; then
+  pass "reading card styled (page background + column max width)"
+else
+  fail "reading card styles missing from the shell stylesheet"
+fi
 
 # --- 5. Modules bundled ------------------------------------------------------
 # Tweego embeds files from src/css and src/js as style-/script- modules

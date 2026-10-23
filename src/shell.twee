@@ -1,9 +1,9 @@
 :: StoryInterface
 <!--
-	Story shell — a persistent left rail beside the centered reading column
-	that holds the story's single #passages element. RAW HTML: SugarCube wraps
-	this content in its own #story element (authoring another one here is fatal)
-	and does not process macros. SugarCube 2.37 requires exactly one #passages
+	Story shell — a compact rail panel beside a centered reading card that
+	holds the story's single #passages element. RAW HTML: SugarCube wraps this
+	content in its own #story element (authoring another one here is fatal) and
+	does not process macros. SugarCube 2.37 requires exactly one #passages
 	inside a custom StoryInterface — this is the story's one and only; every
 	passage renders inside it.
 
@@ -17,11 +17,11 @@
 	<aside class="rail">
 		<h1 class="rail-title">Cam Safety</h1>
 		<nav class="rail-actions">
-			<a href="#" title="Settings" data-shell-action="settings">Settings</a>
-			<a href="#" title="Saves" data-shell-action="saves">Saves</a>
-			<a href="#" title="Restart" data-shell-action="restart">Restart</a>
+			<a href="#" title="Settings" data-shell-action="settings"><span class="rail-icon" aria-hidden="true">&#9881;</span> Settings</a>
+			<a href="#" title="Saves" data-shell-action="saves"><span class="rail-icon" aria-hidden="true">&#128190;</span> Saves</a>
+			<a href="#" title="Restart" data-shell-action="restart"><span class="rail-icon" aria-hidden="true">&#8635;</span> Restart</a>
 			<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
-			<!-- <a href="#" title="Previous passage" data-shell-action="back">‹ Prev</a> <a href="#" title="Next passage" data-shell-action="forward">Next ›</a> -->
+			<!-- <a href="#" title="Previous passage" data-shell-action="back"><span class="rail-icon" aria-hidden="true">&#8249;</span> Back</a> <a href="#" title="Next passage" data-shell-action="forward">Next <span class="rail-icon" aria-hidden="true">&#8250;</span></a> -->
 		</nav>
 	</aside>
 	<div class="main">
