@@ -3,20 +3,25 @@
 	Story shell — a persistent left rail beside the centered reading column
 	that holds the story's single #passages element. RAW HTML: SugarCube wraps
 	this content in its own #story element (authoring another one here is fatal)
-	and does not process macros, so the chrome is plain HTML wired to
-	SugarCube's global UI APIs with onclick. SugarCube 2.37 requires exactly
-	one #passages inside a custom StoryInterface — this is the story's one and
-	only; every passage renders inside it.
+	and does not process macros. SugarCube 2.37 requires exactly one #passages
+	inside a custom StoryInterface — this is the story's one and only; every
+	passage renders inside it.
+
+	Wiring: rail links carry data-shell-action and are handled in shell.js,
+	which resolves SugarCube's API at click time. Inline onclick cannot work
+	here: SugarCube 2.37.3 exposes UI / Engine / State / Story on
+	window.SugarCube only — there are no bare globals to reach from an inline
+	handler.
 -->
 <div class="shell">
 	<aside class="rail">
 		<h1 class="rail-title">Cam Safety</h1>
 		<nav class="rail-actions">
-			<a href="#" title="Settings" onclick="UI.settings();return false;">Settings</a>
-			<a href="#" title="Saves" onclick="UI.saves();return false;">Saves</a>
-			<a href="#" title="Restart" onclick="UI.restart();return false;">Restart</a>
+			<a href="#" title="Settings" data-shell-action="settings">Settings</a>
+			<a href="#" title="Saves" data-shell-action="saves">Saves</a>
+			<a href="#" title="Restart" data-shell-action="restart">Restart</a>
 			<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
-			<!-- <a href="#" title="Previous passage" onclick="Engine.backward();return false;">‹ Prev</a> <a href="#" title="Next passage" onclick="Engine.forward();return false;">Next ›</a> -->
+			<!-- <a href="#" title="Previous passage" data-shell-action="back">‹ Prev</a> <a href="#" title="Next passage" data-shell-action="forward">Next ›</a> -->
 		</nav>
 	</aside>
 	<div class="main">

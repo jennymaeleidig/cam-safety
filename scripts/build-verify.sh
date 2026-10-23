@@ -91,20 +91,35 @@ else
   fi
 fi
 
-# --- 4. Shell rail present and wired to the built-in dialogs ----------------
+# --- 4. Shell rail present and wired to the built-in dialogs --------------
 # The rail is raw HTML in the StoryInterface (macros are not processed
-# there), so the chrome is plain links calling SugarCube's global UI APIs
-# inline: Settings / Saves / Restart each open a built-in dialog.
+# there), so the chrome is plain links carrying data-shell-action.
+# SugarCube 2.37.3 exposes UI / Engine on window.SugarCube only — inline
+# onclick="UI.*" throws "UI is not defined" — so shell.js must dispatch
+# these actions by resolving window.SugarCube at click time.
 missing=""
 for needle in 'class="rail"' 'class="rail-title"' 'class="main"' \
-  'onclick="UI.settings();return false;"' 'onclick="UI.saves();return false;"' \
-  'onclick="UI.restart();return false;"'; do
+  'data-shell-action="settings"' 'data-shell-action="saves"' \
+  'data-shell-action="restart"'; do
   printf '%s\n' "$authored_story" | grep -qF -- "$needle" || missing="$missing $needle"
 done
 if [ -z "$missing" ]; then
-  pass "rail present and wired (title + Settings/Saves/Restart -> UI.* dialogs)"
+  pass "rail present and wired (title + Settings/Saves/Restart actions)"
 else
   fail "rail wiring missing:$missing"
+fi
+# The dispatcher must go through SugarCube's namespace, not bare globals.
+# Match the expression form ('window.SugarCube || ...'), not just the name —
+# the module's comments mention the name too.
+if grep -qF 'window.SugarCube ||' "$OUT" \
+  && grep -qF 'sc.UI.settings()' "$OUT" \
+  && grep -qF 'sc.UI.saves()' "$OUT" \
+  && grep -qF 'sc.UI.restart()' "$OUT" \
+  && grep -qF 'sc.Engine.backward()' "$OUT" \
+  && grep -qF 'sc.Engine.forward()' "$OUT"; then
+  pass "rail actions resolve window.SugarCube (UI.* + Engine.*)"
+else
+  fail "rail actions must dispatch through window.SugarCube"
 fi
 
 # --- 5. Modules bundled ------------------------------------------------------
