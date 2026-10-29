@@ -1,11 +1,27 @@
 :: StoryInterface
 <!--
-	Story shell — a compact rail panel beside a centered reading card that
-	holds the story's single #passages element. RAW HTML: SugarCube wraps this
-	content in its own #story element (authoring another one here is fatal) and
-	does not process macros. SugarCube 2.37 requires exactly one #passages
-	inside a custom StoryInterface — this is the story's one and only; every
-	passage renders inside it.
+	Story chrome — two display modes around the story's single #passages
+	element. RAW HTML: SugarCube wraps this content in its own #story element
+	(authoring another one here is fatal) and does not process macros.
+	SugarCube 2.37 requires exactly one #passages inside a custom
+	StoryInterface — this is the story's one and only; every passage renders
+	inside it.
+
+	Shell mode (default; the title and any non-checker passage): the compact
+	rail panel beside a centered reading card (shell.css).
+
+	Stage mode ([checker] passages that are not [title]; gated on the passage
+	tag classes SugarCube puts on <body>): the letterboxed .stage frame
+	(stage.css), aspect-locked to the 2840:1700 design canvas. Five slots: the
+	background — #tmem-bg, the existing animated checkerboard, injected into
+	<body> by checker-bg.js and letterboxed into the same box by checker.css;
+	the three content slots below, empty until the content macros fill them;
+	and the menu — the same .rail, repositioned by stage.css into the stage's
+	menu slot.
+
+	The rail is a sibling of .shell rather than a child, so one element serves
+	as the shell's rail and the stage's menu. It is position: fixed in both
+	modes, and stage.css repositions it.
 
 	Wiring: rail links carry data-shell-action and are handled in shell.js,
 	which resolves SugarCube's API at click time. Inline onclick cannot work
@@ -14,17 +30,22 @@
 	handler.
 -->
 <div class="shell">
-	<aside class="rail">
-		<h1 class="rail-title">Cam Safety</h1>
-		<nav class="rail-actions">
-			<a href="#" title="Settings" data-shell-action="settings"><span class="rail-icon" aria-hidden="true">&#9881;</span> Settings</a>
-			<a href="#" title="Saves" data-shell-action="saves"><span class="rail-icon" aria-hidden="true">&#128190;</span> Saves</a>
-			<a href="#" title="Restart" data-shell-action="restart"><span class="rail-icon" aria-hidden="true">&#8635;</span> Restart</a>
-			<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
-			<!-- <a href="#" title="Previous passage" data-shell-action="back"><span class="rail-icon" aria-hidden="true">&#8249;</span> Back</a> <a href="#" title="Next passage" data-shell-action="forward">Next <span class="rail-icon" aria-hidden="true">&#8250;</span></a> -->
-		</nav>
-	</aside>
 	<div class="main">
 		<div id="passages"></div>
 	</div>
+</div>
+<aside class="rail">
+	<h1 class="rail-title">Cam Safety</h1>
+	<nav class="rail-actions">
+		<a href="#" title="Settings" data-shell-action="settings"><span class="rail-icon" aria-hidden="true">&#9881;</span> Settings</a>
+		<a href="#" title="Saves" data-shell-action="saves"><span class="rail-icon" aria-hidden="true">&#128190;</span> Saves</a>
+		<a href="#" title="Restart" data-shell-action="restart"><span class="rail-icon" aria-hidden="true">&#8635;</span> Restart</a>
+		<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
+		<!-- <a href="#" title="Previous passage" data-shell-action="back"><span class="rail-icon" aria-hidden="true">&#8249;</span> Back</a> <a href="#" title="Next passage" data-shell-action="forward">Next <span class="rail-icon" aria-hidden="true">&#8250;</span></a> -->
+	</nav>
+</aside>
+<div class="stage">
+	<div class="stage-slot stage-cam" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
+	<div class="stage-slot stage-bubble" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
+	<div class="stage-slot stage-reply" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
 </div>

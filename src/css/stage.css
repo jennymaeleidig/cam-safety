@@ -1,0 +1,179 @@
+/* ===== Stage — letterboxed visual-novel frame for [checker] passages =====
+   Shown only while the current passage is tagged [checker] and not [title]
+   (gating is on the passage tag classes SugarCube puts on <body>); the title
+   keeps the shell, so the story has a distinct start.
+
+   The frame is fixed to the viewport, aspect-locked to the 2840:1700 design
+   canvas, and letterboxed — centred at its intrinsic ratio, never stretched
+   and never clipped. --stage-w is the smaller of the viewport width and the
+   height-derived width, so the frame always fits on one axis and letterboxes
+   on the other. The frame's height and --stage-h are the same expression, so
+   the background (checker.css) and the menu (the repositioned .rail, below)
+   share one box with the frame.
+
+   The five slots and what fills each:
+     background     #tmem-bg — the existing animated checkerboard; one layer,
+                     reused, not a second background
+     cam            .stage-cam — Cam's portrait               (per passage)
+     speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
+     player bar     .stage-reply — the player's reply bar      (per passage)
+     menu           .rail — the existing rail (settings / saves / restart),
+                     repositioned into the menu slot; chrome, shared with the
+                     shell
+
+   Slot geometry is data: each slot sits at a fraction of the stage, held in
+   the --slot-* knobs below. The values are the wireframe's starting geometry
+   for pressure level 0, meant to be hand-tuned. A second layout is a value
+   change, not a fork: a per-level override lands under a
+   body[data-pressure-level="N"] selector and changes values only. The level
+   itself is applied before the passage renders (pressure-level.js), so the
+   stage is already in the right layout when content arrives.
+
+   The stage is one fixed canvas, so its chrome is drawn in design pixels and
+   scaled with --stage-unit — the menu keeps its proportions at any viewport,
+   shrinking with the frame rather than reflowing out of its slot.
+
+   Debug affordance: set a data-stage-debug attribute on <body> to outline the
+   empty slots. Off by default, so the shipped stage carries no debug chrome. */
+
+:root {
+  /* Design canvas: 2840 x 1700, letterboxed to the viewport. */
+  --stage-w: min(100vw, calc(100vh * 2840 / 1700));
+  --stage-h: calc(var(--stage-w) * 1700 / 2840);
+
+  /* One design pixel: the stage is a fixed canvas, so chrome scales with it. */
+  --stage-unit: calc(var(--stage-w) / 2840);
+
+  /* Level 0 slot geometry — fractions (0–1) of the stage. */
+  --slot-cam-left: 0.757;
+  --slot-cam-top: 0.676;
+  --slot-cam-width: 0.243;
+  --slot-cam-height: 0.324;
+
+  --slot-bubble-left: 0.243;
+  --slot-bubble-top: 0.175;
+  --slot-bubble-width: 0.514;
+  --slot-bubble-height: 0.509;
+
+  --slot-reply-left: 0.296;
+  --slot-reply-top: 0.766;
+  --slot-reply-width: 0.41;
+  --slot-reply-height: 0.144;
+
+  --slot-menu-left: 0;
+  --slot-menu-top: 0.258;
+  --slot-menu-width: 0.096;
+  --slot-menu-height: 0.516;
+}
+
+/* ---- the frame ---------------------------------------------------------- */
+
+.stage {
+  display: none;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  overflow: hidden;
+  z-index: 0;
+  box-sizing: border-box;
+  /* The frame is a box, not a click target: it must never swallow clicks
+     aimed at the menu or at a slot's own content. */
+  pointer-events: none;
+}
+
+/* Stage mode: the passage is tagged [checker] and not [title]. */
+body.checker:not(.title) .stage {
+  display: block;
+}
+
+/* Shell mode: the rail + reading card shows outside stage mode only. */
+body.checker:not(.title) .shell {
+  display: none;
+}
+
+/* The letterbox bars. */
+body.checker:not(.title) {
+  background: #111;
+}
+
+/* ---- the content slots (empty until the content macros fill them) ------- */
+
+.stage-slot {
+  position: absolute;
+  box-sizing: border-box;
+  pointer-events: auto;
+}
+
+.stage-cam {
+  left: calc(var(--slot-cam-left) * 100%);
+  top: calc(var(--slot-cam-top) * 100%);
+  width: calc(var(--slot-cam-width) * 100%);
+  height: calc(var(--slot-cam-height) * 100%);
+}
+
+.stage-bubble {
+  left: calc(var(--slot-bubble-left) * 100%);
+  top: calc(var(--slot-bubble-top) * 100%);
+  width: calc(var(--slot-bubble-width) * 100%);
+  height: calc(var(--slot-bubble-height) * 100%);
+}
+
+.stage-reply {
+  left: calc(var(--slot-reply-left) * 100%);
+  top: calc(var(--slot-reply-top) * 100%);
+  width: calc(var(--slot-reply-width) * 100%);
+  height: calc(var(--slot-reply-height) * 100%);
+}
+
+/* Debug only: outline the slots that are still empty. :empty stops matching
+   the moment a slot holds content, so this never hides real content. */
+body[data-stage-debug] .stage-slot:empty {
+  border: 1px dashed rgba(255, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+body[data-stage-debug] .stage-slot:empty::before {
+  content: attr(data-slot-label);
+  position: absolute;
+  top: calc(var(--stage-unit) * 24);
+  left: calc(var(--stage-unit) * 24);
+  font:
+    600 calc(var(--stage-unit) * 20) / 1.2 -apple-system,
+    system-ui,
+    sans-serif;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+/* ---- the menu slot: the reused rail, repositioned ----------------------- */
+
+/* Offsets are measured from the stage box, so they add the letterbox bar
+   ((viewport - stage) / 2) to the slot's own fraction of the stage. */
+body.checker:not(.title) .rail {
+  top: calc(
+    (100vh - var(--stage-h)) / 2 + var(--stage-h) * var(--slot-menu-top)
+  );
+  left: calc(
+    (100vw - var(--stage-w)) / 2 + var(--stage-w) * var(--slot-menu-left)
+  );
+  width: calc(var(--stage-w) * var(--slot-menu-width));
+  height: calc(var(--stage-h) * var(--slot-menu-height));
+  max-height: calc(var(--stage-h) * var(--slot-menu-height));
+  transform: none;
+  justify-content: center;
+  z-index: 1;
+  padding: calc(var(--stage-unit) * 22) calc(var(--stage-unit) * 18);
+  gap: calc(var(--stage-unit) * 22);
+}
+
+body.checker:not(.title) .rail-title {
+  font-size: calc(var(--stage-unit) * 32);
+}
+
+body.checker:not(.title) .rail-actions {
+  gap: calc(var(--stage-unit) * 14);
+  font-size: calc(var(--stage-unit) * 26);
+}

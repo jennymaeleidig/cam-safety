@@ -1,6 +1,22 @@
+/* Citation: manonamora — Simple Book Template (SugarCube UI Template, Twine
+   Templates) [CC-BY-4.0]
+   Source: https://github.com/manonamora/Twine-Template/tree/main/SugarCube/UI%20Templates/Simple%20Book/Source%20Code
+   License: https://creativecommons.org/licenses/by/4.0/ — free to use and
+   editable under CC-BY, which requires a credit somewhere in the project
+   (author's note: https://manonamora.itch.io/twine-sugarcube-templates)
+   Version: commit 3f8fa40 (2026-01-24)
+   Accessed: 2026-10-23
+   This file is original, but its LAYOUT is adapted from that template: the
+   framed, centred reading page beside a left settings rail follows the Simple
+   Book template's structure (side menus around a centred #cover/#passages
+   page). No template CSS is shipped verbatim — only the layout idea is
+   borrowed, then explored in the throwaway layout study and re-laid for
+   flock-cam. */
+
 /* ===== Story shell layout — compact rail panel + centered reading card =====
    Values borrowed from the layout study (prototype/layout/css/layout-
-   prototype.css): the rail is variant C/D's panel (230px, #242429 on
+   prototype.css; Variant A "Book" is faithful to the Simple Book template, see
+   citation above): the rail is variant C/D's panel (230px, #242429 on
    #3a3a42, 22px 18px padding, 1.4rem/1.2 title, .95rem actions) but framed
    like variant A's floating rail (border + 12px radius, vertically centred,
    never edge-to-edge). The reading column is variant A's page card
@@ -47,14 +63,17 @@ body {
 
 /* The frame: rail pinned to the viewport's left edge, reading card centred in
    the space beside it. Only vertical inset is applied — the rail sits flush
-   left so the card reads as centred on the page, not as a centred pair. */
+   left so the card reads as centred on the page, not as a centred pair. The
+   left padding reserves the rail's column: the rail is position: fixed and a
+   sibling of .shell, so it can persist where stage.css repositions it for the
+   stage's menu slot. */
 .shell {
   display: grid;
-  grid-template-columns: var(--shell-rail-width) minmax(0, 1fr);
-  gap: var(--shell-frame-gap);
+  grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
   padding: var(--shell-frame-padding) var(--shell-frame-padding)
-    var(--shell-frame-padding) 0;
+    var(--shell-frame-padding)
+    calc(var(--shell-rail-width) + var(--shell-frame-gap));
   /* Centre the card vertically, but never clip the top of a passage longer
      than the viewport (safe centering). */
   align-content: center;
@@ -64,11 +83,18 @@ body {
 
 /* ---- compact rail panel, pinned to the far left ------------------------- */
 
+/* Fixed, not sticky: this one element is the shell's rail and the stage's
+   menu, so it has to survive .shell being hidden. Bounded to the viewport so
+   a short window scrolls it instead of clipping it off both edges. */
 .rail {
-  grid-column: 1;
-  align-self: center;
-  position: sticky;
-  top: var(--shell-frame-padding);
+  position: fixed;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1; /* above .stage — see stage.css */
+  width: var(--shell-rail-width);
+  max-height: calc(100vh - 2 * var(--shell-frame-padding));
+  overflow: auto;
   display: flex;
   flex-direction: column;
   gap: 22px;
@@ -114,7 +140,6 @@ body {
 /* ---- centered reading card --------------------------------------------- */
 
 .main {
-  grid-column: 2;
   min-width: 0;
 }
 

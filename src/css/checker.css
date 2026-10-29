@@ -39,6 +39,16 @@ body.checker #tmem-bg {
   display: block;
 }
 
+/* Stage mode ([checker] and not [title]): the same single layer letterboxes
+   into the stage box — the same --stage-w/--stage-h pair the .stage frame
+   uses (stage.css) — instead of covering the whole viewport. inset: 0 plus
+   margin: auto centres the fixed box on both axes. */
+body.checker:not(.title) #tmem-bg {
+  width: var(--stage-w);
+  height: var(--stage-h);
+  margin: auto;
+}
+
 /* Pattern: oversized by one tile so the loop is seamless */
 #tmem-bg .pattern {
   --size: 144px;
@@ -51,7 +61,9 @@ body.checker #tmem-bg {
   --border-dark: hsl(var(--tmem-hue) 76% 33%);
 
   width: calc(100% + var(--size));
-  height: calc(100vh + var(--size));
+  /* Of #tmem-bg, not the viewport: the whole viewport in shell mode, the
+     letterboxed stage box in stage mode. */
+  height: calc(100% + var(--size));
   position: absolute;
   top: calc(var(--size) * -1);
   transform-origin: top;

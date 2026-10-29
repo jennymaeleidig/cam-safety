@@ -11,6 +11,10 @@
         passage tagged [title]  ->  rail title HIDDEN (that screen shows the
                                     big title, so the rail's would duplicate it)
         any other passage       ->  rail title SHOWN
+      The current passage comes from the :passageinit event (ev.passage): at
+      that moment State.passage still names the previous passage, so reading
+      it there would toggle the rail title one passage behind.
+
       Mirrors the checker-bg.js bootstrap pattern. */
 (function () {
   "use strict";
@@ -21,21 +25,22 @@
 
   /* ---- rail title visibility ------------------------------------------- */
 
-  function isTitlePassage() {
-    var sc = api();
-    if (!sc || !sc.State || !sc.Story) {
-      return false;
-    }
-    var passage = sc.Story.get(sc.State.passage);
+  function isTitlePassage(passage) {
     var tags = passage && passage.tags;
     return Array.isArray(tags) && tags.indexOf("title") !== -1;
   }
 
-  function toggleRailTitle() {
+  function toggleRailTitle(passage) {
     var railTitle = document.querySelector(".rail-title");
     if (railTitle) {
-      railTitle.style.display = isTitlePassage() ? "none" : "";
+      railTitle.style.display = isTitlePassage(passage) ? "none" : "";
     }
+  }
+
+  function onPassageInit(ev) {
+    var passage =
+      (ev && ev.passage) || (ev && ev.detail && ev.detail.passage) || null;
+    toggleRailTitle(passage);
   }
 
   /* ---- rail actions ---------------------------------------------------- */
@@ -81,7 +86,7 @@
   /* ---- bootstrap ------------------------------------------------------- */
 
   function apply() {
-    toggleRailTitle();
+    toggleRailTitle(null);
 
     document.addEventListener("click", onRailClick);
 
@@ -89,7 +94,7 @@
     if (window.jQuery) {
       jQuery(document)
         .off(":passageinit.shelltitle")
-        .on(":passageinit.shelltitle", toggleRailTitle);
+        .on(":passageinit.shelltitle", onPassageInit);
     }
   }
 

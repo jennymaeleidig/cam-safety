@@ -21,68 +21,65 @@ Macro.add("raise_pressure", {
 });
 <</script>>
 
-:: Start
+:: Start [checker]
 <<set $pressure = 0>>
 [[Progress->Node 1]]
 
 :: Node 1 [checker] {"position":"0,300"}
 Pressure: $pressure
-<<raise_pressure>>
 [[Progress->Node 2]]
 
-:: Node 2 {"position":"100,100"}
-Pressure: $pressure
-<<raise_pressure>>
+:: Node 2 [checker] {"position":"100,100"}
 [[Progress->Node 3]]
 
-:: Node 3 {"position":"300,0"}
-<<raise_pressure>>
+:: Node 3 [checker] {"position":"300,0"}
 [[Progress->Node 4]]
 
-:: Node 4 {"position":"500,100"}
-<<raise_pressure>>
+:: Node 4 [checker] {"position":"500,100"}
 [[Progress->Node 5]]
 
-:: Node 5 {"position":"700,500"}
-<<raise_pressure>>
+:: Node 5 [checker] {"position":"700,500"}
 [[Progress->Node 6]]
 
-:: Node 6 {"position":"900,600"}
-<<raise_pressure>>
+:: Node 6 [checker] {"position":"900,600"}
 [[Progress->Node 7]]
 
-:: Node 7 {"position":"1100,500"}
-<<raise_pressure>>
+:: Node 7 [checker] {"position":"1100,500"}
 [[Progress->Node 8]]
 
-:: Node 8 {"position":"1200,300"}
-<<raise_pressure>>
+:: Node 8 [checker] {"position":"1200,300"}
 [[Progress->Node 9]]
 
-:: Node 9 {"position":"1100,100"}
-<<raise_pressure>>
+:: Node 9 [checker] {"position":"1100,100"}
 [[Progress->Node 10]]
 
-:: Node 10 {"position":"900,0"}
-<<raise_pressure>>
+:: Node 10 [checker] {"position":"900,0"}
 [[Progress->Node 11]]
 
-:: Node 11 {"position":"700,100"}
-<<raise_pressure>>
+:: Node 11 [checker] {"position":"700,100"}
 [[Progress->Node 12]]
 
-:: Node 12 {"position":"600,300"}
-<<raise_pressure>>
+:: Node 12 [checker] {"position":"600,300"}
 [[Progress->Node 13]]
 
-:: Node 13 {"position":"500,500"}
-<<raise_pressure>>
+:: Node 13 [checker] {"position":"500,500"}
 [[Progress->Node 14]]
 
-:: Node 14 {"position":"300,600"}
-<<raise_pressure>>
+:: Node 14 [checker] {"position":"300,600"}
 [[Progress->Node 15]]
 
-:: Node 15 {"position":"100,500"}
+:: Node 15 [checker] {"position":"100,500"}
 <<raise_pressure>>
 [[Progress->Node 1]]
+
+:: Level 0 [checker scratch] {"position":"0,750"}
+<<set $pressure = 0>>
+
+:: Level 1 [checker scratch] {"position":"100,750"}
+<<set $pressure = 1>>
+
+:: Level 2 [checker scratch] {"position":"200,750"}
+<<set $pressure = 2>>
+
+:: Level 3 [checker scratch] {"position":"300,750"}
+<<set $pressure = 3>>
