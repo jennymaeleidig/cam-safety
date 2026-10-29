@@ -12,13 +12,75 @@ Cam Safety
 :: StoryInit
 /* macros */
 <<script>>
-Macro.add("raise_pressure", {
-	handler : function () {
-		const amt = Number(this.args[0] ?? 1);
-		State.variables.pressure = (State.variables.pressure ?? 0) + amt;
-		jQuery(this.output).wiki(`Pressure is now ${State.variables.pressure}.`);
+(function () {
+	/* Content macros: each fills one stage slot (shell.twee) and renders
+	   nothing into #passages, so the stage owns all visible content for
+	   [checker] passages. stage-slots.js empties the slots on every passage
+	   change, before the passage renders; the macros fill them during render.
+	   Filling replaces a slot's content, so a repeated macro never stacks.
+
+	   Authoring:
+	     <<cam_line "Cam's line">>
+	     <<player_line "The player's reply">>
+	     <<portrait "path/to/cam.png" "alt text (optional)">>
+	   The lines are wiki-processed, so $variables, markup and [[links]] work
+	   in them; a link is how a [checker] passage offers its next step, since
+	   its own #passages content is hidden in stage mode. */
+	function stageSlot(name) {
+		return document.querySelector('.stage-slot[data-stage-slot="' + name + '"]');
 	}
-});
+
+	function fillSlot(name, render) {
+		var slot = stageSlot(name);
+		if (!slot) {
+			return;
+		}
+		slot.textContent = "";
+		render(slot);
+	}
+
+	function fillLine(name, line) {
+		fillSlot(name, function (slot) {
+			jQuery(slot).wiki(line == null ? "" : String(line));
+		});
+	}
+
+	Macro.add("raise_pressure", {
+		handler : function () {
+			const amt = Number(this.args[0] ?? 1);
+			State.variables.pressure = (State.variables.pressure ?? 0) + amt;
+		}
+	});
+
+	Macro.add("cam_line", {
+		handler : function () {
+			fillLine("bubble", this.args[0]);
+		}
+	});
+
+	Macro.add("player_line", {
+		handler : function () {
+			fillLine("reply", this.args[0]);
+		}
+	});
+
+	Macro.add("portrait", {
+		handler : function () {
+			const src = this.args[0];
+			const alt = this.args[1] ?? "Cam";
+			fillSlot("cam", function (slot) {
+				if (src == null || src === "") {
+					return;
+				}
+				const img = document.createElement("img");
+				img.className = "stage-portrait";
+				img.setAttribute("src", String(src));
+				img.setAttribute("alt", String(alt));
+				slot.appendChild(img);
+			});
+		}
+	});
+})();
 <</script>>
 
 :: Start [checker]
@@ -83,3 +145,18 @@ Pressure: $pressure
 
 :: Level 3 [checker scratch] {"position":"300,750"}
 <<set $pressure = 3>>
+
+:: Stage content [checker scratch] {"position":"400,750"}
+/* All three content macros: bubble, reply bar and portrait slots filled.
+   The next-step link is rendered by <<player_line>> into the reply bar,
+   because a [checker] passage's own #passages content is hidden in stage
+   mode; reach this passage from the browser console:
+     SugarCube.Engine.play("Stage content")
+   The portrait is an inline SVG stand-in — Cam artwork is not built yet. */
+<<cam_line "You again. At this hour.">>
+<<player_line "The flock needed a night watch. [[Next (no macros)->Stage content empty]]">>
+<<portrait "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 320'%3E%3Crect width='240' height='320' fill='%232b3a34'/%3E%3Ccircle cx='120' cy='110' r='58' fill='%23dbe5d8'/%3E%3Cpath d='M30 320v-92a90 90 0 0 1 180 0v92z' fill='%23dbe5d8'/%3E%3C/svg%3E" "Cam (placeholder portrait)">>
+
+:: Stage content empty [checker scratch] {"position":"500,750"}
+/* No content macros: all three slots must be empty — nothing left over from
+   the previous passage. Use the browser's Back button to return. */

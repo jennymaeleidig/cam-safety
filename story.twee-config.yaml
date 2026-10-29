@@ -3,3 +3,12 @@ sugarcube-2:
     raise_pressure:
       description: Increments $pressure (default 1, or pass an amount). Side-effect only; renders nothing.
       container: false
+    cam_line:
+      description: Fills the stage's speech-bubble slot with Cam's line. Renders nothing into the passage. Takes a quoted line, wiki-processed.
+      container: false
+    player_line:
+      description: Fills the stage's reply-bar slot with the player's line. Renders nothing into the passage. Takes a quoted line, wiki-processed so links and choices work.
+      container: false
+    portrait:
+      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text.
+      container: false
