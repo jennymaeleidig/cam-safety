@@ -16,18 +16,28 @@
                      reused, not a second background
      cam            .stage-cam — Cam's portrait               (per passage)
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
+                     plus its pointer tail, aimed per level
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
                      shell
 
-   Slot geometry is data: each slot sits at a fraction of the stage, held in
-   the --slot-* knobs below. The values are the wireframe's starting geometry
-   for pressure level 0, meant to be hand-tuned. A second layout is a value
-   change, not a fork: a per-level override lands under a
-   body[data-pressure-level="N"] selector and changes values only. The level
-   itself is applied before the passage renders (pressure-level.js), so the
-   stage is already in the right layout when content arrives.
+   Slot geometry is data: each pressure level is one block below, under a
+   body[data-pressure-level="N"] selector, holding the same small set of
+   values — the four slot boxes, the menu's visibility, and the tail's aim.
+   Level 0 doubles as the fallback on :root for the moment before
+   pressure-level.js sets the attribute (and if it ever doesn't). A new or
+   re-tuned level is a value change, not a fork: no markup or structure
+   changes. The level itself is applied before the passage renders
+   (pressure-level.js), so the stage is already in the right layout when
+   content arrives. Changing the level changes these values with no
+   transition, so the switch is instant.
+
+   For the cam slot the box's width:height ratio is the portrait's on-screen
+   framing at that level: the portrait image fills its box (object-fit:
+   cover), so wide → tall is the per-level values themselves. Width stays
+   ~25% of the stage, so the "closing in" reads as the aspect change plus the
+   level-3 height jump.
 
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
@@ -44,26 +54,146 @@
   /* One design pixel: the stage is a fixed canvas, so chrome scales with it. */
   --stage-unit: calc(var(--stage-w) / 2840);
 
-  /* Level 0 slot geometry — fractions (0–1) of the stage. */
+  /* Tail box size; roughly half of it pokes out past the bubble's edge. */
+  --tail-size: calc(var(--stage-unit) * 140);
+
+  /* The bubble's card colour, shared with the tail so the pointer reads as
+     part of the same surface. */
+  --stage-bubble-bg: rgba(255, 255, 255, 0.94);
+}
+
+/* ---- per-level layout ---------------------------------------------------
+   Fractions (0–1) of the stage. Level 0 also applies on :root so the stage
+   has a complete layout before the level attribute exists.
+
+   Tail knobs: --tail-anchor-x / --tail-anchor-y place the pointer's centre
+   along the bubble's edge (0 = left/top, 1 = right/bottom, 0.5 = middle);
+   --tail-rotate aims it at Cam (the triangle points down at 0deg). */
+
+:root,
+body[data-pressure-level="0"] {
+  /* cam — wide and distant, bottom-right (690 × 551 design px) */
   --slot-cam-left: 0.757;
   --slot-cam-top: 0.676;
   --slot-cam-width: 0.243;
   --slot-cam-height: 0.324;
 
+  /* bubble — left, tail points bottom-right */
   --slot-bubble-left: 0.243;
   --slot-bubble-top: 0.175;
   --slot-bubble-width: 0.514;
   --slot-bubble-height: 0.509;
 
+  /* reply */
   --slot-reply-left: 0.296;
   --slot-reply-top: 0.766;
   --slot-reply-width: 0.41;
   --slot-reply-height: 0.144;
 
+  /* menu — visible */
   --slot-menu-left: 0;
   --slot-menu-top: 0.258;
   --slot-menu-width: 0.096;
   --slot-menu-height: 0.516;
+  --slot-menu-display: flex;
+
+  --tail-anchor-x: 1;
+  --tail-anchor-y: 1;
+  --tail-rotate: -45deg;
+}
+
+body[data-pressure-level="1"] {
+  /* cam — bottom-left (719 × 551 design px) */
+  --slot-cam-left: 0.146;
+  --slot-cam-top: 0.676;
+  --slot-cam-width: 0.253;
+  --slot-cam-height: 0.324;
+
+  /* bubble — right of Cam, tail points bottom-left */
+  --slot-bubble-left: 0.441;
+  --slot-bubble-top: 0.175;
+  --slot-bubble-width: 0.514;
+  --slot-bubble-height: 0.509;
+
+  /* reply */
+  --slot-reply-left: 0.493;
+  --slot-reply-top: 0.766;
+  --slot-reply-width: 0.41;
+  --slot-reply-height: 0.144;
+
+  /* menu — visible */
+  --slot-menu-left: 0;
+  --slot-menu-top: 0.258;
+  --slot-menu-width: 0.096;
+  --slot-menu-height: 0.516;
+  --slot-menu-display: flex;
+
+  --tail-anchor-x: 0;
+  --tail-anchor-y: 1;
+  --tail-rotate: 45deg;
+}
+
+body[data-pressure-level="2"] {
+  /* cam — upper-left (719 × 551 design px) */
+  --slot-cam-left: 0.037;
+  --slot-cam-top: 0.054;
+  --slot-cam-width: 0.253;
+  --slot-cam-height: 0.324;
+
+  /* bubble — tail points top-left */
+  --slot-bubble-left: 0.441;
+  --slot-bubble-top: 0.175;
+  --slot-bubble-width: 0.514;
+  --slot-bubble-height: 0.509;
+
+  /* reply */
+  --slot-reply-left: 0.297;
+  --slot-reply-top: 0.773;
+  --slot-reply-width: 0.41;
+  --slot-reply-height: 0.144;
+
+  /* menu — visible */
+  --slot-menu-left: 0;
+  --slot-menu-top: 0.264;
+  --slot-menu-width: 0.096;
+  --slot-menu-height: 0.516;
+  --slot-menu-display: flex;
+
+  --tail-anchor-x: 0;
+  --tail-anchor-y: 0;
+  --tail-rotate: 135deg;
+}
+
+body[data-pressure-level="3"] {
+  /* cam — tall close-in, left (727 × 894 design px) */
+  --slot-cam-left: 0;
+  --slot-cam-top: 0.254;
+  --slot-cam-width: 0.256;
+  --slot-cam-height: 0.526;
+
+  /* bubble — tail points left at Cam */
+  --slot-bubble-left: 0.4;
+  --slot-bubble-top: 0.171;
+  --slot-bubble-width: 0.514;
+  --slot-bubble-height: 0.509;
+
+  /* reply */
+  --slot-reply-left: 0.297;
+  --slot-reply-top: 0.773;
+  --slot-reply-width: 0.41;
+  --slot-reply-height: 0.144;
+
+  /* menu — hidden: no easy escape at maximum pressure. Geometry matches
+     level 2 so re-showing it is a one-value change. */
+  --slot-menu-left: 0;
+  --slot-menu-top: 0.264;
+  --slot-menu-width: 0.096;
+  --slot-menu-height: 0.516;
+  --slot-menu-display: none;
+
+  --tail-anchor-x: 0;
+  --tail-anchor-y: 0.5;
+  --tail-rotate: 90deg;
 }
 
 /* ---- the frame ---------------------------------------------------------- */
@@ -118,6 +248,8 @@ body.checker:not(.title) {
   top: calc(var(--slot-bubble-top) * 100%);
   width: calc(var(--slot-bubble-width) * 100%);
   height: calc(var(--slot-bubble-height) * 100%);
+  /* Above the tail (z-index 1) so the tail emerges from under the card. */
+  z-index: 2;
 }
 
 .stage-reply {
@@ -133,13 +265,15 @@ body.checker:not(.title) {
    rather than an empty card. The macros fill these slots during render;
    stage-slots.js empties them on every passage change. */
 
-/* Cam's portrait: the image fits its slot undistorted. Its framing per
-   pressure level is stage geometry, not content styling. */
+/* Cam's portrait: the image fills its slot, so the slot box — whose
+   width/height are per-level values above — is the framing window. That is
+   what makes the wide → tall framing change visible rather than letterboxed
+   whitespace. */
 .stage-portrait {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 /* Cam's speech-bubble and the player's reply bar share one reading layout:
@@ -159,7 +293,7 @@ body.checker:not(.title) {
 /* Cam's speech-bubble: a large, high-contrast card of prose — the stage's
    main reading surface. */
 .stage-bubble:not(:empty) {
-  background: rgba(255, 255, 255, 0.94);
+  background: var(--stage-bubble-bg);
   color: #1c1c22;
   box-shadow: 0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
     rgba(0, 0, 0, 0.35);
@@ -189,6 +323,44 @@ body.checker:not(.title) {
   color: inherit;
 }
 
+/* ---- Cam's speech-bubble tail ------------------------------------------
+   A pointer on the bubble's edge, aimed at Cam by the per-level anchor and
+   rotation above. It is painted above the cam slot (so the level-0 corner
+   tail is not hidden by the portrait) and below the bubble (z-index 2),
+   which covers the tail's base so only the tip shows. Gated on the bubble
+   actually having content, so an omitted <<cam_line>> leaves no orphan
+   pointer. */
+.stage::after {
+  content: "";
+  display: none;
+}
+
+body.checker:not(.title) .stage:has(.stage-bubble:not(:empty))::after {
+  display: block;
+  position: absolute;
+  z-index: 1;
+  left: calc(
+    (
+        var(--slot-bubble-left) + var(--slot-bubble-width) *
+          var(--tail-anchor-x)
+      ) *
+      100%
+  );
+  top: calc(
+    (
+        var(--slot-bubble-top) + var(--slot-bubble-height) *
+          var(--tail-anchor-y)
+      ) *
+      100%
+  );
+  width: var(--tail-size);
+  height: var(--tail-size);
+  background: var(--stage-bubble-bg);
+  clip-path: polygon(0 0, 100% 0, 50% 100%);
+  transform: translate(-50%, -50%) rotate(var(--tail-rotate));
+  pointer-events: none;
+}
+
 /* Debug only: outline the slots that are still empty. :empty stops matching
    the moment a slot holds content, so this never hides real content. */
 body[data-stage-debug] .stage-slot:empty {
@@ -213,8 +385,10 @@ body[data-stage-debug] .stage-slot:empty::before {
 /* ---- the menu slot: the reused rail, repositioned ----------------------- */
 
 /* Offsets are measured from the stage box, so they add the letterbox bar
-   ((viewport - stage) / 2) to the slot's own fraction of the stage. */
+   ((viewport - stage) / 2) to the slot's own fraction of the stage. The
+   menu's visibility is a per-level value too: hidden at level 3. */
 body.checker:not(.title) .rail {
+  display: var(--slot-menu-display);
   top: calc(
     (100vh - var(--stage-h)) / 2 + var(--stage-h) * var(--slot-menu-top)
   );

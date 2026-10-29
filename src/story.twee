@@ -83,6 +83,10 @@ Cam Safety
 })();
 <</script>>
 
+/* Scratch-only placeholder portrait until Cam artwork exists; set once
+   rather than pasted into every scratch passage. */
+<<set $camPortrait = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 320'%3E%3Crect width='240' height='320' fill='%232b3a34'/%3E%3Ccircle cx='120' cy='110' r='58' fill='%23dbe5d8'/%3E%3Cpath d='M30 320v-92a90 90 0 0 1 180 0v92z' fill='%23dbe5d8'/%3E%3C/svg%3E">>
+
 :: Start [checker]
 <<set $pressure = 0>>
 [[Progress->Node 1]]
@@ -134,29 +138,56 @@ Pressure: $pressure
 <<raise_pressure>>
 [[Progress->Node 1]]
 
-:: Level 0 [checker scratch] {"position":"0,750"}
+:: Levels [scratch] {"position":"0,750"}
+/* Entry point for the four level scratch passages — open it from the browser
+   console:
+     SugarCube.Engine.play("Levels")
+   Each link sets $pressure before navigating. That is what makes the target
+   level render correctly on entry: pressure-level.js applies the level on
+   :passageinit, before the target passage's own <<set>> runs, so a passage's
+   own <<set $pressure>> only applies from the next passage on. The per-level
+   <<set>> below is kept so each passage states its own pressure and a later
+   visit is consistent. */
+[[Level 0->Level 0][$pressure = 0]] · [[Level 1->Level 1][$pressure = 1]] · [[Level 2->Level 2][$pressure = 2]] · [[Level 3->Level 3][$pressure = 3]]
+
+:: Level 0 [checker scratch] {"position":"100,750"}
+/* Wide and distant Cam (bottom-right); bubble tail bottom-right; menu on. */
 <<set $pressure = 0>>
+<<cam_line "Level 0 — wide and distant. The tail should point down-right at me.">>
+<<player_line "Level 0 reply. [[Levels->Levels]]">>
+<<portrait $camPortrait "Cam (placeholder portrait)">>
 
-:: Level 1 [checker scratch] {"position":"100,750"}
+:: Level 1 [checker scratch] {"position":"200,750"}
+/* Cam moves to the bottom-left; tail bottom-left; reply bar shifts right. */
 <<set $pressure = 1>>
+<<cam_line "Level 1 — I am at the bottom-left now. The tail should point down-left at me.">>
+<<player_line "Level 1 reply. [[Levels->Levels]]">>
+<<portrait $camPortrait "Cam (placeholder portrait)">>
 
-:: Level 2 [checker scratch] {"position":"200,750"}
+:: Level 2 [checker scratch] {"position":"300,750"}
+/* Cam moves to the upper-left; tail top-left; reply bar drops slightly. */
 <<set $pressure = 2>>
+<<cam_line "Level 2 — I am up in the top-left. The tail should point up-left at me.">>
+<<player_line "Level 2 reply. [[Levels->Levels]]">>
+<<portrait $camPortrait "Cam (placeholder portrait)">>
 
-:: Level 3 [checker scratch] {"position":"300,750"}
+:: Level 3 [checker scratch] {"position":"400,750"}
+/* Tall close-in on the left; tail left-mid; the menu is gone. */
 <<set $pressure = 3>>
+<<cam_line "Level 3 — right up close. The tail should point left at me, and the menu should be gone.">>
+<<player_line "Level 3 reply. [[Levels->Levels]]">>
+<<portrait $camPortrait "Cam (placeholder portrait)">>
 
-:: Stage content [checker scratch] {"position":"400,750"}
+:: Stage content [checker scratch] {"position":"500,750"}
 /* All three content macros: bubble, reply bar and portrait slots filled.
    The next-step link is rendered by <<player_line>> into the reply bar,
    because a [checker] passage's own #passages content is hidden in stage
    mode; reach this passage from the browser console:
-     SugarCube.Engine.play("Stage content")
-   The portrait is an inline SVG stand-in — Cam artwork is not built yet. */
+     SugarCube.Engine.play("Stage content") */
 <<cam_line "You again. At this hour.">>
 <<player_line "The flock needed a night watch. [[Next (no macros)->Stage content empty]]">>
-<<portrait "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 320'%3E%3Crect width='240' height='320' fill='%232b3a34'/%3E%3Ccircle cx='120' cy='110' r='58' fill='%23dbe5d8'/%3E%3Cpath d='M30 320v-92a90 90 0 0 1 180 0v92z' fill='%23dbe5d8'/%3E%3C/svg%3E" "Cam (placeholder portrait)">>
+<<portrait $camPortrait "Cam (placeholder portrait)">>
 
-:: Stage content empty [checker scratch] {"position":"500,750"}
+:: Stage content empty [checker scratch] {"position":"600,750"}
 /* No content macros: all three slots must be empty — nothing left over from
    the previous passage. Use the browser's Back button to return. */
