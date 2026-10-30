@@ -24,8 +24,10 @@ Cam Safety
 	     <<player_line "The player's reply">>
 	     <<portrait "path/to/cam.png" "alt text (optional)">>
 	   The lines are wiki-processed, so $variables, markup and [[links]] work
-	   in them; a link is how a [checker] passage offers its next step, since
-	   its own #passages content is hidden in stage mode. */
+	   in them. A [checker] passage's exits belong in <<player_line>> (the
+	   reply bar — or <<cam_line>>, the speech-bubble), never as a bare
+	   [[...]] in passage text: stage mode hides #passages, so a bare link is
+	   invisible to the player. */
 	function stageSlot(name) {
 		return document.querySelector('.stage-slot[data-stage-slot="' + name + '"]');
 	}
@@ -89,54 +91,53 @@ Cam Safety
 
 :: Start [checker]
 <<set $pressure = 0>>
-[[Progress->Node 1]]
+<<player_line "[[Progress->Node 1]]">>
 
 :: Node 1 [checker] {"position":"0,300"}
-Pressure: $pressure
-[[Progress->Node 2]]
+<<player_line "Pressure: $pressure. [[Progress->Node 2]]">>
 
 :: Node 2 [checker] {"position":"100,100"}
-[[Progress->Node 3]]
+<<player_line "[[Progress->Node 3]]">>
 
 :: Node 3 [checker] {"position":"300,0"}
-[[Progress->Node 4]]
+<<player_line "[[Progress->Node 4]]">>
 
 :: Node 4 [checker] {"position":"500,100"}
-[[Progress->Node 5]]
+<<player_line "[[Progress->Node 5]]">>
 
 :: Node 5 [checker] {"position":"700,500"}
-[[Progress->Node 6]]
+<<player_line "[[Progress->Node 6]]">>
 
 :: Node 6 [checker] {"position":"900,600"}
-[[Progress->Node 7]]
+<<player_line "[[Progress->Node 7]]">>
 
 :: Node 7 [checker] {"position":"1100,500"}
-[[Progress->Node 8]]
+<<player_line "[[Progress->Node 8]]">>
 
 :: Node 8 [checker] {"position":"1200,300"}
-[[Progress->Node 9]]
+<<player_line "[[Progress->Node 9]]">>
 
 :: Node 9 [checker] {"position":"1100,100"}
-[[Progress->Node 10]]
+<<player_line "[[Progress->Node 10]]">>
 
 :: Node 10 [checker] {"position":"900,0"}
-[[Progress->Node 11]]
+<<player_line "[[Progress->Node 11]]">>
 
 :: Node 11 [checker] {"position":"700,100"}
-[[Progress->Node 12]]
+<<player_line "[[Progress->Node 12]]">>
 
 :: Node 12 [checker] {"position":"600,300"}
-[[Progress->Node 13]]
+<<player_line "[[Progress->Node 13]]">>
 
 :: Node 13 [checker] {"position":"500,500"}
-[[Progress->Node 14]]
+<<player_line "[[Progress->Node 14]]">>
 
 :: Node 14 [checker] {"position":"300,600"}
-[[Progress->Node 15]]
+<<player_line "[[Progress->Node 15]]">>
 
 :: Node 15 [checker] {"position":"100,500"}
 <<raise_pressure>>
-[[Progress->Node 1]]
+<<player_line "[[Progress->Node 1]]">>
 
 :: Levels [scratch] {"position":"0,750"}
 /* Entry point for the four level scratch passages — open it from the browser
