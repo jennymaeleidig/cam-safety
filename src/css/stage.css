@@ -262,8 +262,9 @@ body.checker:not(.title) {
 /* ---- slot content — what the content macros put into each slot ----------
    Empty slots draw nothing: every per-slot look below is gated on
    :not(:empty), so a passage that omits a macro shows the bare background
-   rather than an empty card. The macros fill these slots during render;
-   stage-slots.js empties them on every passage change. */
+   rather than an empty card. The content macros only record; stage.js writes
+   all three slots in one flush after the passage renders, so a slot a passage
+   did not fill is written empty. */
 
 /* Cam's portrait: the image fills its slot, so the slot box — whose
    width/height are per-level values above — is the framing window. That is

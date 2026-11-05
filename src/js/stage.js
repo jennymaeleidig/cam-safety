@@ -17,7 +17,8 @@
      - jQuery.wiki() output is live on a detached element — SugarCube binds
        link handling per anchor at parse time — so it is safe here;
      - so the flush lands in the same task as the passage swap; nothing
-       flashes.
+       flashes. The engine's final tabindex sweep over #story runs after
+       :passagerender, so links written here are still swept.
 
    Never cache a rendered slot node: SugarCube's link handlers are one-shot,
    so a re-shown link must be re-wikified. Never put a data-passage attribute
@@ -28,7 +29,7 @@
 (function () {
   "use strict";
 
-  var Stage = (window.Stage = window.Stage || {});
+  // Created by boot.js, which loads first; this file only adds members.
 
   /* ---- the record: one passage's content ------------------------------ */
 
@@ -86,20 +87,24 @@
     writeLine("reply", record.reply);
   }
 
-  /* ---- the interface: three domain setters, no slot names ------------- */
+  /* ---- the interface: content, not slots ------------------------------
+     Callers name content (Cam's line, the player's line, the portrait); the
+     slot names stay in this file, apart from the markup contract they share
+     with shell.twee's data-stage-slot attributes. An omitted alt falls back
+     to "Cam" here so the macros stay pass-through. */
 
-  Stage.setCamLine = function (html) {
+  window.Stage.setCamLine = function (html) {
     record.bubble = html;
   };
 
-  Stage.setPlayerLine = function (html) {
+  window.Stage.setPlayerLine = function (html) {
     record.reply = html;
   };
 
-  Stage.setPortrait = function (src, alt) {
+  window.Stage.setPortrait = function (src, alt) {
     record.cam = { src: src, alt: alt };
   };
 
-  Stage.onPassageStart(reset);
-  Stage.onPassageRender(flush);
+  window.Stage.onPassageStart(reset);
+  window.Stage.onPassageRender(flush);
 })();

@@ -112,7 +112,7 @@ Cam Safety
      SugarCube.Engine.play("Levels")
    Each link sets $pressure before navigating. That is what makes the target
    level render correctly on entry: pressure-level.js applies the level on
-   :passageinit, before the target passage's own <<set>> runs, so a passage's
+   :passagestart, before the target passage's own <<set>> runs, so a passage's
    own <<set $pressure>> only applies from the next passage on. The per-level
    <<set>> below is kept so each passage states its own pressure and a later
    visit is consistent. */

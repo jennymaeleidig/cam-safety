@@ -3,7 +3,7 @@
    Accessed: 2026-10-22
    Modified by jennymaeleidig on 2026-10-22 — compiled from SCSS to plain
    CSS; adapted for SugarCube (passage-tag visibility via body.checker,
-   selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for JS
+   selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for per-level
    overrides, prefers-reduced-motion support added) */
 
 /* ===== Tokimeki-style animated checkerboard background ===== */
@@ -18,21 +18,37 @@ body {
   z-index: 10;
 }
 
-/* header citation block: replace "(--tmem-hue variable for JS overrides" with
-   "(--tmem-hue variable for per-level overrides" */
-
-/* Palette: single hue drives all four greens. Per-level values belong in
-   this file, under body[data-pressure-level="N"] — the same attribute
-   stage.css keys its level geometry off, so pressure selects layout and
-   background through one seam. All four levels are green today. */
+/* Palette: one hue drives all four greens, set per pressure level so pressure
+   selects layout (stage.css) and background through the same attribute and
+   the same seam. :root is the level-0 fallback for the moment before
+   pressure-level.js sets data-pressure-level — the trick stage.css uses — and
+   the four blocks below carry each level's values. All four levels are green
+   today; giving a level its own background is a value change here, not a new
+   code path. No JavaScript writes these. */
 :root {
   --tmem-hue: 152;
 }
 
+body[data-pressure-level="0"] {
+  --tmem-hue: 152;
+}
+
+body[data-pressure-level="1"] {
+  --tmem-hue: 152;
+}
+
+body[data-pressure-level="2"] {
+  --tmem-hue: 152;
+}
+
+body[data-pressure-level="3"] {
+  --tmem-hue: 152;
+}
+
 /* Wrapper: fixed + viewport-clipped layer behind the text. z-index: -1, not
-   0: the layer is now inside #story (position: relative, z-index: 10) and
-   .shell is unpositioned, so z-index 0 would paint it above the reading
-   card. Negative puts it behind .shell's content and still above <body>. */
+   0: the layer is inside #story (position: relative, z-index: 10) and .shell
+   is unpositioned, so z-index 0 would paint it above the reading card.
+   Negative puts it behind .shell's content and still above <body>. */
 #tmem-bg {
   position: fixed;
   inset: 0;

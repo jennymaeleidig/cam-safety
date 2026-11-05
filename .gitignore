@@ -1,8 +1,8 @@
 # macOS
 .DS_Store
 
-# Build output (regenerable via `./scripts/build-verify.sh` or the
-# "tweego: build" task in .vscode/tasks.json)
+# Build output (regenerable via the "tweego: build" task in
+# .vscode/tasks.json)
 dist/
 
 # Generated ctags index
@@ -21,7 +21,7 @@ prototype/
 .storyformats/
 
 # The global gitignore excludes .vscode/; this project's Tweego build
-# task lives there and is tracked (scripts/build-verify.sh references it)
+# task lives there and is tracked
 !.vscode/
 .vscode/*
 !.vscode/tasks.json

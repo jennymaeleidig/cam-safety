@@ -63,13 +63,16 @@ then `Engine.play(passage)` (`repo@v2.37.3: src/macro/macros/button-link.js`).
 `#methods-jquery-prototype-method-wiki`; `repo@v2.37.3: src/extensions/jquery/wiki-plugin.js`).
 Real caveats:
 
-- Macros run during `passage.render()`, so slot content exists before `:passagerender`
-  and before the engine's final `tabindex` pass over `#story` (`src/engine.js`).
-  Content added later (e.g. in a `:passagerender` handler) misses that pass —
-  function is unaffected, keyboard focus is.
+- The engine's final `tabindex` pass over `#story` runs **after** `:passagerender`
+  (`src/engine.js`), so content written at `:passagerender` still receives a
+  tabindex; content added at `:passageend` or later misses it. This repo writes the
+  stage slots from a `:passagerender` handler (`src/js/stage.js`), which is inside
+  that window.
 - `State.create()` happens **after** `:passageinit` (`src/engine.js`), so anything
   wikified in `:passageinit` sees the _previous_ `State.passage`. During render the
-  state is current. This is the same ordering `shell.js` already documents.
+  state is current. This repo's lifecycle (`src/js/boot.js`) subscribes one event
+  later, at `:passagestart`, for the same reason and passes the incoming passage
+  through its context rather than reading `State.passage`.
 - `:passagerender`'s `detail.content` is only the passage element (docs
   `#events-navigation-event-passagerender`), so handlers expecting slot content there
   will not find it.
@@ -106,25 +109,21 @@ engine state that is intentionally invisible. Make the convention explicit:
 2. State in `story.twee`'s content-macro comment that every `[checker]` passage's
    exits belong in `<<player_line>>` (or `<<cam_line>>`), since its own links render
    into hidden `#passages`.
-3. Run `scripts/check-checker-exits.mjs` (section 6) to report `[checker]`
-   passages whose text contains `[[` outside a content macro. Nothing in
-   SugarCube will catch this.
+3. Nothing automated enforces this. The textual guard that did is gone (section 6);
+   verification is the manual pass in README's Verification section.
 4. Only if engine-managed refresh is wanted later, adopt `data-passage` on
    `.stage-reply` and drop `<<player_line>>` for that slot — do not run both.
 
-## 6. Guard: `[checker]` exits must be inside a content macro
+## 6. The `[checker]` exit rule, and the guard that enforced it
 
 Stage mode hides a `[checker]` passage's own `#passages` content, so a bare
-`[[link]]` there is invisible to the player. Nothing in SugarCube reports it,
-so the guard scans the source:
+`[[link]]` there is invisible to the player. Every exit must be rendered by
+`<<player_line>>` (the reply bar) or `<<cam_line>>` (the speech-bubble), which
+fill stage slots during render. Nothing in SugarCube reports a violation.
 
-```sh
-node scripts/check-checker-exits.mjs src/story.twee
-```
-
-It prints one `file:line — [passage] — text` line per offending `[[...]]` and
-exits 1, or an OK line and exits 0. A `[[...]]` inside `<<cam_line>>` or
-`<<player_line>>` is allowed — those are the content macros. `[title]`
-passages are skipped, because they render in shell mode where `#passages` is
-visible. The scan is textual, not a twee parser; it adds no dependency and is
-not wired into the build.
+A guard script (`check-checker-exits.mjs`, ~190 lines, no dependencies) scanned
+`src/story.twee` textually and exited 1 on offenders. It was removed: it was a
+hand-rolled approximation of twee semantics (a passage-header regex plus a
+quote-aware scanner for `<<…>>`), its own `CONTENT_MACROS` set had drifted from
+`story.twee` (it never learned `portrait`), and it was never wired into the
+build. The rule now lives as the comment on `StoryInit` in `src/story.twee`.

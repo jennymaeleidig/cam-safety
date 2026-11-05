@@ -5,9 +5,10 @@
    background values under it too. This file is the only place the pressure
    value becomes a level.
 
-   The mapping is a single small pure function, kept pure and minimal so its
-   behaviour (0, 1, 2, 3, and out-of-range clamping) is checkable without
-   running the story.
+   The mapping is a single small pure function, kept pure and minimal: its
+   whole behaviour (0, 1, 2, 3, and out-of-range clamping) is four lines you
+   can check by reading. It is file-private, and there is no test runner (see
+   README's Verification).
 
    Applied on the lifecycle's start phase — before the passage renders — so
    the stage is already in the right layout when the content macros run.
