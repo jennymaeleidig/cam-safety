@@ -18,17 +18,26 @@ body {
   z-index: 10;
 }
 
-/* Palette: single hue drives all four greens. JS overrides --tmem-hue. */
+/* header citation block: replace "(--tmem-hue variable for JS overrides" with
+   "(--tmem-hue variable for per-level overrides" */
+
+/* Palette: single hue drives all four greens. Per-level values belong in
+   this file, under body[data-pressure-level="N"] — the same attribute
+   stage.css keys its level geometry off, so pressure selects layout and
+   background through one seam. All four levels are green today. */
 :root {
   --tmem-hue: 152;
 }
 
-/* Wrapper: fixed + viewport-clipped layer behind the text */
+/* Wrapper: fixed + viewport-clipped layer behind the text. z-index: -1, not
+   0: the layer is now inside #story (position: relative, z-index: 10) and
+   .shell is unpositioned, so z-index 0 would paint it above the reading
+   card. Negative puts it behind .shell's content and still above <body>. */
 #tmem-bg {
   position: fixed;
   inset: 0;
   overflow: hidden;
-  z-index: 0;
+  z-index: -1;
   pointer-events: none;
   display: none;
 }

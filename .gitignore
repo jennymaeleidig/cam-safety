@@ -25,3 +25,6 @@ prototype/
 !.vscode/
 .vscode/*
 !.vscode/tasks.json
+
+include/images
+include/videos

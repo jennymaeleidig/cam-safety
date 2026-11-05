@@ -10,43 +10,21 @@
 Cam Safety
 
 :: StoryInit
-/* macros */
+/* Content macros: each records one stage slot's content (src/js/stage.js,
+   which writes the slots once per passage), and renders nothing into
+   #passages, so the stage owns all visible content for [checker] passages.
+
+   Authoring:
+     <<cam_line "Cam's line">>
+     <<player_line "The player's reply">>
+     <<portrait "path/to/cam.png" "alt text (optional)">>
+   The lines are wiki-processed, so $variables, markup and [[links]] work in
+   them. A [checker] passage's exits belong in <<player_line>> (the reply
+   bar — or <<cam_line>>, the speech-bubble), never as a bare [[...]] in
+   passage text: stage mode hides #passages, so a bare link is invisible to
+   the player. */
 <<script>>
 (function () {
-	/* Content macros: each fills one stage slot (shell.twee) and renders
-	   nothing into #passages, so the stage owns all visible content for
-	   [checker] passages. stage-slots.js empties the slots on every passage
-	   change, before the passage renders; the macros fill them during render.
-	   Filling replaces a slot's content, so a repeated macro never stacks.
-
-	   Authoring:
-	     <<cam_line "Cam's line">>
-	     <<player_line "The player's reply">>
-	     <<portrait "path/to/cam.png" "alt text (optional)">>
-	   The lines are wiki-processed, so $variables, markup and [[links]] work
-	   in them. A [checker] passage's exits belong in <<player_line>> (the
-	   reply bar — or <<cam_line>>, the speech-bubble), never as a bare
-	   [[...]] in passage text: stage mode hides #passages, so a bare link is
-	   invisible to the player. */
-	function stageSlot(name) {
-		return document.querySelector('.stage-slot[data-stage-slot="' + name + '"]');
-	}
-
-	function fillSlot(name, render) {
-		var slot = stageSlot(name);
-		if (!slot) {
-			return;
-		}
-		slot.textContent = "";
-		render(slot);
-	}
-
-	function fillLine(name, line) {
-		fillSlot(name, function (slot) {
-			jQuery(slot).wiki(line == null ? "" : String(line));
-		});
-	}
-
 	Macro.add("raise_pressure", {
 		handler : function () {
 			const amt = Number(this.args[0] ?? 1);
@@ -56,30 +34,19 @@ Cam Safety
 
 	Macro.add("cam_line", {
 		handler : function () {
-			fillLine("bubble", this.args[0]);
+			Stage.setCamLine(this.args[0]);
 		}
 	});
 
 	Macro.add("player_line", {
 		handler : function () {
-			fillLine("reply", this.args[0]);
+			Stage.setPlayerLine(this.args[0]);
 		}
 	});
 
 	Macro.add("portrait", {
 		handler : function () {
-			const src = this.args[0];
-			const alt = this.args[1] ?? "Cam";
-			fillSlot("cam", function (slot) {
-				if (src == null || src === "") {
-					return;
-				}
-				const img = document.createElement("img");
-				img.className = "stage-portrait";
-				img.setAttribute("src", String(src));
-				img.setAttribute("alt", String(alt));
-				slot.appendChild(img);
-			});
+			Stage.setPortrait(this.args[0], this.args[1]);
 		}
 	});
 })();

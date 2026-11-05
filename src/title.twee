@@ -1,4 +1,4 @@
-:: Title [title] {"position":"100,100"}
+:: Title [title checker]  {"position":"100,100"}
 <div class="title-screen">
 	<h1><<print Story.name>></h1>
 	<p>

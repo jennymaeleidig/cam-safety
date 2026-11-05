@@ -12,9 +12,9 @@
 
 	Stage mode ([checker] passages that are not [title]; gated on the passage
 	tag classes SugarCube puts on <body>): the letterboxed .stage frame
-	(stage.css), aspect-locked to the 2840:1700 design canvas. Five slots: the
-	background — #tmem-bg, the existing animated checkerboard, injected into
-	<body> by checker-bg.js and letterboxed into the same box by checker.css;
+	(stage.css), aspect-locked to the 2840:1700 design canvas. Five slots:
+	the background — #tmem-bg, the existing animated checkerboard, declared
+	here and letterboxed into the same box by checker.css
 	the three content slots below, empty until the content macros fill them;
 	and the menu — the same .rail, repositioned by stage.css into the stage's
 	menu slot.
@@ -29,6 +29,12 @@
 	window.SugarCube only — there are no bare globals to reach from an inline
 	handler.
 -->
+<!-- first child of the StoryInterface: the background layer, letterboxed
+     into the stage box by checker.css. Declared here rather than built by JS
+     so the page has a background on first paint — it is the only page
+     background in shell mode — and so the pattern is markup a redesign edits
+     rather than DOM a script fabricates. -->
+<div id="tmem-bg"><div class="pattern"></div></div>
 <div class="shell">
 	<div class="main">
 		<div id="passages"></div>
