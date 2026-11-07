@@ -40,7 +40,7 @@ There is no test runner, headless DOM, or browser automation; verification is
 manual, by design.
 
 1. Build and open the story.
-2. Click through Title → Start → Node 1 → … → Node 15.
+2. Click through Title → Level 0
 3. Open scratch passages from the browser console:
 
    ```js

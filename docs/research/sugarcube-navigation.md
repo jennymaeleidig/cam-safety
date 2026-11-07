@@ -113,17 +113,3 @@ engine state that is intentionally invisible. Make the convention explicit:
    verification is the manual pass in README's Verification section.
 4. Only if engine-managed refresh is wanted later, adopt `data-passage` on
    `.stage-reply` and drop `<<player_line>>` for that slot — do not run both.
-
-## 6. The `[checker]` exit rule, and the guard that enforced it
-
-Stage mode hides a `[checker]` passage's own `#passages` content, so a bare
-`[[link]]` there is invisible to the player. Every exit must be rendered by
-`<<player_line>>` (the reply bar) or `<<cam_line>>` (the speech-bubble), which
-fill stage slots during render. Nothing in SugarCube reports a violation.
-
-A guard script (`check-checker-exits.mjs`, ~190 lines, no dependencies) scanned
-`src/story.twee` textually and exited 1 on offenders. It was removed: it was a
-hand-rolled approximation of twee semantics (a passage-header regex plus a
-quote-aware scanner for `<<…>>`), its own `CONTENT_MACROS` set had drifted from
-`story.twee` (it never learned `portrait`), and it was never wired into the
-build. The rule now lives as the comment on `StoryInit` in `src/story.twee`.

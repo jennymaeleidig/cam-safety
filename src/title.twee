@@ -2,7 +2,7 @@
 <div class="title-screen">
 	<h1><<print Story.name>></h1>
 	<p>
-		<<link "Start" "Start">><</link>>
+		<<link "Start" "Level 0">><</link>>
 		<<if Save.browser.size > 0>> · <<link "Load">><<run UI.saves()>>><</link>><</if>>
 	</p>
 </div>

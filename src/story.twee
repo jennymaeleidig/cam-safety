@@ -56,56 +56,6 @@ Cam Safety
    rather than pasted into every scratch passage. */
 <<set $camPortrait = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 240 320'%3E%3Crect width='240' height='320' fill='%232b3a34'/%3E%3Ccircle cx='120' cy='110' r='58' fill='%23dbe5d8'/%3E%3Cpath d='M30 320v-92a90 90 0 0 1 180 0v92z' fill='%23dbe5d8'/%3E%3C/svg%3E">>
 
-:: Start [checker]
-<<set $pressure = 0>>
-<<player_line "[[Progress->Node 1]]">>
-
-:: Node 1 [checker] {"position":"0,300"}
-<<player_line "Pressure: $pressure. [[Progress->Node 2]]">>
-
-:: Node 2 [checker] {"position":"100,100"}
-<<player_line "[[Progress->Node 3]]">>
-
-:: Node 3 [checker] {"position":"300,0"}
-<<player_line "[[Progress->Node 4]]">>
-
-:: Node 4 [checker] {"position":"500,100"}
-<<player_line "[[Progress->Node 5]]">>
-
-:: Node 5 [checker] {"position":"700,500"}
-<<player_line "[[Progress->Node 6]]">>
-
-:: Node 6 [checker] {"position":"900,600"}
-<<player_line "[[Progress->Node 7]]">>
-
-:: Node 7 [checker] {"position":"1100,500"}
-<<player_line "[[Progress->Node 8]]">>
-
-:: Node 8 [checker] {"position":"1200,300"}
-<<player_line "[[Progress->Node 9]]">>
-
-:: Node 9 [checker] {"position":"1100,100"}
-<<player_line "[[Progress->Node 10]]">>
-
-:: Node 10 [checker] {"position":"900,0"}
-<<player_line "[[Progress->Node 11]]">>
-
-:: Node 11 [checker] {"position":"700,100"}
-<<player_line "[[Progress->Node 12]]">>
-
-:: Node 12 [checker] {"position":"600,300"}
-<<player_line "[[Progress->Node 13]]">>
-
-:: Node 13 [checker] {"position":"500,500"}
-<<player_line "[[Progress->Node 14]]">>
-
-:: Node 14 [checker] {"position":"300,600"}
-<<player_line "[[Progress->Node 15]]">>
-
-:: Node 15 [checker] {"position":"100,500"}
-<<raise_pressure>>
-<<player_line "[[Progress->Node 1]]">>
-
 :: Levels [scratch] {"position":"0,750"}
 /* Entry point for the four level scratch passages — open it from the browser
    console:
