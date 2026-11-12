@@ -19,7 +19,9 @@ Tuned by ear on the built story, in a throwaway prototype that carried every
 knob on a panel (see `docs/research/animalese-typewriter.md` and its §7
 addendum): 16 ms per character, pitch 0.8, volume 0.25, a 10.5 ms fade on each
 letter, one compressor on the summed letters, sequential order, and a held
-reply. The investigation that led there — what animalese is, what
+reply. Two of those numbers — the pace and the volume — are ranges in the
+Settings dialog, with these values as their defaults (see below). The
+investigation that led there — what animalese is, what
 SugarCube's built-in `<<type>>` does — is recorded in that research file rather
 than here; this record holds the outcome.
 
@@ -75,14 +77,36 @@ the same "keep clicking" the rest of the story asks for.
 
 **`prefers-reduced-motion` declines the reveal, and with it the sound.** The
 flush has already put both lines on screen in full when the reveal declines, so
-the mode costs nothing but the voice. There is no separate mute control yet;
-the voice is off in that mode and nowhere else.
+the mode costs nothing but the voice. The Settings dialog still shows both
+ranges; neither does anything in that mode, and the text-speed description says
+so.
 
-**The story grew by ~232 KB.** The letter library is 86 KB of 8-bit PCM,
-base64'd, and Tweego embeds `src/js` twice — once in `<head>`, once in the
-story's `twine-user-script` — so the payload is paid for twice. That is the
-pre-existing double-evaluation, not this feature; a `[script]` passage would
-halve it, and the payload is the only thing currently large enough to matter.
+**Pace and volume are the player's, in SugarCube's own Settings dialog.**
+`settings.js` adds a `Cam` header and two ranges — `revealSpeed` in letters a
+second (25–125, default 62.5, which is the tuned 16 ms) and `voiceVolume` in
+percent (0–100, default 25, which is the measured 0.25) — and the rail's
+Settings button already opens the native dialog. Their defaults are the values
+the measurements above describe, so the story opens as tuned. Both are read at
+use: the pace when a line starts, so a change lands on the next line; the
+volume per letter, so a drag is audible at once. Zero volume is silence, and it
+stops the audio graph being built at all until a gesture arrives with the
+volume up.
+
+The two are registered from story JavaScript, not from `StoryInit`: SugarCube
+loads saved settings in `Setting.init()`, which runs after the story's scripts
+and before the init passages, so only a definition that already exists at that
+point gets its saved value applied. Added from `StoryInit`, every saved value
+would be ignored until the player opened the dialog.
+
+**The story grew by ~115 KB.** The letter library is 86 KB of 8-bit PCM,
+base64'd to 115 KB, compiled once into the story's script section. It was
+232 KB while the build also passed `src/js` to Tweego with `-m`: a module is
+compiled a second time into `<head>`, so every script, stylesheet and letter
+sat in `story.html` twice, and every story script was evaluated twice per load
+— the older, recurring fault the reveal was guarding against rather than
+causing. Building `src/` alone (`.vscode/tasks.json`, README) removed both:
+825 KB instead of 1.03 MB, and each script runs once, in the story's script
+section, after the body exists and before `Setting.init()`.
 
 **The bubble still re-centres when the third line wraps.** Measured at 34 px on
 the longest line, two-thirds of the way in (`justify-content: center` in a

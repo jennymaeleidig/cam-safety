@@ -21,11 +21,11 @@
    is never a lagging copy of the mode it names.
 
    The load-time call is thorough rather than load-bearing: SugarCube has not
-   navigated yet when story JavaScript runs, so <body> carries no passage
-   classes and nothing is set. The shell then shows for the first paint, which
-   is right for the title the story starts on. A story that ever started on a
-   [checker] passage would show the shell for one paint before the start phase
-   corrected it. */
+   navigated yet when story JavaScript runs, so by then <body> carries no
+   passage classes and nothing is set. The shell then shows for the first
+   paint, which is right for the title the story starts on. A story that ever
+   started on a [checker] passage would show the shell for one paint before the
+   start phase corrected it. */
 (function () {
   "use strict";
 
@@ -43,7 +43,8 @@
   }
 
   /* The load-time entry point: the same predicate, fed from the classes
-     SugarCube has already put on <body> instead of from the event. */
+     SugarCube has already put on <body> instead of from the event. Story
+     JavaScript runs from the ready callback, so the body exists by now. */
   function applyModeFromBody() {
     var classes = document.body.classList;
     var tags = [];

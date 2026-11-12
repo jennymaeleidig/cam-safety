@@ -33,9 +33,12 @@
    milliseconds, so a link-heavy line does not stall while the link sits on
    screen. A link is a word to act on, not a word to hear.
 
-   Pacing: 16 ms per character, tuned by ear. A whole line is capped at MAX_MS
-   by shortening the per-character delay once a line is long enough to exceed
-   it, so no passage can make the player wait.
+   Pacing: 16 ms per character by default, tuned by ear, and a range in the
+   Settings dialog (settings.js, "Text speed", in letters a second). The value
+   is read when a line starts, so a change lands on the next line rather than
+   mid-line. A whole line is capped at MAX_MS by shortening the per-character
+   delay once a line is long enough to exceed it, so no passage can make the
+   player wait, however slowly they set the pace.
 
    A frame that catches up — a stalled frame, or a tab returning from the
    background — can owe a hundred characters. It gets to speak two of them:
@@ -51,20 +54,40 @@
   var win = /** @type {any} */ (window);
   var Reveal = (win.Reveal = win.Reveal || {});
 
-  /* Story JavaScript is evaluated twice per page load (Tweego emits src/js into
-     <head> and again into twine-user-script); the second copy would only add a
-     duplicate skip listener. Keep the first. */
-  if (Reveal.start) {
-    return;
-  }
-
-  var MS_PER_CHAR = 16;
+  /* The default pace, in letters a second: 62.5 is the 16 ms per character this
+     was tuned and measured at. What the Settings dialog's revealSpeed range
+     changes, and what a story built without it gets. */
+  var DEFAULT_LETTERS_PER_SECOND = 62.5;
   var MAX_MS = 6000;
   var MIN_MS = 4;
   /* How many letters one frame may sound when it is catching up. Two is under
-     what the compressor already handles at this pace (a 75 ms letter every
-     16 ms overlaps four voices); a hundred is not. */
+     what the compressor already handles at the default pace (a 75 ms letter
+     every 16 ms overlaps four voices); a hundred is not. A faster pace packs
+     more voices into the same 75 ms, and the compressor is what keeps that
+     sum in range. */
   var LETTERS_PER_FRAME = 2;
+
+  /* A setting's value, or NaN when the story carries no such setting (an
+     editor preview, or a build that dropped settings.js). SugarCube replaces
+     its settings object when it loads saved values, so ask it rather than
+     reading the object once. */
+  function readSetting(name) {
+    var sc = win.SugarCube;
+    var get = sc && sc.Setting && sc.Setting.getValue;
+    return get ? Number(get(name)) : NaN;
+  }
+
+  /* Milliseconds per character, from the letters-per-second the dialog shows.
+     Nothing but a positive number is usable, so anything else — no setting,
+     a corrupted save — falls back to the tuned default rather than to a pause
+     of zero or of Infinity. */
+  function msPerChar() {
+    var pace = readSetting("revealSpeed");
+    if (!(pace > 0)) {
+      pace = DEFAULT_LETTERS_PER_SECOND;
+    }
+    return 1000 / pace;
+  }
 
   function reducedMotion() {
     return !!(
@@ -125,7 +148,7 @@
       plan: planLine(slot),
       step: 0,
       startedAt: 0,
-      ms: MS_PER_CHAR,
+      ms: msPerChar(),
     };
   }
 
@@ -196,7 +219,7 @@
     entry.startedAt = now;
     entry.ms = Math.max(
       MIN_MS,
-      Math.min(MS_PER_CHAR, MAX_MS / Math.max(total(entry), 1)),
+      Math.min(msPerChar(), MAX_MS / Math.max(total(entry), 1)),
     );
     entry.slot.classList.add("is-revealing");
     block(entry, true);

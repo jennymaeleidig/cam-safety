@@ -21,18 +21,21 @@
    :passagestart State still names the passage being left.
 
    No readiness gate and no load-time call. SugarCube runs story JavaScript
-   (src/js, via Tweego's -m) after the StoryInterface is in the DOM and
-   after jQuery is initialised, so both are there when this file runs;
-   Engine.start() then navigates to the start passage, which fires both
-   phases.
+   after the StoryInterface is in the DOM and after jQuery is initialised, so
+   both are there when this file runs; Engine.start() then navigates to the
+   start passage, which fires both phases.
 
-   Story JavaScript is in fact evaluated TWICE per page load — Tweego emits
-   every -m file into <head> and again into the story's twine-user-script —
-   so both subscriptions below are made twice and every handler runs twice per
-   passage. Nothing here needs a matching unsubscribe; what does need care is
-   anything with a side effect a second time (reveal.js and voice.js guard
-   against it, and stage.js's last write wins). Do not add a global here
-   without deciding what its second copy does.
+   "Story JavaScript" here means every .js file under src/, which Tweego
+   compiles into the story's script section — evaluated once per page load, so
+   each subscription below is made once and each handler runs once.
+
+   Do not also pass src/js to Tweego with -m. A module is compiled a second
+   time, into <head>, and because these files are already sources of src/ the
+   build would then carry two copies of every one of them: two copies of the
+   115 KB letter library in the payload, two AudioContexts, and every handler
+   running twice per passage. The build compiles src/ alone for that reason
+   (.vscode/tasks.json, README); story code does not need to guard against a
+   second evaluation, and should not pretend to.
 
    Load order: Tweego merges src/js in lexical order. This file must stay
    first — it creates Stage, and every registrant calls it at load. */

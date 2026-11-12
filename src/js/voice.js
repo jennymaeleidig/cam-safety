@@ -5,7 +5,8 @@
 
    Three numbers, all chosen by ear on the built story:
      PITCH      0.8  — below the recording's own pitch
-     VOLUME     0.25 — under the background, not over it
+     VOLUME     25 % — under the background, not over it; a range in the
+                 Settings dialog (settings.js), defaulted to the measured 0.25
      FADE_MS    10.5 — see below; 0 makes the crackle audible again
 
    Two faults shape this file, both of them about letters cut out of a longer
@@ -25,7 +26,9 @@
    sample steps over 0.25 (clipping); through the envelope, compressor and
    volume above they peak at 0.23 with no step over 0.25. The peak difference
    is mostly VOLUME; the steps are the fault this file exists to remove. See
-   docs/research/animalese-typewriter.md §7.
+   docs/research/animalese-typewriter.md §7. The player can raise either the
+   volume or the pace above what was measured; the compressor, and the sum it
+   squashes, are what make that safe to allow.
 
    The context is created on the first gesture, never at load: one made before
    a gesture starts suspended and logs a warning. Until it is running, letters
@@ -37,17 +40,34 @@
   var Voice = (win.Voice = win.Voice || {});
   var letters = win.VoiceLetters || null;
 
-  /* Story JavaScript is evaluated twice per page load — Tweego emits src/js
-     into <head> and again into the story's twine-user-script — so this guard
-     is load-bearing: a second copy would open a second AudioContext for the
-     same keyboard and decode the library again. Keep the one engine. */
-  if (Voice.letter) {
-    return;
+  var PITCH = 0.8;
+  /* The default gain: the Settings dialog stores percent, and 25 is the 0.25
+     the graph was measured at. Kept as a gain because that is what the graph
+     wants. */
+  var DEFAULT_VOLUME = 0.25;
+  var FADE_MS = 10.5;
+
+  /* A setting's value, or NaN when the story carries no such setting (an
+     editor preview, or a build that dropped settings.js). SugarCube replaces
+     its settings object when it loads saved values, so ask it rather than
+     reading the object once. */
+  function readSetting(name) {
+    var sc = win.SugarCube;
+    var get = sc && sc.Setting && sc.Setting.getValue;
+    return get ? Number(get(name)) : NaN;
   }
 
-  var PITCH = 0.8;
-  var VOLUME = 0.25;
-  var FADE_MS = 10.5;
+  /* Gain from the dialog's percentage. Read per letter rather than once, so a
+     player dragging the slider hears the change without waiting for a new
+     line, and nothing scheduled before the drag is cut off — a letter is
+     75 ms long. */
+  function level() {
+    var percent = readSetting("voiceVolume");
+    if (!(percent >= 0 && percent <= 100)) {
+      return DEFAULT_VOLUME;
+    }
+    return percent / 100;
+  }
 
   /* Wall-clock length of one letter: the library's own output length. The
      letters are laid out at this stride, so a letter is always this long of
@@ -76,7 +96,7 @@
     audio.comp.attack.value = 0.002;
     audio.comp.release.value = 0.08;
     audio.master = ctx.createGain();
-    audio.master.gain.value = VOLUME;
+    audio.master.gain.value = level();
     audio.comp.connect(audio.master);
     audio.master.connect(ctx.destination);
     audio.ctx = ctx;
@@ -107,6 +127,15 @@
     var ctx = audio.ctx;
     if (!ctx || ctx.state !== "running") {
       return;
+    }
+    var volume = level();
+    if (volume <= 0) {
+      return;
+    }
+    /* Only on a change: assigning the same value every letter is pointless,
+       and the getter reads the value last set. */
+    if (audio.master.gain.value !== volume) {
+      audio.master.gain.value = volume;
     }
     var index = String(char).toUpperCase().charCodeAt(0) - 65;
     if (index < 0 || index > 25) {
@@ -144,8 +173,13 @@
   };
 
   /* Called from the first gesture. Browsers will not start audio without one,
-     and the story's own first click is the gesture that starts the story. */
+     and the story's own first click is the gesture that starts the story. A
+     muted player gets no context at all: the listeners stay on, so turning the
+     volume up leaves the next gesture to wake the graph. */
   function wake() {
+    if (level() <= 0) {
+      return;
+    }
     var ctx = ensure();
     if (ctx && ctx.state === "suspended") {
       ctx.resume();

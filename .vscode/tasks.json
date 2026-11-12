@@ -24,10 +24,6 @@
       "args": [
         "-f",
         "sugarcube-2",
-        "-m",
-        "src/css",
-        "-m",
-        "src/js",
         "-o",
         "dist/story.html",
         "src"
@@ -59,10 +55,6 @@
         "-w",
         "-f",
         "sugarcube-2",
-        "-m",
-        "src/css",
-        "-m",
-        "src/js",
         "-o",
         "dist/story.html",
         "src"

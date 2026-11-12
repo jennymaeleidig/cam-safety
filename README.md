@@ -24,8 +24,16 @@ By hand (both steps — the portraits are relative URLs):
 
 ```sh
 mkdir -p dist/images && cp -R include/images/. dist/images/
-TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -m src/css -m src/js -o dist/story.html src
+TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -o dist/story.html src
 ```
+
+Tweego compiles every `.twee` file under `src/` as a passage, every `.js` into
+the story's script section, and every `.css` into its stylesheet — so `src/`
+alone is the whole build. Do not also pass `src/js` or `src/css` with `-m`: a
+module is compiled a second time (into `<head>`), and because those files are
+already sources, the story would carry two copies of each — double the script
+payload, two AudioContexts, every handler running twice. That is what the build
+used to do, and why `story.html` was 232 KB larger than it needed to be.
 
 ## Source layout
 
@@ -35,7 +43,7 @@ TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -m src/css -m src/js -o dist/sto
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
 | `src/css/`               | `checker.css` (background + per-level background values), `shell.css`, `stage.css` (per-level slot geometry).                                                                                                                                                  |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `pressure-level.js`, `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-level neutral portrait). |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `pressure-level.js`, `reveal.js` (Cam's line, a character at a time), `settings.js` (the two Settings-dialog ranges, read by `reveal.js` and `voice.js`), `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-level neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 

@@ -429,10 +429,13 @@ inferred.
 
 **Also found, unrelated to this work:** `src/js/stage-mode.js` throws
 `TypeError: Cannot read properties of null (reading 'classList')` on every
-load, in the unmodified story — story JavaScript runs before `<body>` exists,
-so its load-time `applyModeFromBody()` has never run. And every story script
-executes twice (see 1), giving the story two `Stage` registries and two
-flushes per passage.
+load, in the unmodified story — story JavaScript ran before `<body>` existed,
+so its load-time `applyModeFromBody()` never ran. And every story script
+executed twice (see 1), giving the story two `Stage` registries and two
+flushes per passage. Both had one cause: the `-m` duplication. With `src/`
+compiled alone there is one evaluation, in `twine-user-script`, after the body
+exists and before `Setting.init()` — so the load-time call runs, and the guards
+that two copies had required are gone (see the addendum).
 
 **Addendum: the crackle.** The prototype's first cut clicked on every letter.
 Two causes, both in the audio path rather than the reveal: each 0.15 s library
@@ -455,9 +458,16 @@ without a gesture until the first click. Two figures from the shipping build,
 both measured in headless Chrome rather than reasoned about: a link inside the
 bubble arrives as 0 → 12 characters in one frame and stays inert until the line
 finishes; and the library trims from 0.15 s to the 0.075 s per letter that
-animalese ever plays, halving the payload to 86 KB — which the build then pays
-for twice (Tweego embeds `src/js` in `<head>` and again in
-`twine-user-script`), 232 KB of a 1.01 MB `story.html`.
+animalese ever plays, halving the payload to 86 KB of 8-bit PCM.
+
+That payload was then paid for twice, because the build passed `src/js` to
+Tweego with `-m` *and* compiled `src/` as its sources: a module is compiled a
+second time into `<head>`. Building `src/` alone compiles each `.js` and `.css`
+file once, into the story's own script and style sections — 232 KB of payload
+and a second evaluation of every script removed, with nothing else about the
+story changed. The two guards that duplication had forced (`reveal.js`,
+`voice.js`) went with it. The findings above are what was true when they were
+measured; this is what shipped.
 
 The prototype this file measured (a panel with every knob on it) has been
 deleted; `docs/adr/0002-cam-speaks-aloud.md` holds the decision and its
@@ -473,3 +483,9 @@ with **7** sample steps over 0.25, and the shipped envelope + compressor +
 volume peaks at **0.23** with **no** step over 0.25. The earlier figures in
 this section (1.258 / 0.298) were taken at 28 ms and pitch 1, before the
 settings were settled.
+
+Added after that: the two knobs a player is most likely to reach for are the
+pace and the volume, so both are ranges in SugarCube's native Settings dialog
+(`src/js/settings.js`), defaulted to the values above — 62.5 letters a second
+(16 ms) and 25 %. The measurements stand as measured, because those are the
+defaults the story opens at.
