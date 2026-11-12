@@ -2,7 +2,23 @@
   "version": "2.0.0",
   "tasks": [
     {
+      "label": "assets: copy",
+      "type": "shell",
+      "command": "mkdir -p dist/images && cp -R include/images/. dist/images/",
+      "options": {
+        "cwd": "${workspaceFolder}"
+      },
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "silent",
+        "panel": "shared",
+        "clear": true
+      }
+    },
+    {
       "label": "tweego: build",
+      "dependsOn": ["assets: copy"],
+      "dependsOrder": "sequence",
       "type": "shell",
       "command": "tweego",
       "args": [
@@ -35,6 +51,8 @@
     },
     {
       "label": "tweego: watch",
+      "dependsOn": ["assets: copy"],
+      "dependsOrder": "sequence",
       "type": "shell",
       "command": "tweego",
       "args": [

@@ -68,5 +68,10 @@
   }
 
   document.addEventListener("click", onRailClick);
-  window.Stage.onPassageStart(applyRailTitle);
+  /* boot.js, which loads before this file, creates window.Stage; the editor's
+     TypeScript server has no declaration for it (TS2568), so window is
+     widened for this one read. */
+  var stage = (/** @type {any} */ (window)).Stage;
+
+  stage.onPassageStart(applyRailTitle);
 })();

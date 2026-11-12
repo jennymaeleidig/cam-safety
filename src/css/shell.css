@@ -16,34 +16,55 @@
 /* ===== Story shell layout — compact rail panel + centered reading card =====
    Values borrowed from the layout study (prototype/layout/css/layout-
    prototype.css; Variant A "Book" is faithful to the Simple Book template, see
-   citation above): the rail is variant C/D's panel (230px, #242429 on
-   #3a3a42, 22px 18px padding, 1.4rem/1.2 title, .95rem actions) but framed
-   like variant A's floating rail (border + 12px radius, vertically centred,
-   never edge-to-edge). The reading column is variant A's page card
-   (#f4f1ea on #222, 12px radius, soft shadow) — the card is what keeps the
-   text legible over the animated checkerboard, which keeps ownership of the
-   page background.
+   citation above): the rail is variant C/D's panel — a title over a column of
+   actions — but sized in design pixels (--rail-w / --rail-h / --rail-unit
+   below; the same box the stage's menu slot occupies), and framed like
+   variant A's floating rail (vertically centred, never edge-to-edge) — with
+   the stage's pixel frame and pixel fill in place of variant A's border +
+   12px radius and the study's #242429 panel, see .rail below. The reading
+   column keeps variant A's page card *layout* — a wide centred block — but
+   takes the story's own frame instead of the study's paper: the same green
+   fill, brown bands and notched corners as every other framed surface (see
+   #passages below). The card is what keeps the text legible over the
+   animated checkerboard, which keeps ownership of the page background.
 
    Layout module only — frames whatever renders into #passages, no
    per-passage markup.
 
    Tunable knobs — a second layout is a value change, not a fork:
-     --shell-rail-width        width of the compact rail panel
+     --rail-w / --rail-h       the menu panel's box, in design pixels: the
+                               273:877 ratio both display modes share
+     --rail-unit               one design pixel of that panel — the single
+                               number everything in it is sized by
      --shell-column-max-width  max width of the reading card
      --shell-frame-gap         space between rail and card
      --shell-frame-padding     inset of the whole frame from the viewport */
 
 :root {
-  --shell-rail-width: 230px;
   --shell-column-max-width: 720px;
   --shell-frame-gap: clamp(24px, 5vw, 64px);
   --shell-frame-padding: clamp(24px, 6vh, 64px);
 
-  --shell-rail-bg: #242429;
-  --shell-rail-border: #3a3a42;
-  --shell-page-bg: #f4f1ea;
-  --shell-page-ink: #222;
-  --shell-page-border: #d9d4c7;
+  /* The menu panel's box, in design pixels, and the one number both display
+     modes are sized by. The 273:877 ratio is the constraint: width, height,
+     padding, type and gaps are all --rail-unit multiples, so the panel scales
+     as one piece rather than reflowing — the title screen's menu is the same
+     vertical panel the stage's menu slot holds.
+
+     Each mode derives --rail-unit, and the rules below never branch. Stage
+     mode takes the stage's design pixel (stage.css), because there the panel
+     is part of the letterboxed composition. Shell mode — the title screen —
+     has no canvas, so it derives a unit from the viewport height: one design
+     pixel when the panel fits at full size, less when it does not, so a short
+     window shrinks the panel instead of clipping it. */
+  --rail-w: 273;
+  --rail-h: 877;
+  --rail-unit: min(
+    1px,
+    (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
+      var(--rail-h)
+  );
+
 }
 
 html,
@@ -62,18 +83,18 @@ body {
 }
 
 /* The frame: rail pinned to the viewport's left edge, reading card centred in
-   the space beside it. Only vertical inset is applied — the rail sits flush
-   left so the card reads as centred on the page, not as a centred pair. The
-   left padding reserves the rail's column: the rail is position: fixed and a
-   sibling of .shell, so it can persist where stage.css repositions it for the
-   stage's menu slot. */
+   the space beside it. The rail is inset only by the pixel frame's gutter —
+   it stays on the left so the card reads as centred on the page, not as a
+   centred pair. The left padding reserves the rail's column: the rail is
+   position: fixed and a sibling of .shell, so it can persist where stage.css
+   repositions it for the stage's menu slot. */
 .shell {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   min-height: 100vh;
   padding: var(--shell-frame-padding) var(--shell-frame-padding)
     var(--shell-frame-padding)
-    calc(var(--shell-rail-width) + var(--shell-frame-gap));
+    calc(var(--rail-unit) * var(--rail-w) + var(--shell-frame-gap));
   /* Centre the card vertically, but never clip the top of a passage longer
      than the viewport (safe centering). */
   align-content: center;
@@ -88,28 +109,43 @@ body {
    a short window scrolls it instead of clipping it off both edges. */
 .rail {
   position: fixed;
-  left: 0;
+  /* Inset by the pixel frame's gutter, so the bands and notched corners clear
+     the viewport edge instead of being cut by it. */
+  left: var(--pixel-inset);
   top: 50%;
   transform: translateY(-50%);
   z-index: 1; /* above .stage — see stage.css */
-  width: var(--shell-rail-width);
-  max-height: calc(100vh - 2 * var(--shell-frame-padding));
+  width: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
+  height: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
+  max-height: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
   overflow: auto;
   display: flex;
   flex-direction: column;
-  gap: 22px;
-  padding: 22px 18px;
-  background: var(--shell-rail-bg);
-  border: 1px solid var(--shell-rail-border);
-  border-left: 0;
-  border-radius: 0 12px 12px 0;
-  box-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  /* The panel is tall in both modes now, so its contents sit in the middle of
+     it; a short panel is the exception, not the rule. */
+  justify-content: center;
+  gap: calc(var(--rail-unit) * 22);
+  padding: calc(var(--rail-unit) * 22) calc(var(--rail-unit) * 18);
+  background: var(--pixel-fill);
+  /* The rail is a framed surface in both modes: the stage's pixel frame, at
+     the portrait's weight and inks (the tokens and the corner staircase live
+     in stage.css, since they are drawn in design pixels). One panel, one
+     frame, wherever it appears — so the shell's own border and radius are
+     gone: the two bands draw the edge and the staircase cuts the corners.
+     The soft drop shadow goes with them, because a clip-path clips the
+     element's whole rendering, shadow included — and a hard pixel edge is
+     the point. */
+  box-shadow:
+    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
+    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
+      var(--pixel-frame-inner-ink);
+  clip-path: var(--pixel-corner-clip);
   box-sizing: border-box;
 }
 
 .rail-title {
   margin: 0;
-  font-size: 1.4rem;
+  font-size: calc(var(--rail-unit) * 32);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -117,12 +153,12 @@ body {
 .rail-actions {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  font-size: 0.95rem;
+  gap: calc(var(--rail-unit) * 14);
+  font-size: calc(var(--rail-unit) * 26);
 }
 
 .rail-actions a {
-  padding: 2px 0;
+  padding: calc(var(--rail-unit) * 2) 0;
   color: #e6e6e6;
   text-decoration: none;
 }
@@ -148,17 +184,28 @@ body {
   max-width: var(--shell-column-max-width);
   margin: 0 auto;
   padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
-  background: var(--shell-page-bg);
-  color: var(--shell-page-ink);
-  border: 1px solid var(--shell-page-border);
-  border-radius: 12px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.55);
+  /* The reading card is framed like everything else in the story — the menu
+     panel and the reply bar's green fill, the portrait's brown bands and the
+     notched corners — so the title screen reads as part of the frame and not
+     as a document with a page turned behind it. The padding is far wider than
+     the bands, so no line of text sits on one. The soft drop shadow and the
+     12px radius go with it: a clip-path clips the element's whole rendering,
+     shadow included, and a hard pixel edge is the point. */
+  background: var(--pixel-fill);
+  color: var(--pixel-fill-ink);
+  box-shadow:
+    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
+    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
+      var(--pixel-frame-inner-ink);
+  clip-path: var(--pixel-corner-clip);
   box-sizing: border-box;
 }
 
-/* Dark-on-light links inside the page card. */
+/* Links inside the reading card take the card's own ink rather than the
+   shell's dark-on-light page links: the card is chrome now, not paper. */
 #passages a {
-  color: #334;
+  color: var(--pixel-fill-ink);
+  text-decoration: underline;
 }
 
 #passages a:hover {

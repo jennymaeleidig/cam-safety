@@ -1,7 +1,10 @@
 /* ===== Stage — letterboxed visual-novel frame for [checker] passages =====
-   Shown only while the current passage is tagged [checker] and not [title]
-   (gating is on the passage tag classes SugarCube puts on <body>); the title
-   keeps the shell, so the story has a distinct start.
+   Shown only in stage mode: the current passage is tagged [checker] and not
+   [title]. That predicate is written down once, in stage-mode.js, which
+   derives it from the passage tag classes SugarCube puts on <body> and
+   publishes it as body[data-stage-mode]; every rule below reads the
+   attribute and never the classes. The title keeps the shell, so the story
+   has a distinct start.
 
    The frame is fixed to the viewport, aspect-locked to the 2840:1700 design
    canvas, and letterboxed — centred at its intrinsic ratio, never stretched
@@ -15,8 +18,12 @@
      background     #tmem-bg — the existing animated checkerboard; one layer,
                      reused, not a second background
      cam            .stage-cam — Cam's portrait               (per passage)
+                     .stage-hand carries the same drawing's hand in a layer
+                     outside the frame, for the pose that is cut in two; see
+                     the hand layer below
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
-                     plus its pointer tail, aimed per level
+                     .stage-bubble-shape draws its paper, card and pointer
+                     as one silhouette; the tail is aimed per level
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
@@ -24,7 +31,8 @@
 
    Slot geometry is data: each pressure level is one block below, under a
    body[data-pressure-level="N"] selector, holding the same small set of
-   values — the four slot boxes, the menu's visibility, and the tail's aim.
+   values — the four slots' boxes (the portrait's as a scale on the artwork's
+   own box, not as a box), the menu's visibility, and the tail's aim.
    Level 0 doubles as the fallback on :root for the moment before
    pressure-level.js sets the attribute (and if it ever doesn't). A new or
    re-tuned level is a value change, not a fork: no markup or structure
@@ -33,11 +41,13 @@
    content arrives. Changing the level changes these values with no
    transition, so the switch is instant.
 
-   For the cam slot the box's width:height ratio is the portrait's on-screen
-   framing at that level: the portrait image fills its box (object-fit:
-   cover), so wide → tall is the per-level values themselves. Width stays
-   ~25% of the stage, so the "closing in" reads as the aspect change plus the
-   level-3 height jump.
+   For the cam slot the box is the artwork's own box times the level's
+   --slot-cam-scale, so its width:height ratio is always the artwork's and the
+   portrait never crops: closing in is scale, and only scale. A framing that
+   is a different SHAPE — the tall close-in once planned for level 3 — cannot
+   be reached this way. It needs artwork at that shape, and then --cam-art-w/h
+   change for every level at once; making the ratio a per-level value is the
+   change that would reopen it. Nothing here assumes that stays impossible.
 
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
@@ -47,153 +57,289 @@
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
 
 :root {
-  /* Design canvas: 2840 x 1700, letterboxed to the viewport. */
-  --stage-w: min(100vw, calc(100vh * 2840 / 1700));
-  --stage-h: calc(var(--stage-w) * 1700 / 2840);
+  /* The design canvas, as data. Every measurement below is either a design
+     pixel on this canvas or derived from it, so retuning to a different
+     canvas is this pair of values and not a hunt for the ratio in three
+     calc()s. 2840 x 1700 today. */
+  --canvas-w: 2840;
+  --canvas-h: 1700;
+
+  /* The stage box: letterboxed to the viewport, centred at its intrinsic
+     ratio, never stretched and never clipped. */
+  --stage-w: min(100vw, calc(100vh * var(--canvas-w) / var(--canvas-h)));
+  --stage-h: calc(var(--stage-w) * var(--canvas-h) / var(--canvas-w));
 
   /* One design pixel: the stage is a fixed canvas, so chrome scales with it. */
-  --stage-unit: calc(var(--stage-w) / 2840);
+  --stage-unit: calc(var(--stage-w) / var(--canvas-w));
+
+  /* Cam's artwork, at its own size in design pixels. The portrait slot is this
+     box multiplied by the level's --slot-cam-scale, so slot aspect and
+     artwork aspect are the same number by construction and object-fit: cover
+     has nothing to crop. A new artwork size is these two values; a new
+     framing is one scale value per level. */
+  --cam-art-w: 719;
+  --cam-art-h: 551;
 
   /* Tail box size; roughly half of it pokes out past the bubble's edge. */
   --tail-size: calc(var(--stage-unit) * 140);
 
-  /* The bubble's card colour, shared with the tail so the pointer reads as
-     part of the same surface. */
-  --stage-bubble-bg: rgba(255, 255, 255, 0.94);
+  /* How far the pointer slides along its own aim, in design pixels. The box
+     above is centred on the anchor, so it is the one value that could
+     lengthen the tail — but it widens the base at the same time, and the base
+     is the part the card hides. This one moves the whole triangle tip-ward
+     after the rotation: the silhouette keeps its angle and only its reach
+     changes. Signed, per level, and the sign follows the aim rather than the
+     page — at --tail-rotate: 90deg the pointer aims left, so a positive reach
+     travels into NEGATIVE x. 0 is where the pointer has always sat. */
+  --tail-reach: 0;
+
+  /* ---- the pixel frame: one language for every framed surface -----------
+     A framed surface is two concentric bands — a heavy outer band outside a
+     thin inner line — and corners cut into three axis-aligned steps. Cam's
+     portrait, the player's reply bar and the menu take it; the speech bubble
+     does not, because the bubble is the stage's prose surface and reads as
+     paper, not chrome.
+
+     --pixel-notch is one step of the staircase and the grid both bands sit
+     on: the portrait's outer band is two steps (12) and its inner line one
+     step (6), so no band edge falls mid-step and each corner removes whole
+     blocks. Band widths and inks are per surface (see the rules below); the
+     notch is not — this polygon is resolved once, here on :root, so a
+     surface overriding --pixel-notch would not move its own corners.
+
+     The steps are axis-aligned, so their edges land on whole pixels at any
+     scale that maps a design pixel to a whole device pixel — the same place
+     image-rendering: pixelated already wants. A radius is a true arc, so it
+     anti-aliases into exactly the soft edge pixel art avoids; framed
+     surfaces take this staircase instead. */
+  --pixel-notch: calc(var(--stage-unit) * 6);
+  --pixel-notch-2: calc(var(--pixel-notch) * 2);
+  --pixel-notch-3: calc(var(--pixel-notch) * 3);
+  --pixel-corner-clip: polygon(
+    /* top edge, between the two upper notches */ var(--pixel-notch-3) 0,
+    calc(100% - var(--pixel-notch-3)) 0,
+    /* top-right: three steps down to the right edge */
+    calc(100% - var(--pixel-notch-2)) 0,
+    calc(100% - var(--pixel-notch-2)) var(--pixel-notch),
+    calc(100% - var(--pixel-notch)) var(--pixel-notch),
+    calc(100% - var(--pixel-notch)) var(--pixel-notch-2),
+    100% var(--pixel-notch-2),
+    100% var(--pixel-notch-3),
+    /* right edge */ 100% calc(100% - var(--pixel-notch-3)),
+    /* bottom-right */ 100% calc(100% - var(--pixel-notch-2)),
+    calc(100% - var(--pixel-notch)) calc(100% - var(--pixel-notch-2)),
+    calc(100% - var(--pixel-notch)) calc(100% - var(--pixel-notch)),
+    calc(100% - var(--pixel-notch-2)) calc(100% - var(--pixel-notch)),
+    calc(100% - var(--pixel-notch-2)) 100%,
+    calc(100% - var(--pixel-notch-3)) 100%,
+    /* bottom edge */ var(--pixel-notch-3) 100%,
+    /* bottom-left */ var(--pixel-notch-2) 100%,
+    var(--pixel-notch-2) calc(100% - var(--pixel-notch)),
+    var(--pixel-notch) calc(100% - var(--pixel-notch)),
+    var(--pixel-notch) calc(100% - var(--pixel-notch-2)),
+    0 calc(100% - var(--pixel-notch-2)),
+    0 calc(100% - var(--pixel-notch-3)),
+    /* left edge */ 0 var(--pixel-notch-3),
+    /* top-left */ 0 var(--pixel-notch-2),
+    var(--pixel-notch) var(--pixel-notch-2),
+    var(--pixel-notch) var(--pixel-notch),
+    var(--pixel-notch-2) var(--pixel-notch),
+    var(--pixel-notch-2) 0
+  );
+
+  /* The bubble's paper, in two halves: an opaque fill, and the alpha the whole
+     silhouette is flattened to. They are separate because they apply at
+     different depths — the fill paints the card and the pointer inside one
+     group, and --stage-bubble-alpha is that group's opacity, so the two shapes
+     composite once and cannot double up where they meet. See the bubble's
+     silhouette, below. */
+  --stage-bubble-fill: #fff;
+  --stage-bubble-alpha: 0.94;
+
+  /* Cam's backdrop: what shows through the portrait's transparent pixels.
+     Read through the `background` shorthand rather than `background-color`,
+     so a gradient, a pattern or an image is a value change here and never a
+     change to the rule that paints it. */
+  --cam-bg: rgb(250 243 177);
+
+  /* The bands, in design pixels. The defaults are the portrait's — the
+     heaviest in the stage, because the portrait is the one framed surface
+     that is artwork rather than chrome. Both inks are opaque hex, no alpha,
+     so the bands read as paint rather than a tint over the artwork, and all
+     three framed surfaces share them: one frame language, one weight, one
+     colour. Nothing overrides them today; a surface that ever needs its own
+     weight or inks sets these tokens in its own rule. */
+  --pixel-frame: calc(var(--stage-unit) * 12);
+  --pixel-frame-inner: calc(var(--stage-unit) * 6);
+  --pixel-frame-ink: #52150b;
+  --pixel-frame-inner-ink: #a2401c;
+
+  /* What a framed surface is filled with, and the ink that goes on it. The
+     menu, the reply bar and the shell's reading card share one fill, so the
+     panels the player reads and clicks are the same block of colour; the
+     portrait is artwork and keeps its own pixels. */
+  --pixel-fill: #1d6300;
+  --pixel-fill-ink: #f5f5f7;
+
+  /* The gutter between a framed surface and the box it sits in. A surface
+     flush against the stage's edge would have its bands and notched corners
+     cut by it, so the surfaces that hug an edge are inset by this much —
+     measured outside the bands, so the whole block moves in, borders
+     included. */
+  --pixel-inset: calc(var(--stage-unit) * 24);
 }
 
 /* ---- per-level layout ---------------------------------------------------
-   Fractions (0–1) of the stage. Level 0 also applies on :root so the stage
-   has a complete layout before the level attribute exists.
+   Slot boxes are design pixels on the canvas above, never fractions: the
+   numbers here are the numbers in the artwork and in the composition, so
+   "is this slot the portrait's own box?" is answered by reading rather than
+   by multiplying by 2840 and dividing back. The cam slot states a position
+   and a scale; the words "flush to the gutter" in its comments mean the
+   level's own numbers already contain --pixel-inset, because shrinking the
+   box by the gutter would tilt its aspect away from the artwork's.
+
+   Every level states its full box, including values that repeat across
+   levels. That is deliberate: a level is a composition that may be retuned
+   alone, so a repeated value is not a shared constant — see
+   docs/adr/0001-slot-geometry-is-per-level.md. Level 0 also applies on :root
+   so the stage has a complete layout before the level attribute exists.
 
    Tail knobs: --tail-anchor-x / --tail-anchor-y place the pointer's centre
-   along the bubble's edge (0 = left/top, 1 = right/bottom, 0.5 = middle);
-   --tail-rotate aims it at Cam (the triangle points down at 0deg). */
+   along the bubble's edge (0 = left/top, 1 = right/bottom, 0.5 = middle) —
+   positions by convention, not a clamp: a negative anchor puts the pointer's
+   base outside the bubble's left or top edge, past 1 outside the right or
+   bottom. --tail-rotate aims it at Cam (the triangle points down at 0deg);
+   --tail-reach then pushes it further along that aim, so a pointer can lean
+   out past the bubble's foot. */
 
 :root,
 body[data-pressure-level="0"] {
-  /* cam — wide and distant, bottom-right (690 × 551 design px) */
-  --slot-cam-left: 0.757;
-  --slot-cam-top: 0.676;
-  --slot-cam-width: 0.243;
-  --slot-cam-height: 0.324;
+  /* cam — bottom-right, right and bottom edges flush to the gutter, scale 1 */
+  --slot-cam-left: 2097;
+  --slot-cam-top: 1125;
+  --slot-cam-scale: 1;
 
   /* bubble — left, tail points bottom-right */
-  --slot-bubble-left: 0.243;
-  --slot-bubble-top: 0.175;
-  --slot-bubble-width: 0.514;
-  --slot-bubble-height: 0.509;
+  --slot-bubble-left: 690;
+  --slot-bubble-top: 298;
+  --slot-bubble-width: 1460;
+  --slot-bubble-height: 865;
 
   /* reply */
-  --slot-reply-left: 0.296;
-  --slot-reply-top: 0.766;
-  --slot-reply-width: 0.41;
-  --slot-reply-height: 0.144;
+  --slot-reply-left: 841;
+  --slot-reply-top: 1302;
+  --slot-reply-width: 1164;
+  --slot-reply-height: 245;
 
   /* menu — visible */
   --slot-menu-left: 0;
-  --slot-menu-top: 0.258;
-  --slot-menu-width: 0.096;
-  --slot-menu-height: 0.516;
+  --slot-menu-top: 439;
+  --slot-menu-width: 273;
+  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 1;
   --tail-anchor-y: 1;
   --tail-rotate: -45deg;
+  --tail-reach: 0;
 }
 
 body[data-pressure-level="1"] {
-  /* cam — bottom-left (719 × 551 design px) */
-  --slot-cam-left: 0.146;
-  --slot-cam-top: 0.676;
-  --slot-cam-width: 0.253;
-  --slot-cam-height: 0.324;
+  /* cam — bottom-left, bottom edge flush to the gutter, scale 1 */
+  --slot-cam-left: 414;
+  --slot-cam-top: 1125;
+  --slot-cam-scale: 1;
 
   /* bubble — right of Cam, tail points bottom-left */
-  --slot-bubble-left: 0.441;
-  --slot-bubble-top: 0.175;
-  --slot-bubble-width: 0.514;
-  --slot-bubble-height: 0.509;
+  --slot-bubble-left: 1252;
+  --slot-bubble-top: 298;
+  --slot-bubble-width: 1460;
+  --slot-bubble-height: 865;
 
   /* reply */
-  --slot-reply-left: 0.493;
-  --slot-reply-top: 0.766;
-  --slot-reply-width: 0.41;
-  --slot-reply-height: 0.144;
+  --slot-reply-left: 1400;
+  --slot-reply-top: 1302;
+  --slot-reply-width: 1164;
+  --slot-reply-height: 245;
 
   /* menu — visible */
   --slot-menu-left: 0;
-  --slot-menu-top: 0.258;
-  --slot-menu-width: 0.096;
-  --slot-menu-height: 0.516;
+  --slot-menu-top: 439;
+  --slot-menu-width: 273;
+  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 0;
-  --tail-anchor-y: 1;
-  --tail-rotate: 45deg;
+  --tail-anchor-y: 0.95;
+  --tail-rotate: 65deg;
+  --tail-reach: 20;
 }
 
 body[data-pressure-level="2"] {
-  /* cam — upper-left (719 × 551 design px) */
-  --slot-cam-left: 0.037;
-  --slot-cam-top: 0.054;
-  --slot-cam-width: 0.253;
-  --slot-cam-height: 0.324;
+  /* cam — upper-left, top-left corner held, scale 1.1 */
+  --slot-cam-left: 12;
+  --slot-cam-top: 65;
+  --slot-cam-scale: 1.1;
 
   /* bubble — tail points top-left */
-  --slot-bubble-left: 0.441;
-  --slot-bubble-top: 0.175;
-  --slot-bubble-width: 0.514;
-  --slot-bubble-height: 0.509;
+  --slot-bubble-left: 1230;
+  --slot-bubble-top: 298;
+  --slot-bubble-width: 1460;
+  --slot-bubble-height: 865;
 
   /* reply */
-  --slot-reply-left: 0.297;
-  --slot-reply-top: 0.773;
-  --slot-reply-width: 0.41;
-  --slot-reply-height: 0.144;
+  --slot-reply-left: 843;
+  --slot-reply-top: 1314;
+  --slot-reply-width: 1164;
+  --slot-reply-height: 245;
 
   /* menu — visible */
   --slot-menu-left: 0;
-  --slot-menu-top: 0.264;
-  --slot-menu-width: 0.096;
-  --slot-menu-height: 0.516;
+  --slot-menu-top: 449;
+  --slot-menu-width: 273;
+  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 0;
-  --tail-anchor-y: 0;
-  --tail-rotate: 135deg;
+  --tail-anchor-y: 0.12;
+  --tail-rotate: 90deg;
+  --tail-reach: 50;
 }
 
 body[data-pressure-level="3"] {
-  /* cam — tall close-in, left (727 × 894 design px) */
-  --slot-cam-left: 0;
-  --slot-cam-top: 0.254;
-  --slot-cam-width: 0.256;
-  --slot-cam-height: 0.526;
+  /* cam — left, flush to the gutter, still at scale 1. The close-in this level
+     is for is one value here — --slot-cam-scale above 1 — and the box keeps
+     the artwork's aspect, so getting closer never crops the pose. A framing
+     of a different SHAPE is a different decision; see the framing note in the
+     header. */
+  --slot-cam-left: -450;
+  --slot-cam-top: 250;
+  --slot-cam-scale: 1.9;
 
   /* bubble — tail points left at Cam */
-  --slot-bubble-left: 0.4;
-  --slot-bubble-top: 0.171;
-  --slot-bubble-width: 0.514;
-  --slot-bubble-height: 0.509;
+  --slot-bubble-left: 1275;
+  --slot-bubble-top: 291;
+  --slot-bubble-width: 1460;
+  --slot-bubble-height: 865;
 
   /* reply */
-  --slot-reply-left: 0.297;
-  --slot-reply-top: 0.773;
-  --slot-reply-width: 0.41;
-  --slot-reply-height: 0.144;
+  --slot-reply-left: 843;
+  --slot-reply-top: 1314;
+  --slot-reply-width: 1164;
+  --slot-reply-height: 245;
 
   /* menu — hidden: no easy escape at maximum pressure. Geometry matches
      level 2 so re-showing it is a one-value change. */
   --slot-menu-left: 0;
-  --slot-menu-top: 0.264;
-  --slot-menu-width: 0.096;
-  --slot-menu-height: 0.516;
+  --slot-menu-top: 449;
+  --slot-menu-width: 273;
+  --slot-menu-height: 877;
   --slot-menu-display: none;
 
   --tail-anchor-x: 0;
   --tail-anchor-y: 0.5;
   --tail-rotate: 90deg;
+  --tail-reach: 50;
 }
 
 /* ---- the frame ---------------------------------------------------------- */
@@ -206,25 +352,64 @@ body[data-pressure-level="3"] {
   width: var(--stage-w);
   height: var(--stage-h);
   overflow: hidden;
-  z-index: 0;
   box-sizing: border-box;
   /* The frame is a box, not a click target: it must never swallow clicks
      aimed at the menu or at a slot's own content. */
   pointer-events: none;
 }
 
-/* Stage mode: the passage is tagged [checker] and not [title]. */
-body.checker:not(.title) .stage {
+/* Stage mode: the passage is tagged [checker] and not [title]. The attribute
+   is set by stage-mode.js on the lifecycle's start phase, before the passage
+   renders, so the frame is already the visible mode when content arrives. */
+body[data-stage-mode] .stage {
+  display: block;
+}
+
+/* ---- the hand layer -----------------------------------------------------
+   One pose is drawn in two halves: phase 2's neutral body and its hand, on the
+   same canvas. The hand has to rest ON the menu while the body stays behind
+   it, and that cannot be arranged from inside the frame — the frame is
+   position: fixed, which makes it a stacking context, so nothing within it can
+   outrank the menu (shell.css, .rail, z-index 1) whatever z-index it asks for.
+   This layer is therefore the frame's own window drawn again outside it — same
+   width, height, centring and clip — so the hand's design pixels mean exactly
+   what the body's pixels mean, and the two halves land on each other.
+
+   It is gated on stage mode like the frame: the title passage flushes a
+   portrait too, and outside stage mode there is no menu to rest on. What it
+   paints is the hand image and nothing else — no backdrop, so the menu shows
+   through the transparent pixels, and no frame, which belongs to the picture
+   and stays with the body below the menu. An empty layer draws nothing, so
+   the twelve poses that are one image need no gate beyond having no hand. */
+.stage-cam-hand {
+  display: none;
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  overflow: hidden;
+  box-sizing: border-box;
+  /* Above the menu (1). The bubble's z-index 2 is inside the frame's own
+     stacking context and never competes with this number; the hand's business
+     is with the menu. */
+  z-index: 2;
+  /* A window, not a target: a hand resting on the panel must not swallow
+     clicks aimed at the buttons beneath it. */
+  pointer-events: none;
+}
+
+body[data-stage-mode] .stage-cam-hand {
   display: block;
 }
 
 /* Shell mode: the rail + reading card shows outside stage mode only. */
-body.checker:not(.title) .shell {
+body[data-stage-mode] .shell {
   display: none;
 }
 
 /* The letterbox bars. */
-body.checker:not(.title) {
+body[data-stage-mode] {
   background: #111;
 }
 
@@ -236,80 +421,179 @@ body.checker:not(.title) {
   pointer-events: auto;
 }
 
+
+/* The portrait's box. Phase 2's neutral pose is one drawing cut in two — a body
+   and a hand on the same canvas — and the halves have to land back on each
+   other pixel for pixel, so they state their box once, here, instead of each
+   writing it: a second copy would drift the moment a level is retuned and the
+   hand would come off the wrist. The body reads it inside .stage, under the
+   menu; the hand reads it in .stage-cam-hand, above the menu. Same box either
+   way, so a layered pose sits exactly where the single image used to. */
+.stage-cam,
+.stage-hand {
+  /* The artwork's own box, scaled by the level. The gutter is baked into each
+     level's left/top instead of being subtracted from this box: shaving
+     --pixel-inset off both axes would make the box's ratio differ from the
+     artwork's, and object-fit: cover would then crop the pose — a different
+     amount at every scale. Position carries the gutter; size stays exactly
+     the artwork's. */
+  left: calc(var(--stage-unit) * var(--slot-cam-left));
+  top: calc(var(--stage-unit) * var(--slot-cam-top));
+  width: calc(var(--stage-unit) * var(--cam-art-w) * var(--slot-cam-scale));
+  height: calc(var(--stage-unit) * var(--cam-art-h) * var(--slot-cam-scale));
+}
+
 .stage-cam {
-  left: calc(var(--slot-cam-left) * 100%);
-  top: calc(var(--slot-cam-top) * 100%);
-  width: calc(var(--slot-cam-width) * 100%);
-  height: calc(var(--slot-cam-height) * 100%);
+  /* The portrait is artwork, never a target. */
+  pointer-events: none;
 }
 
 .stage-bubble {
-  left: calc(var(--slot-bubble-left) * 100%);
-  top: calc(var(--slot-bubble-top) * 100%);
-  width: calc(var(--slot-bubble-width) * 100%);
-  height: calc(var(--slot-bubble-height) * 100%);
-  /* Above the tail (z-index 1) so the tail emerges from under the card. */
+  left: calc(var(--stage-unit) * var(--slot-bubble-left));
+  top: calc(var(--stage-unit) * var(--slot-bubble-top));
+  width: calc(var(--stage-unit) * var(--slot-bubble-width));
+  height: calc(var(--stage-unit) * var(--slot-bubble-height));
+  /* Above the silhouette (z-index 1): the prose sits on the paper. */
   z-index: 2;
 }
 
 .stage-reply {
-  left: calc(var(--slot-reply-left) * 100%);
-  top: calc(var(--slot-reply-top) * 100%);
-  width: calc(var(--slot-reply-width) * 100%);
-  height: calc(var(--slot-reply-height) * 100%);
+  left: calc(var(--stage-unit) * var(--slot-reply-left));
+  top: calc(var(--stage-unit) * var(--slot-reply-top));
+  width: calc(var(--stage-unit) * var(--slot-reply-width));
+  height: calc(var(--stage-unit) * var(--slot-reply-height));
 }
 
 /* ---- slot content — what the content macros put into each slot ----------
    Empty slots draw nothing: every per-slot look below is gated on
-   :not(:empty), so a passage that omits a macro shows the bare background
-   rather than an empty card. The content macros only record; stage.js writes
-   all three slots in one flush after the passage renders, so a slot a passage
-   did not fill is written empty. */
+   [data-state="filled"], the attribute stage.js writes in the same flush that
+   fills the slot, so a passage that omits a macro shows the bare background
+   rather than an empty card. The attribute and not :empty, because only the
+   record knows whether a slot has content: a line of wiki output that renders
+   to whitespace leaves a slot non-empty and blank. The content macros only
+   record; stage.js writes all three slots in one flush after the passage
+   renders, so a slot a passage did not fill is written empty. */
 
 /* Cam's portrait: the image fills its slot, so the slot box — whose
    width/height are per-level values above — is the framing window. That is
    what makes the wide → tall framing change visible rather than letterboxed
-   whitespace. */
+   whitespace.
+
+   Pixel art: scale it with nearest-neighbour, never the browser's smooth
+   resample. `pixelated` is the spec name (Chrome 41+, Safari 10+, Firefox
+   93+); `crisp-edges` is Firefox's older spelling and `-webkit-optimize-
+   contrast` Safari's, so neither is needed — write both only if pre-93
+   Firefox matters. Nearest-neighbour is applied when DOWNscaling too, and
+   the GIFs are authored at 719 × 551 design px against the 2840-wide canvas:
+   near 1:1 at 2dppx, ~2:1 down at 1dppx, where dropped pixels shimmer on an
+   animated pose. If that appears, add a half-size asset; do not remove this
+   rule. */
 .stage-portrait {
   display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  image-rendering: pixelated;
+  /* The GIFs are cut-outs — the puppet's transparent pixels show whatever is
+     behind it — so the portrait carries its own backdrop. On the image and
+     not on the slot: an empty cam slot then draws no backdrop either, which
+     is the rule every slot look follows. */
+  background: var(--cam-bg);
+}
+
+/* The hand half of a layered pose: an image, not a slot, so it fills the box
+   it already has and brings no framing of its own. Deliberately no
+   background — the body carries the backdrop because an empty cam slot must
+   draw nothing, while the hand's transparency is the point: a backdrop here
+   would paint the menu out behind all 719 × 551 of it. */
+.stage-hand {
+  position: absolute;
+  display: block;
+  object-fit: cover;
+  image-rendering: pixelated;
+}
+
+/* ---- the pixel frame: who opts in, and how the bands are painted --------
+   Every framed surface shares the tokens on :root and the corners below. How
+   the bands get painted depends on what the surface holds:
+
+   - The portrait's frame is an overlay (::after). An inset shadow on the cam
+     slot would be painted under the image, which fills the slot.
+   - The text surfaces scroll (overflow: auto), and a positioned child scrolls
+     with the content, so their bands are an inset shadow on the surface
+     itself — an element's own paint never scrolls. Both pad far wider than
+     their bands, so no line of text ever sits on one.
+
+   The overlay is inset: 0, so the surface keeps its full box: a real border
+   either pushes the box past its slot, where the stage clips — the cam slot
+   is inset by --pixel-inset precisely because level 0 sits against the
+   stage's bottom-right corner — or, with border-box sizing, shrinks the
+   image's content box and re-crops the pose under object-fit: cover.
+
+   The first shadow listed paints on top: the outer band covers
+   --pixel-frame, the inner line underneath shows through the remaining
+   --pixel-frame-inner.
+
+   The clip goes on the surface, not on the content and not on the bands: a
+   clip-path clips the element's whole subtree, so one declaration notches
+   content and bands in exactly the same place; a copy of the polygon on
+   either layer could drift. Gated on [data-state="filled"] like every other
+   slot look, so an empty slot carries no frame. The menu is the third framed
+   surface but not a slot, and it exists outside the stage too, so its corners
+   and bands are set on the .rail rule in shell.css. */
+.stage-cam[data-state="filled"],
+.stage-reply[data-state="filled"] {
+  clip-path: var(--pixel-corner-clip);
+}
+
+.stage-cam[data-state="filled"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
+    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
+      var(--pixel-frame-inner-ink);
 }
 
 /* Cam's speech-bubble and the player's reply bar share one reading layout:
    a centred vertical stack that scrolls instead of clipping a long line. */
-.stage-bubble:not(:empty),
-.stage-reply:not(:empty) {
+.stage-bubble[data-state="filled"],
+.stage-reply[data-state="filled"] {
   display: flex;
   flex-direction: column;
   justify-content: center;
   overflow: auto;
   padding: calc(var(--stage-unit) * 52) calc(var(--stage-unit) * 64);
-  border-radius: calc(var(--stage-unit) * 48);
   font-size: calc(var(--stage-unit) * 52);
   line-height: 1.35;
 }
 
 /* Cam's speech-bubble: a large, high-contrast card of prose — the stage's
-   main reading surface. */
-.stage-bubble:not(:empty) {
-  background: var(--stage-bubble-bg);
+   main reading surface. It paints no paper of its own: the paper is
+   .stage-bubble-shape, behind the text, so card and pointer are one
+   silhouette. This element is the prose — colour, padding, scrolling — and
+   nothing else. */
+.stage-bubble[data-state="filled"] {
   color: #1c1c22;
-  box-shadow: 0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
-    rgba(0, 0, 0, 0.35);
 }
 
 /* The player's reply bar: a separate, darker band, so speaker and response
    stay distinct. It is the stage's link surface — a choice rendered by
    <<player_line>> inherits the bar's ink, not the shell's dark-on-light
    page links. */
-.stage-reply:not(:empty) {
+.stage-reply[data-state="filled"] {
   padding: calc(var(--stage-unit) * 28) calc(var(--stage-unit) * 40);
-  background: rgba(24, 24, 30, 0.9);
-  color: #f5f5f7;
-  border: calc(var(--stage-unit) * 4) solid rgba(255, 255, 255, 0.5);
-  border-radius: calc(var(--stage-unit) * 24);
+  background: var(--pixel-fill);
+  color: var(--pixel-fill-ink);
+  /* The portrait's frame weight and inks, drawn here rather than as a
+     border: the bar keeps its full box and its corners come from the pixel
+     frame above. */
+  box-shadow:
+    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
+    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
+      var(--pixel-frame-inner-ink);
   font-size: calc(var(--stage-unit) * 38);
   line-height: 1.3;
 }
@@ -324,47 +608,95 @@ body.checker:not(.title) {
   color: inherit;
 }
 
-/* ---- Cam's speech-bubble tail ------------------------------------------
-   A pointer on the bubble's edge, aimed at Cam by the per-level anchor and
-   rotation above. It is painted above the cam slot (so the level-0 corner
-   tail is not hidden by the portrait) and below the bubble (z-index 2),
-   which covers the tail's base so only the tip shows. Gated on the bubble
-   actually having content, so an omitted <<cam_line>> leaves no orphan
-   pointer. */
-.stage::after {
-  content: "";
+/* ---- the bubble's silhouette: card and pointer as one surface -----------
+   The paper is drawn here, not on the text slot, because a card and a pointer
+   that meet must meet invisibly. Two boxes carrying their own translucent
+   white double up wherever they overlap — 94% over 94% is 99.6%, a brighter
+   rectangle over the animated checkerboard — and the card's box-shadow falls
+   across the pointer's root as a dark seam. Those two seams are the whole
+   reason two shapes read as two shapes.
+
+   So both are painted in ONE group: the card as ::before, the pointer as
+   ::after, each in the opaque fill, with --stage-bubble-alpha flattening the
+   pair into a single translucent layer. One silhouette, one density. The
+   shadow is a drop-shadow on the same group, which follows the group's
+   painted alpha rather than a box, so it traces the union of card and pointer
+   — no band where the tail leaves the card, and no corner shadow inside it.
+
+   The prose is deliberately NOT in here: it sits opaquely in .stage-bubble
+   above this layer, which is what makes it possible to move the alpha from
+   the fill to a group at all.
+
+   Nothing else moves with the paper: the box is still the bubble's slot, the
+   radius is still the one rounded surface in the stage (prose, not chrome)
+   and the pointer still takes its aim from the per-level tail knobs. */
+.stage-bubble-shape {
   display: none;
+  position: absolute;
+  left: calc(var(--stage-unit) * var(--slot-bubble-left));
+  top: calc(var(--stage-unit) * var(--slot-bubble-top));
+  width: calc(var(--stage-unit) * var(--slot-bubble-width));
+  height: calc(var(--stage-unit) * var(--slot-bubble-height));
+  /* Above the cam slot, so the level-0 corner pointer is not hidden by the
+     portrait; below the prose (z-index 2). */
+  z-index: 1;
+  pointer-events: none;
+  /* The group's opacity, applied once to the finished silhouette. */
+  opacity: var(--stage-bubble-alpha);
+  filter: drop-shadow(
+    0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
+      rgba(0, 0, 0, 0.35)
+  );
 }
 
-body.checker:not(.title) .stage:has(.stage-bubble:not(:empty))::after {
-  display: block;
+/* The card: the bubble's box, rounded, in the opaque fill. */
+.stage-bubble-shape::before {
+  content: "";
   position: absolute;
-  z-index: 1;
+  inset: 0;
+  background: var(--stage-bubble-fill);
+  border-radius: calc(var(--stage-unit) * 48);
+}
+
+/* The pointer: the same fill, anchored in the card's own box (0 = left/top
+   edge, 1 = right/bottom, and no clamp — a negative anchor puts its base
+   outside the card). Its base hides under the card, which now costs nothing:
+   both shapes are the same opaque fill inside one group, so the overlap is
+   invisible instead of brighter. --tail-reach slides the triangle along its
+   own axis after the rotation, so it can lean out past the card's edge — into
+   negative x when it aims left — without fattening its base. */
+.stage-bubble-shape::after {
+  content: "";
+  position: absolute;
   left: calc(
-    (
-        var(--slot-bubble-left) + var(--slot-bubble-width) *
-          var(--tail-anchor-x)
-      ) *
-      100%
+    var(--stage-unit) * var(--slot-bubble-width) * var(--tail-anchor-x)
   );
   top: calc(
-    (
-        var(--slot-bubble-top) + var(--slot-bubble-height) *
-          var(--tail-anchor-y)
-      ) *
-      100%
+    var(--stage-unit) * var(--slot-bubble-height) * var(--tail-anchor-y)
   );
   width: var(--tail-size);
   height: var(--tail-size);
-  background: var(--stage-bubble-bg);
+  background: var(--stage-bubble-fill);
   clip-path: polygon(0 0, 100% 0, 50% 100%);
-  transform: translate(-50%, -50%) rotate(var(--tail-rotate));
-  pointer-events: none;
+  /* Reach is applied after the rotation, so it is measured along the tail's
+     own axis: the same positive number pushes a downward pointer down, a
+     leftward one into negative x, and a diagonal one along its diagonal. */
+  transform: translate(-50%, -50%) rotate(var(--tail-rotate))
+    translateY(calc(var(--stage-unit) * var(--tail-reach)));
 }
 
-/* Debug only: outline the slots that are still empty. :empty stops matching
-   the moment a slot holds content, so this never hides real content. */
-body[data-stage-debug] .stage-slot:empty {
+/* Gated on the bubble actually having content, so an omitted <<cam_line>>
+   leaves no orphan paper. */
+body[data-stage-mode]
+  .stage:has(.stage-bubble[data-state="filled"])
+  .stage-bubble-shape {
+  display: block;
+}
+
+/* Debug only: outline the slots that are still empty. The attribute flips to
+   "filled" the moment stage.js writes content, so this never hides real
+   content. */
+body[data-stage-debug] .stage-slot[data-state="empty"] {
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 10px;
 }
@@ -386,31 +718,46 @@ body[data-stage-debug] .stage-slot:empty::before {
 /* ---- the menu slot: the reused rail, repositioned ----------------------- */
 
 /* Offsets are measured from the stage box, so they add the letterbox bar
-   ((viewport - stage) / 2) to the slot's own fraction of the stage. The
-   menu's visibility is a per-level value too: hidden at level 3. */
-body.checker:not(.title) .rail {
+   ((viewport - stage) / 2) to the slot's own design pixels. The menu's
+   visibility is a per-level value too: hidden at level 3. The rail's frame,
+   bands and corners come from shell.css, so this rule only moves it. */
+body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
+  /* Slot box, inset by the gutter on all four sides so the menu's bands and
+     corners clear the stage's edge. The cam slot can't shrink this way — it
+     would tilt the artwork's aspect — so its levels state the gutter in their
+     own left/top instead. */
   top: calc(
-    (100vh - var(--stage-h)) / 2 + var(--stage-h) * var(--slot-menu-top)
+    (100vh - var(--stage-h)) / 2 + var(--stage-unit) * var(--slot-menu-top) +
+      var(--pixel-inset)
   );
   left: calc(
-    (100vw - var(--stage-w)) / 2 + var(--stage-w) * var(--slot-menu-left)
+    (100vw - var(--stage-w)) / 2 + var(--stage-unit) * var(--slot-menu-left) +
+      var(--pixel-inset)
   );
-  width: calc(var(--stage-w) * var(--slot-menu-width));
-  height: calc(var(--stage-h) * var(--slot-menu-height));
-  max-height: calc(var(--stage-h) * var(--slot-menu-height));
+  width: calc(
+    var(--stage-unit) * var(--slot-menu-width) - var(--pixel-inset) * 2
+  );
+  height: calc(
+    var(--stage-unit) * var(--slot-menu-height) - var(--pixel-inset) * 2
+  );
+  max-height: calc(
+    var(--stage-unit) * var(--slot-menu-height) - var(--pixel-inset) * 2
+  );
   transform: none;
-  justify-content: center;
   z-index: 1;
-  padding: calc(var(--stage-unit) * 22) calc(var(--stage-unit) * 18);
-  gap: calc(var(--stage-unit) * 22);
 }
 
-body.checker:not(.title) .rail-title {
-  font-size: calc(var(--stage-unit) * 32);
-}
+/* The menu's scale, not its rules — and the last word this file has about the
+   rail. shell.css sizes the panel from --rail-unit alone, so stage mode has
+   exactly one thing to say about it: which design pixel applies. The panel's
+   box (273 × 877 design px, --rail-w/--rail-h in shell.css) is the box the
+   menu slot states below — one panel, one shape, whether it sits in the shell
+   or in the stage's menu slot.
 
-body.checker:not(.title) .rail-actions {
-  gap: calc(var(--stage-unit) * 14);
-  font-size: calc(var(--stage-unit) * 26);
+   Expressed on <body> rather than on .rail so the value inherits down, the way
+   the level's do; a second body[data-stage-mode] rule is deliberate, the one
+   above stating the mode's colours and this one the menu's scale. */
+body[data-stage-mode] {
+  --rail-unit: var(--stage-unit);
 }

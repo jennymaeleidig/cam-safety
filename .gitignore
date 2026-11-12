@@ -25,3 +25,5 @@ prototype/
 !.vscode/
 .vscode/*
 !.vscode/tasks.json
+# Node toolchain (TypeScript, for the local language server) — not build input
+node_modules/

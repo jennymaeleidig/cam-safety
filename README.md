@@ -15,24 +15,29 @@ layouts, and Cam's portrait, speech-bubble and reply bar re-flow around it.
 
 - `tweego: build` — one-shot build into `dist/story.html`.
 - `tweego: watch` — rebuild on change.
+- `assets: copy` — copies `include/images/` to `dist/images/`. The story
+  references Cam's portraits as relative `images/cam/...` URLs, so the artwork
+  has to sit beside `dist/story.html`. Both build tasks depend on it.
 - `run: build + open` — build, then open the story.
 
-By hand:
+By hand (both steps — the portraits are relative URLs):
 
 ```sh
+mkdir -p dist/images && cp -R include/images/. dist/images/
 TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -m src/css -m src/js -o dist/story.html src
 ```
 
 ## Source layout
 
-| Path                     | Purpose                                                                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                          |
-| `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                           |
-| `src/title.twee`         | Title screen.                                                                                                                                           |
-| `src/css/`               | `checker.css` (background + per-level background values), `shell.css`, `stage.css` (per-level slot geometry).                                           |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `pressure-level.js`, `shell.js`, `stage.js` (the slots). |
-| `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                      |
+| Path                     | Purpose                                                                                                                                                                                                                                                        |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                                                                                                                                 |
+| `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
+| `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
+| `src/css/`               | `checker.css` (background + per-level background values), `shell.css`, `stage.css` (per-level slot geometry).                                                                                                                                                  |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `pressure-level.js`, `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-level neutral portrait). |
+| `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
+| `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
 ## Verification
 
@@ -48,6 +53,10 @@ manual, by design.
    SugarCube.Engine.play("Stage content");
    SugarCube.Engine.play("Stage content empty");
    ```
+
+   Each level must show its own phase's neutral pose (phase-0 … phase-3) in
+   that level's slot position, and the slot geometry must not change when the
+   artwork does.
 
 4. Outline the still-empty slots:
 

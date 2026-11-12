@@ -10,5 +10,5 @@ sugarcube-2:
       description: Fills the stage's reply-bar slot with the player's line. Renders nothing into the passage. Takes a quoted line, wiki-processed so links and choices work.
       container: false
     portrait:
-      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text.
+      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text. Omit it and the slot shows the current pressure level's neutral pose (images/cam/phase-N/neutral/).
       container: false

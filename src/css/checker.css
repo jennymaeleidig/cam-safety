@@ -34,15 +34,15 @@ body[data-pressure-level="0"] {
 }
 
 body[data-pressure-level="1"] {
-  --tmem-hue: 152;
+  --tmem-hue: 200;
 }
 
 body[data-pressure-level="2"] {
-  --tmem-hue: 152;
+  --tmem-hue: 45;
 }
 
 body[data-pressure-level="3"] {
-  --tmem-hue: 152;
+  --tmem-hue: 0;
 }
 
 /* Wrapper: fixed + viewport-clipped layer behind the text. z-index: -1, not
@@ -64,11 +64,15 @@ body.checker #tmem-bg {
   display: block;
 }
 
-/* Stage mode ([checker] and not [title]): the same single layer letterboxes
-   into the stage box — the same --stage-w/--stage-h pair the .stage frame
-   uses (stage.css) — instead of covering the whole viewport. inset: 0 plus
-   margin: auto centres the fixed box on both axes. */
-body.checker:not(.title) #tmem-bg {
+/* Stage mode ([checker] and not [title], published by stage-mode.js as
+   body[data-stage-mode]): the same single layer letterboxes into the stage
+   box — the same --stage-w/--stage-h pair the .stage frame uses (stage.css) —
+   instead of covering the whole viewport. inset: 0 plus margin: auto centres
+   the fixed box on both axes. The rule above keeps reading SugarCube's tag
+   class, not the attribute: the title is tagged [checker] and is shell mode,
+   and this layer is the only page background there — so it must follow the
+   tag, which is on <body> at first paint, not a mode derived a beat later. */
+body[data-stage-mode] #tmem-bg {
   width: var(--stage-w);
   height: var(--stage-h);
   margin: auto;

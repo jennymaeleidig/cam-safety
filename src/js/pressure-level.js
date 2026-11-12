@@ -33,5 +33,10 @@
     );
   }
 
-  window.Stage.onPassageStart(applyLevel);
+  /* boot.js, which loads before this file, creates window.Stage (see its
+     header). The editor's TypeScript server has no declaration for it and
+     reports TS2568, so window is widened for this one read. */
+  var stage = (/** @type {any} */ (window)).Stage;
+
+  stage.onPassageStart(applyLevel);
 })();

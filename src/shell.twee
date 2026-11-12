@@ -52,6 +52,16 @@
 </aside>
 <div class="stage">
 	<div class="stage-slot stage-cam" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
+	<!-- The bubble's paper: card and pointer in one group, so the two shapes
+	     cannot seam where they meet (stage.css, .stage-bubble-shape). Drawn
+	     before the prose so the slot above it carries text and no paper. -->
+	<div class="stage-bubble-shape" aria-hidden="true"></div>
 	<div class="stage-slot stage-bubble" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
 	<div class="stage-slot stage-reply" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
 </div>
+<!-- Cam's hand, for a pose that is drawn in two halves. Outside the frame
+     because a fixed box is a stacking context, and the hand has to reach over
+     the menu. Same window as the frame, same design pixels: stage.css states
+     the box once, for .stage-cam and .stage-hand both. stage.js fills it only
+     for a pose that has a hand, so every other pose leaves it empty. -->
+<div class="stage-cam-hand"></div>
