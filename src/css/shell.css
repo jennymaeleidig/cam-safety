@@ -211,3 +211,13 @@ body {
 #passages a:hover {
   text-decoration: underline;
 }
+
+/* The title screen's licence line. Smaller and quieter than the Start line, but
+   it is text, not chrome: it must stay legible on the card, so it dims rather
+   than hides. */
+.title-credit {
+  margin-top: 1.2em;
+  font-size: 0.72em;
+  line-height: 1.5;
+  opacity: 0.72;
+}

@@ -5,4 +5,7 @@
 		<<link "Start" "Level 0">><</link>>
 		<<if Save.browser.size > 0>> · <<link "Load">><<run UI.saves()>>><</link>><</if>>
 	</p>
+	<!-- Licence term, not decoration: the letter sounds are CC BY 4.0 and the
+	     attribution belongs where a player can see it (docs/adr/0002). -->
+	<p class="title-credit">Letter sounds: <a href="https://github.com/jeff-hykin/animalese" target="_blank" rel="noopener">animalese</a>, after Josh Simmons' recording (CC BY 4.0).</p>
 </div>

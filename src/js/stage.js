@@ -28,7 +28,13 @@
    and published as data-state on the slot; stage.css gates every per-slot
    look on that attribute. Never let CSS infer it from :empty: a line of wiki
    output that renders to whitespace leaves a slot non-empty and blank, and
-   only this file knows the difference. */
+   only this file knows the difference.
+
+   The one exception is the reveal (reveal.js): after the flush it reveals
+   Cam's line, and a line still waiting its turn has its paper held empty until
+   it lands. So the attribute this file publishes can be taken back for the
+   length of a reveal, and put back with the same meaning — filled means the
+   slot holds a line, empty means it shows nothing. */
 (function () {
   "use strict";
 
@@ -120,18 +126,21 @@
     layer.appendChild(img);
   }
 
+  /* Returns the slot it filled, so the flush can hand the filled slots to the
+     reveal in one call; null when there was nothing to write. */
   function writeLine(name, html) {
     var slot = slotElement(name);
     if (!slot) {
-      return;
+      return null;
     }
     slot.textContent = "";
     if (html == null || html === "") {
       setState(slot, false);
-      return;
+      return null;
     }
     jQuery(slot).wiki(String(html));
     setState(slot, true);
+    return slot;
   }
 
   /* ---- the default portrait: the level's neutral pose -------------------
@@ -168,8 +177,27 @@
 
   function flush() {
     writePortrait(record.cam || { src: neutralPose() });
-    writeLine("bubble", record.bubble);
-    writeLine("reply", record.reply);
+    /* Both lines are written before either is revealed: the reveal decides what
+       waits for what, and it needs the slots filled, because it reads their
+       text nodes. */
+    var lines = [];
+    var bubble = writeLine("bubble", record.bubble);
+    var reply = writeLine("reply", record.reply);
+    if (bubble) {
+      lines.push(bubble);
+    }
+    if (reply) {
+      lines.push(reply);
+    }
+    /* Called on every flush, empty list included: a passage with no lines is
+       exactly when the previous passage's reveal must be dropped, or it would
+       hold and then paint slots this flush has just emptied.
+       Loaded after this file (reveal.js); absent only if it failed to load, in
+       which case every line is already on screen in full. */
+    var reveal = /** @type {any} */ (window).Reveal;
+    if (reveal) {
+      reveal.start(lines);
+    }
   }
 
   /* ---- the interface: content, not slots ------------------------------

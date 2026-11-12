@@ -49,3 +49,15 @@ _Avoid_: border, outline, chrome, bevel
 The settings / saves / restart panel. In shell mode it is the rail; in stage
 mode it fills the menu slot.
 _Avoid_: rail, sidebar, nav, drawer
+
+**Reveal**:
+The one-character-at-a-time arrival of Cam's line, one letter of voice per
+character. Only Cam's line is revealed; the player's reply arrives whole when
+Cam finishes. A link is never revealed character by character: it arrives in
+one step and is silent.
+_Avoid_: typewriter, typing, animation, effect
+
+**Voice**:
+The letter sounds the reveal plays — animalese slices, pitched and compressed.
+One voice, Cam's; the reply has none.
+_Avoid_: audio, sfx, blip, sample

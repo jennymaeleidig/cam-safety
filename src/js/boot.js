@@ -24,8 +24,15 @@
    (src/js, via Tweego's -m) after the StoryInterface is in the DOM and
    after jQuery is initialised, so both are there when this file runs;
    Engine.start() then navigates to the start passage, which fires both
-   phases. Story JavaScript is evaluated once per page load, so the
-   subscription needs no matching unsubscribe.
+   phases.
+
+   Story JavaScript is in fact evaluated TWICE per page load — Tweego emits
+   every -m file into <head> and again into the story's twine-user-script —
+   so both subscriptions below are made twice and every handler runs twice per
+   passage. Nothing here needs a matching unsubscribe; what does need care is
+   anything with a side effect a second time (reveal.js and voice.js guard
+   against it, and stage.js's last write wins). Do not add a global here
+   without deciding what its second copy does.
 
    Load order: Tweego merges src/js in lexical order. This file must stay
    first — it creates Stage, and every registrant calls it at load. */

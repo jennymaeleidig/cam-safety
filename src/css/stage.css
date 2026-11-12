@@ -421,6 +421,10 @@ body[data-stage-mode] {
   pointer-events: auto;
 }
 
+/* A line being revealed or waiting its turn is `inert` (reveal.js), so its
+   links need no pointer rule here: inert covers the pointer, the keyboard and
+   the accessibility tree in one attribute. The class only marks the slot for
+   the debug outline below. */
 
 /* The portrait's box. Phase 2's neutral pose is one drawing cut in two — a body
    and a hand on the same canvas — and the halves have to land back on each
@@ -695,10 +699,16 @@ body[data-stage-mode]
 
 /* Debug only: outline the slots that are still empty. The attribute flips to
    "filled" the moment stage.js writes content, so this never hides real
-   content. */
+   content. A slot that is revealing is exempt: its paper is deliberately held
+   empty while a line waits its turn (reveal.js), which is not a gap in the
+   authoring to be outlined. */
 body[data-stage-debug] .stage-slot[data-state="empty"] {
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 10px;
+}
+
+body[data-stage-debug] .stage-slot.is-revealing {
+  border-style: none;
 }
 
 body[data-stage-debug] .stage-slot:empty::before {

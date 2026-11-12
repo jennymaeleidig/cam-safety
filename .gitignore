@@ -8,9 +8,6 @@ dist/
 # Generated ctags index
 /tags
 
-# Throwaway prototype (deleted in ticket 04)
-prototype/
-
 # Agent tooling cache
 .pi/
 

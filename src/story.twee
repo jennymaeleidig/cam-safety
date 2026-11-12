@@ -18,6 +18,11 @@ Cam Safety
      <<cam_line "Cam's line">>
      <<player_line "The player's reply">>
      <<portrait "images/cam/phase-3/talking/phase-3-talking.gif" "alt (opt)">>
+   <<cam_line>> is spoken: the stage reveals it one character at a time, with a
+   letter of voice per character (src/js/reveal.js, src/js/voice.js).
+   <<player_line>> is the player's own line and is not: it arrives whole, once
+   Cam has finished, and its links are silent and never half-revealed. Neither
+   line is revealed under prefers-reduced-motion.
    An omitted <<portrait>> leaves the level's neutral pose in place (the
    NEUTRAL_POSE table in src/js/stage.js), so most passages need no portrait
    line at all. The lines are wiki-processed, so $variables, markup and [[links]] work in
