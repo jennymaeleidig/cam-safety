@@ -41,8 +41,8 @@ measurement is either a fraction of it or a design pixel on it.
 _Avoid_: resolution, viewport, screen, aspect ratio
 
 **Pixel frame**:
-The two-band painted border with staircase-cut corners that every framed
-surface in the story takes.
+The painted nine-patch border and green panel that every framed surface in
+the story takes: 16 × 16 painted corners, stretched edges and a green centre.
 _Avoid_: border, outline, chrome, bevel
 
 **Menu**:

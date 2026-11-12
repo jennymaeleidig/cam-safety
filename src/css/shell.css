@@ -20,13 +20,13 @@
    actions — but sized in design pixels (--rail-w / --rail-h / --rail-unit
    below; the same box the stage's menu slot occupies), and framed like
    variant A's floating rail (vertically centred, never edge-to-edge) — with
-   the stage's pixel frame and pixel fill in place of variant A's border +
-   12px radius and the study's #242429 panel, see .rail below. The reading
+   the stage's nine-patch frame and green fill in place of variant A's border
+   + 12px radius and the study's #242429 panel, see .rail below. The reading
    column keeps variant A's page card *layout* — a wide centred block — but
    takes the story's own frame instead of the study's paper: the same green
-   fill, brown bands and notched corners as every other framed surface (see
-   #passages below). The card is what keeps the text legible over the
-   animated checkerboard, which keeps ownership of the page background.
+   fill and painted border as every other framed surface (see #passages
+   below). The card is what keeps the text legible over the animated
+   checkerboard, which keeps ownership of the page background.
 
    Layout module only — frames whatever renders into #passages, no
    per-passage markup.
@@ -83,7 +83,7 @@ body {
 }
 
 /* The frame: rail pinned to the viewport's left edge, reading card centred in
-   the space beside it. The rail is inset only by the pixel frame's gutter —
+   the space beside it. The rail is inset only by the frame's gutter —
    it stays on the left so the card reads as centred on the page, not as a
    centred pair. The left padding reserves the rail's column: the rail is
    position: fixed and a sibling of .shell, so it can persist where stage.css
@@ -109,8 +109,8 @@ body {
    a short window scrolls it instead of clipping it off both edges. */
 .rail {
   position: fixed;
-  /* Inset by the pixel frame's gutter, so the bands and notched corners clear
-     the viewport edge instead of being cut by it. */
+  /* Inset by the frame's gutter, so the frame clears the viewport edge
+     instead of being cut by it. */
   left: var(--pixel-inset);
   top: 50%;
   transform: translateY(-50%);
@@ -125,27 +125,22 @@ body {
      it; a short panel is the exception, not the rule. */
   justify-content: center;
   gap: calc(var(--rail-unit) * 22);
-  padding: calc(var(--rail-unit) * 22) calc(var(--rail-unit) * 18);
+  padding: calc(var(--rail-unit) * 22) calc(var(--rail-unit) * 4);
   background: var(--pixel-fill);
-  /* The rail is a framed surface in both modes: the stage's pixel frame, at
-     the portrait's weight and inks (the tokens and the corner staircase live
-     in stage.css, since they are drawn in design pixels). One panel, one
-     frame, wherever it appears — so the shell's own border and radius are
-     gone: the two bands draw the edge and the staircase cuts the corners.
-     The soft drop shadow goes with them, because a clip-path clips the
-     element's whole rendering, shadow included — and a hard pixel edge is
-     the point. */
-  box-shadow:
-    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
-    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
-      var(--pixel-frame-inner-ink);
-  clip-path: var(--pixel-corner-clip);
+  /* The rail is a framed surface in both modes: the same nine-patch, at the
+     same 16px as every other framed surface. The real border reserves the
+     ornament, and the narrow horizontal padding keeps the title on one line
+     inside the small stage-mode panel. The green background above is the
+     failed-image fallback. */
+  border: var(--frame-width) solid transparent;
+  border-image: var(--frame);
+  image-rendering: pixelated;
   box-sizing: border-box;
 }
 
 .rail-title {
   margin: 0;
-  font-size: calc(var(--rail-unit) * 32);
+  font-size: calc(var(--rail-unit) * 26);
   font-weight: 700;
   line-height: 1.2;
 }
@@ -184,20 +179,16 @@ body {
   max-width: var(--shell-column-max-width);
   margin: 0 auto;
   padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
-  /* The reading card is framed like everything else in the story — the menu
-     panel and the reply bar's green fill, the portrait's brown bands and the
-     notched corners — so the title screen reads as part of the frame and not
-     as a document with a page turned behind it. The padding is far wider than
-     the bands, so no line of text sits on one. The soft drop shadow and the
-     12px radius go with it: a clip-path clips the element's whole rendering,
-     shadow included, and a hard pixel edge is the point. */
+  /* The reading card takes the same nine-patch as the menu and the stage's
+     slots, so the title screen reads as part of the frame and not as a
+     document with a page turned behind it. The real border reserves the
+     ornament, so no line of text sits on it; the green background above is
+     the failed-image fallback. */
   background: var(--pixel-fill);
   color: var(--pixel-fill-ink);
-  box-shadow:
-    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
-    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
-      var(--pixel-frame-inner-ink);
-  clip-path: var(--pixel-corner-clip);
+  border: var(--frame-width) solid transparent;
+  border-image: var(--frame);
+  image-rendering: pixelated;
   box-sizing: border-box;
 }
 

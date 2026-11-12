@@ -51,7 +51,9 @@
 
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
-   shrinking with the frame rather than reflowing out of its slot.
+   shrinking with the frame rather than reflowing out of its slot. The
+   nine-patch frame is the one exception: it is pixel art drawn at its own 16
+   px so the painted corners stay crisp (see --frame-width below).
 
    Debug affordance: set a data-stage-debug attribute on <body> to outline the
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
@@ -93,59 +95,33 @@
      travels into NEGATIVE x. 0 is where the pointer has always sat. */
   --tail-reach: 0;
 
-  /* ---- the pixel frame: one language for every framed surface -----------
-     A framed surface is two concentric bands — a heavy outer band outside a
-     thin inner line — and corners cut into three axis-aligned steps. Cam's
-     portrait, the player's reply bar and the menu take it; the speech bubble
-     does not, because the bubble is the stage's prose surface and reads as
-     paper, not chrome.
+  /* ---- the nine-patch frame: one language for every framed surface ------
+     Every framed surface takes the painted dialogue border as a nine-patch
+     (Godot NinePatchRect-style). The source is cut 16 | 32 | 16 on both
+     axes: 16 x 16 corners, a 32 x 32 centre. `fill` keeps that centre — it
+     is the panel's green — and the frame is drawn at 16 CSS px on every
+     side, so the corners stay square and 16 x 16 at 1:1.
 
-     --pixel-notch is one step of the staircase and the grid both bands sit
-     on: the portrait's outer band is two steps (12) and its inner line one
-     step (6), so no band edge falls mid-step and each corner removes whole
-     blocks. Band widths and inks are per surface (see the rules below); the
-     notch is not — this polygon is resolved once, here on :root, so a
-     surface overriding --pixel-notch would not move its own corners.
+     The image is painted above the element's background and below its
+     content. Text surfaces therefore reserve a real border width; the cam
+     slot does not, because its portrait must keep the artwork's full box and
+     aspect, so the border image area comes from --frame-width alone. The
+     speech bubble is prose, not chrome, and takes no frame.
 
-     The steps are axis-aligned, so their edges land on whole pixels at any
-     scale that maps a design pixel to a whole device pixel — the same place
-     image-rendering: pixelated already wants. A radius is a true arc, so it
-     anti-aliases into exactly the soft edge pixel art avoids; framed
-     surfaces take this staircase instead. */
-  --pixel-notch: calc(var(--stage-unit) * 6);
-  --pixel-notch-2: calc(var(--pixel-notch) * 2);
-  --pixel-notch-3: calc(var(--pixel-notch) * 3);
-  --pixel-corner-clip: polygon(
-    /* top edge, between the two upper notches */ var(--pixel-notch-3) 0,
-    calc(100% - var(--pixel-notch-3)) 0,
-    /* top-right: three steps down to the right edge */
-    calc(100% - var(--pixel-notch-2)) 0,
-    calc(100% - var(--pixel-notch-2)) var(--pixel-notch),
-    calc(100% - var(--pixel-notch)) var(--pixel-notch),
-    calc(100% - var(--pixel-notch)) var(--pixel-notch-2),
-    100% var(--pixel-notch-2),
-    100% var(--pixel-notch-3),
-    /* right edge */ 100% calc(100% - var(--pixel-notch-3)),
-    /* bottom-right */ 100% calc(100% - var(--pixel-notch-2)),
-    calc(100% - var(--pixel-notch)) calc(100% - var(--pixel-notch-2)),
-    calc(100% - var(--pixel-notch)) calc(100% - var(--pixel-notch)),
-    calc(100% - var(--pixel-notch-2)) calc(100% - var(--pixel-notch)),
-    calc(100% - var(--pixel-notch-2)) 100%,
-    calc(100% - var(--pixel-notch-3)) 100%,
-    /* bottom edge */ var(--pixel-notch-3) 100%,
-    /* bottom-left */ var(--pixel-notch-2) 100%,
-    var(--pixel-notch-2) calc(100% - var(--pixel-notch)),
-    var(--pixel-notch) calc(100% - var(--pixel-notch)),
-    var(--pixel-notch) calc(100% - var(--pixel-notch-2)),
-    0 calc(100% - var(--pixel-notch-2)),
-    0 calc(100% - var(--pixel-notch-3)),
-    /* left edge */ 0 var(--pixel-notch-3),
-    /* top-left */ 0 var(--pixel-notch-2),
-    var(--pixel-notch) var(--pixel-notch-2),
-    var(--pixel-notch) var(--pixel-notch),
-    var(--pixel-notch-2) var(--pixel-notch),
-    var(--pixel-notch-2) 0
-  );
+     The width is deliberately CSS pixels, not design pixels: the source's
+     corners are 16 x 16 and pixel art is authored to be seen at its own
+     size. Scaling the frame with the stage would lose the ornament. Replace
+     the source and the four values below and every framed surface follows. */
+  --frame-src: url("images/dialogue/border.png");
+  --frame-slice: 16;
+  --frame-width: 16px;
+  --frame-outset: 0;
+  --frame-repeat: stretch;
+  /* The one shorthand every framed surface applies. The individual values are
+     kept above for tuning; the outset is stated because the asset is drawn
+     flush with the element's border box. */
+  --frame: var(--frame-src) var(--frame-slice) fill / var(--frame-width) /
+    var(--frame-outset) var(--frame-repeat);
 
   /* The bubble's paper, in two halves: an opaque fill, and the alpha the whole
      silhouette is flattened to. They are separate because they apply at
@@ -156,36 +132,16 @@
   --stage-bubble-fill: #fff;
   --stage-bubble-alpha: 0.94;
 
-  /* Cam's backdrop: what shows through the portrait's transparent pixels.
-     Read through the `background` shorthand rather than `background-color`,
-     so a gradient, a pattern or an image is a value change here and never a
-     change to the rule that paints it. */
-  --cam-bg: rgb(250 243 177);
-
-  /* The bands, in design pixels. The defaults are the portrait's — the
-     heaviest in the stage, because the portrait is the one framed surface
-     that is artwork rather than chrome. Both inks are opaque hex, no alpha,
-     so the bands read as paint rather than a tint over the artwork, and all
-     three framed surfaces share them: one frame language, one weight, one
-     colour. Nothing overrides them today; a surface that ever needs its own
-     weight or inks sets these tokens in its own rule. */
-  --pixel-frame: calc(var(--stage-unit) * 12);
-  --pixel-frame-inner: calc(var(--stage-unit) * 6);
-  --pixel-frame-ink: #52150b;
-  --pixel-frame-inner-ink: #a2401c;
-
-  /* What a framed surface is filled with, and the ink that goes on it. The
-     menu, the reply bar and the shell's reading card share one fill, so the
-     panels the player reads and clicks are the same block of colour; the
-     portrait is artwork and keeps its own pixels. */
-  --pixel-fill: #1d6300;
+  /* The panel fill matches the border image's centre green. It stays as the
+     background fallback: if the image fails to load, the text surfaces remain
+     legible and the reserved border keeps their layout stable. */
+  --pixel-fill: #216b00;
   --pixel-fill-ink: #f5f5f7;
 
   /* The gutter between a framed surface and the box it sits in. A surface
-     flush against the stage's edge would have its bands and notched corners
-     cut by it, so the surfaces that hug an edge are inset by this much —
-     measured outside the bands, so the whole block moves in, borders
-     included. */
+     flush against the stage's edge would have its frame cut by it, so the
+     surfaces that hug an edge are inset by this much — measured outside the
+     frame, so the whole block moves in, border included. */
   --pixel-inset: calc(var(--stage-unit) * 24);
 }
 
@@ -498,11 +454,10 @@ body[data-stage-mode] {
   height: 100%;
   object-fit: cover;
   image-rendering: pixelated;
-  /* The GIFs are cut-outs — the puppet's transparent pixels show whatever is
-     behind it — so the portrait carries its own backdrop. On the image and
-     not on the slot: an empty cam slot then draws no backdrop either, which
-     is the rule every slot look follows. */
-  background: var(--cam-bg);
+  /* The GIFs are cut-outs, so the portrait paints above the frame's green
+     centre and its transparent pixels show that green. The image carries no
+     backdrop of its own: an empty cam slot draws nothing, which is the rule
+     every slot look follows. */
 }
 
 /* The hand half of a layered pose: an image, not a slot, so it fills the box
@@ -517,48 +472,27 @@ body[data-stage-mode] {
   image-rendering: pixelated;
 }
 
-/* ---- the pixel frame: who opts in, and how the bands are painted --------
-   Every framed surface shares the tokens on :root and the corners below. How
-   the bands get painted depends on what the surface holds:
+/* ---- the nine-patch frame on the stage slots ---------------------------
+   The reply bar reserves the frame as a real border, so its content box sits
+   inside the ornament and its overflow scrolls under the text, not under the
+   frame. The cam slot cannot do that without shrinking and re-cropping the
+   portrait, so it gets the border image with no border width: --frame-width
+   defines the drawn area alone, the slot keeps the artwork's full box, and
+   the portrait (content) paints above the green centre and the ornament.
 
-   - The portrait's frame is an overlay (::after). An inset shadow on the cam
-     slot would be painted under the image, which fills the slot.
-   - The text surfaces scroll (overflow: auto), and a positioned child scrolls
-     with the content, so their bands are an inset shadow on the surface
-     itself — an element's own paint never scrolls. Both pad far wider than
-     their bands, so no line of text ever sits on one.
-
-   The overlay is inset: 0, so the surface keeps its full box: a real border
-   either pushes the box past its slot, where the stage clips — the cam slot
-   is inset by --pixel-inset precisely because level 0 sits against the
-   stage's bottom-right corner — or, with border-box sizing, shrinks the
-   image's content box and re-crops the pose under object-fit: cover.
-
-   The first shadow listed paints on top: the outer band covers
-   --pixel-frame, the inner line underneath shows through the remaining
-   --pixel-frame-inner.
-
-   The clip goes on the surface, not on the content and not on the bands: a
-   clip-path clips the element's whole subtree, so one declaration notches
-   content and bands in exactly the same place; a copy of the polygon on
-   either layer could drift. Gated on [data-state="filled"] like every other
-   slot look, so an empty slot carries no frame. The menu is the third framed
-   surface but not a slot, and it exists outside the stage too, so its corners
-   and bands are set on the .rail rule in shell.css. */
-.stage-cam[data-state="filled"],
-.stage-reply[data-state="filled"] {
-  clip-path: var(--pixel-corner-clip);
-}
-
-.stage-cam[data-state="filled"]::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  box-shadow:
-    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
-    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
-      var(--pixel-frame-inner-ink);
+   The image is painted above the background and below the content, so the
+   green centre is what shows through the portrait's transparent pixels.
+   Gated on [data-state="filled"] like every other slot look, so an empty
+   slot carries no frame. The menu and the reading card are not slots; their
+   frame is set in shell.css. */
+.stage-cam[data-state="filled"] {
+  /* Zero border width so the slot keeps the artwork's full box; the border
+     image area is --frame-width alone. The solid style is for engines that
+     will not paint a border image over `border-style: none`. */
+  border-style: solid;
+  border-width: 0;
+  border-image: var(--frame);
+  image-rendering: pixelated;
 }
 
 /* Cam's speech-bubble and the player's reply bar share one reading layout:
@@ -591,13 +525,12 @@ body[data-stage-mode] {
   padding: calc(var(--stage-unit) * 28) calc(var(--stage-unit) * 40);
   background: var(--pixel-fill);
   color: var(--pixel-fill-ink);
-  /* The portrait's frame weight and inks, drawn here rather than as a
-     border: the bar keeps its full box and its corners come from the pixel
-     frame above. */
-  box-shadow:
-    inset 0 0 0 var(--pixel-frame) var(--pixel-frame-ink),
-    inset 0 0 0 calc(var(--pixel-frame) + var(--pixel-frame-inner))
-      var(--pixel-frame-inner-ink);
+  /* The frame is a real border here: the bar keeps its slot box, but its
+     content box sits inside the ornament, so no line of the reply can land on
+     the band. The green background above is the failed-image fallback. */
+  border: var(--frame-width) solid transparent;
+  border-image: var(--frame);
+  image-rendering: pixelated;
   font-size: calc(var(--stage-unit) * 38);
   line-height: 1.3;
 }
@@ -729,14 +662,14 @@ body[data-stage-debug] .stage-slot:empty::before {
 
 /* Offsets are measured from the stage box, so they add the letterbox bar
    ((viewport - stage) / 2) to the slot's own design pixels. The menu's
-   visibility is a per-level value too: hidden at level 3. The rail's frame,
-   bands and corners come from shell.css, so this rule only moves it. */
+   visibility is a per-level value too: hidden at level 3. The rail's frame
+   comes from shell.css, so this rule only moves it. */
 body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
-  /* Slot box, inset by the gutter on all four sides so the menu's bands and
-     corners clear the stage's edge. The cam slot can't shrink this way — it
-     would tilt the artwork's aspect — so its levels state the gutter in their
-     own left/top instead. */
+  /* Slot box, inset by the gutter on all four sides so the menu's frame
+     clears the stage's edge. The cam slot can't shrink this way — it would
+     tilt the artwork's aspect — so its levels state the gutter in their own
+     left/top instead. */
   top: calc(
     (100vh - var(--stage-h)) / 2 + var(--stage-unit) * var(--slot-menu-top) +
       var(--pixel-inset)
