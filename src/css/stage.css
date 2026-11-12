@@ -22,8 +22,8 @@
                      outside the frame, for the pose that is cut in two; see
                      the hand layer below
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
-                     .stage-bubble-shape draws its paper, card and pointer
-                     as one silhouette; the tail is aimed per level
+                     .stage-bubble-shape draws its paper as a nine-patch;
+                     the pointer tail is deferred
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
@@ -32,8 +32,9 @@
    Slot geometry is data: each pressure level is one block below, under a
    body[data-pressure-level="N"] selector, holding the same small set of
    values — the four slots' boxes (the portrait's as a scale on the artwork's
-   own box, not as a box), the menu's visibility, and the tail's aim.
-   Level 0 doubles as the fallback on :root for the moment before
+   own box, not as a box), the menu's visibility, and the tail's aim (kept
+   for the deferred tail). Level 0 doubles as the fallback on :root for the
+   moment before
    pressure-level.js sets the attribute (and if it ever doesn't). A new or
    re-tuned level is a value change, not a fork: no markup or structure
    changes. The level itself is applied before the passage renders
@@ -123,13 +124,24 @@
   --frame: var(--frame-src) var(--frame-slice) fill / var(--frame-width) /
     var(--frame-outset) var(--frame-repeat);
 
-  /* The bubble's paper, in two halves: an opaque fill, and the alpha the whole
-     silhouette is flattened to. They are separate because they apply at
-     different depths — the fill paints the card and the pointer inside one
-     group, and --stage-bubble-alpha is that group's opacity, so the two shapes
-     composite once and cannot double up where they meet. See the bubble's
-     silhouette, below. */
-  --stage-bubble-fill: #fff;
+  /* The speech bubble's own paper. It is prose, not chrome, so it takes its
+     own nine-patch rather than the frame's green border: 16-pixel corners,
+     a 2px black outline and a #f8f8f8 centre. The same 16px slice/width as
+     the frame keeps the outline and stepped corners at 1:1. The tail is
+     deferred; this layer draws the card only. */
+  --speech-src: url("images/dialogue/speech.png");
+  --speech-slice: 16;
+  --speech-width: 16px;
+  --speech-outset: 0;
+  --speech-repeat: stretch;
+  --speech: var(--speech-src) var(--speech-slice) fill / var(--speech-width) /
+    var(--speech-outset) var(--speech-repeat);
+
+  /* The bubble's fallback paper and the alpha the whole layer is flattened to.
+     The image paints its own centre over this fill; the fill is clipped to the
+     padding box so a failed image still leaves a legible panel without filling
+     in the image's transparent corners. */
+  --stage-bubble-fill: #f8f8f8;
   --stage-bubble-alpha: 0.94;
 
   /* The panel fill matches the border image's centre green. It stays as the
@@ -515,6 +527,9 @@ body[data-stage-mode] {
    nothing else. */
 .stage-bubble[data-state="filled"] {
   color: #1c1c22;
+  /* Reserve the paper's border on the prose too: a scrolled line must not
+     land on the black outline, which is painted behind this slot. */
+  border: var(--speech-width) solid transparent;
 }
 
 /* The player's reply bar: a separate, darker band, so speaker and response
@@ -545,28 +560,22 @@ body[data-stage-mode] {
   color: inherit;
 }
 
-/* ---- the bubble's silhouette: card and pointer as one surface -----------
-   The paper is drawn here, not on the text slot, because a card and a pointer
-   that meet must meet invisibly. Two boxes carrying their own translucent
-   white double up wherever they overlap — 94% over 94% is 99.6%, a brighter
-   rectangle over the animated checkerboard — and the card's box-shadow falls
-   across the pointer's root as a dark seam. Those two seams are the whole
-   reason two shapes read as two shapes.
+/* ---- the speech bubble's paper -----------------------------------------
+   The bubble is prose, not chrome, so it takes its own paper art: the
+   dialogue speech nine-patch, drawn on the shape itself. The source is cut
+   16 | 32 | 16, the same division as the frame, which keeps its 2px black
+   outline and stepped corners at 1:1. The image's #f8f8f8 centre is the
+   paper; the fallback background is clipped to the padding box so the
+   image's transparent corners keep showing the checkerboard through.
 
-   So both are painted in ONE group: the card as ::before, the pointer as
-   ::after, each in the opaque fill, with --stage-bubble-alpha flattening the
-   pair into a single translucent layer. One silhouette, one density. The
-   shadow is a drop-shadow on the same group, which follows the group's
-   painted alpha rather than a box, so it traces the union of card and pointer
-   — no band where the tail leaves the card, and no corner shadow inside it.
+   The tail is deliberately not drawn yet. It is a separate silhouette that
+   would sit outside this outline, and the tail art is its own piece of work.
+   The prose still sits above this layer in .stage-bubble; the group opacity
+   and drop shadow are unchanged, so the paper keeps the same translucency
+   and shadow as before.
 
-   The prose is deliberately NOT in here: it sits opaquely in .stage-bubble
-   above this layer, which is what makes it possible to move the alpha from
-   the fill to a group at all.
-
-   Nothing else moves with the paper: the box is still the bubble's slot, the
-   radius is still the one rounded surface in the stage (prose, not chrome)
-   and the pointer still takes its aim from the per-level tail knobs. */
+   A real border reserves the nine-patch, which is why the paper's box is
+   border-box and the text's own padding keeps every line inside the centre. */
 .stage-bubble-shape {
   display: none;
   position: absolute;
@@ -574,52 +583,22 @@ body[data-stage-mode] {
   top: calc(var(--stage-unit) * var(--slot-bubble-top));
   width: calc(var(--stage-unit) * var(--slot-bubble-width));
   height: calc(var(--stage-unit) * var(--slot-bubble-height));
-  /* Above the cam slot, so the level-0 corner pointer is not hidden by the
-     portrait; below the prose (z-index 2). */
+  /* Above the cam slot, so the level-0 corner is not hidden by the portrait;
+     below the prose (z-index 2). */
   z-index: 1;
   pointer-events: none;
-  /* The group's opacity, applied once to the finished silhouette. */
+  /* The group's opacity, applied once to the finished paper. */
   opacity: var(--stage-bubble-alpha);
   filter: drop-shadow(
     0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
       rgba(0, 0, 0, 0.35)
   );
-}
-
-/* The card: the bubble's box, rounded, in the opaque fill. */
-.stage-bubble-shape::before {
-  content: "";
-  position: absolute;
-  inset: 0;
+  border: var(--speech-width) solid transparent;
+  border-image: var(--speech);
   background: var(--stage-bubble-fill);
-  border-radius: calc(var(--stage-unit) * 48);
-}
-
-/* The pointer: the same fill, anchored in the card's own box (0 = left/top
-   edge, 1 = right/bottom, and no clamp — a negative anchor puts its base
-   outside the card). Its base hides under the card, which now costs nothing:
-   both shapes are the same opaque fill inside one group, so the overlap is
-   invisible instead of brighter. --tail-reach slides the triangle along its
-   own axis after the rotation, so it can lean out past the card's edge — into
-   negative x when it aims left — without fattening its base. */
-.stage-bubble-shape::after {
-  content: "";
-  position: absolute;
-  left: calc(
-    var(--stage-unit) * var(--slot-bubble-width) * var(--tail-anchor-x)
-  );
-  top: calc(
-    var(--stage-unit) * var(--slot-bubble-height) * var(--tail-anchor-y)
-  );
-  width: var(--tail-size);
-  height: var(--tail-size);
-  background: var(--stage-bubble-fill);
-  clip-path: polygon(0 0, 100% 0, 50% 100%);
-  /* Reach is applied after the rotation, so it is measured along the tail's
-     own axis: the same positive number pushes a downward pointer down, a
-     leftward one into negative x, and a diagonal one along its diagonal. */
-  transform: translate(-50%, -50%) rotate(var(--tail-rotate))
-    translateY(calc(var(--stage-unit) * var(--tail-reach)));
+  background-clip: padding-box;
+  box-sizing: border-box;
+  image-rendering: pixelated;
 }
 
 /* Gated on the bubble actually having content, so an omitted <<cam_line>>

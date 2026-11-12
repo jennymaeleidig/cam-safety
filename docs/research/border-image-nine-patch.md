@@ -142,3 +142,20 @@ story (see the README). The relevant seams already exist:
 No new seam is needed. The visual checks are: both modes, all four levels,
 empty/filled slots, long scrolling text, the hidden menu at level 3, a short
 window, and a 2dppx display.
+
+## 7. Follow-up: the speech bubble's `speech.png`
+
+`include/images/dialogue/speech.png` is 64 × 64, a #f8f8f8 paper with a 2px
+black outline, 4px stepped corners and transparent corner pixels. The same
+16 | 32 | 16 division and 16px drawn width used for the frame keep its
+outline and corners at 1:1: the 16px slice includes the 2px outline plus
+white paper, and the 32 × 32 centre stretches. Slicing at the actual 4px
+corner would scale the 2px outline to 8px at a 16px border width, so `16` is
+the right slice.
+
+The follow-up draws the card on the bubble shape itself and deliberately
+leaves the pointer tail out: the tail is a separate silhouette with its own
+art, and the black outline would otherwise cut it off from the card. The
+per-level tail knobs stay in the stylesheet for that deferred work. The prose
+slot gets the same 16px as a transparent border, so a scrolled line stops at
+the outline instead of painting over it.
