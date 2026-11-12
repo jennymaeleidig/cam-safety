@@ -126,12 +126,14 @@
 
   /* The speech bubble's own paper. It is prose, not chrome, so it takes its
      own nine-patch rather than the frame's green border: 16-pixel corners,
-     a 2px black outline and a #f8f8f8 centre. The same 16px slice/width as
-     the frame keeps the outline and stepped corners at 1:1. The tail is
-     deferred; this layer draws the card only. */
+     a 2px black outline and a #f8f8f8 centre. The authored pixels are 16px;
+     a linear --speech-scale enlarges them while keeping each source pixel a
+     whole block. image-rendering: pixelated does the nearest-neighbour
+     sampling. The tail is deferred; this layer draws the card only. */
   --speech-src: url("images/dialogue/speech.png");
   --speech-slice: 16;
-  --speech-width: 16px;
+  --speech-scale: 2;
+  --speech-width: calc(16px * var(--speech-scale));
   --speech-outset: 0;
   --speech-repeat: stretch;
   --speech: var(--speech-src) var(--speech-slice) fill / var(--speech-width) /

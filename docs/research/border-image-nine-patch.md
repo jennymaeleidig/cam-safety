@@ -146,12 +146,13 @@ window, and a 2dppx display.
 ## 7. Follow-up: the speech bubble's `speech.png`
 
 `include/images/dialogue/speech.png` is 64 × 64, a #f8f8f8 paper with a 2px
-black outline, 4px stepped corners and transparent corner pixels. The same
-16 | 32 | 16 division and 16px drawn width used for the frame keep its
-outline and corners at 1:1: the 16px slice includes the 2px outline plus
-white paper, and the 32 × 32 centre stretches. Slicing at the actual 4px
-corner would scale the 2px outline to 8px at a 16px border width, so `16` is
-the right slice.
+black outline, 4px stepped corners and transparent corner pixels. It uses the
+same 16 | 32 | 16 division as the frame: the 16px slice includes the 2px
+outline plus white paper, and the 32 × 32 centre stretches. The speech paper
+is drawn at 2× (32px), so its outline and stepped corners render larger —
+4px and 8px — while `image-rendering: pixelated` keeps each source pixel a
+whole block. Slicing at the actual 4px corner instead would scale the outline
+unevenly, so `16` remains the right slice.
 
 The follow-up draws the card on the bubble shape itself and deliberately
 leaves the pointer tail out: the tail is a separate silhouette with its own
