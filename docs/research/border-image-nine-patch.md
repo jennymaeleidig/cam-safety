@@ -123,8 +123,11 @@ The CSS equivalent of the desired panel:
   without `fill` (duplicates the ring). Neither is chosen here.
 - **Text surfaces.** A real border width keeps the content inside the
   ornament. The green centre is the panel's fill, so the surfaces no longer
-  need a separate `--pixel-fill` background, though keeping it as a fallback
-  is harmless and keeps text legible if the image fails.
+  need a separate `--pixel-fill` background; keeping it as a fallback is
+  harmless, but clip it with `background-clip: padding-box` so it does not
+  fill the border image's transparent corner pixels. The cam has no
+  background at all, so its corners already show the checkerboard; the text
+  surfaces should match it.
 - **Empty slots.** The existing `data-state="filled"` gate on the cam and
   reply slots still decides whether either surface draws a frame. The rail
   and the reading card are always framed.

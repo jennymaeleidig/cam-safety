@@ -127,6 +127,9 @@ body {
   gap: calc(var(--rail-unit) * 22);
   padding: calc(var(--rail-unit) * 22) calc(var(--rail-unit) * 4);
   background: var(--pixel-fill);
+  /* Clip the fallback to the padding box so the border image's transparent
+     corner pixels keep showing the checkerboard, as they do on the cam. */
+  background-clip: padding-box;
   /* The rail is a framed surface in both modes: the same nine-patch, at the
      same 16px as every other framed surface. The real border reserves the
      ornament, and the narrow horizontal padding keeps the title on one line
@@ -185,6 +188,7 @@ body {
      ornament, so no line of text sits on it; the green background above is
      the failed-image fallback. */
   background: var(--pixel-fill);
+  background-clip: padding-box;
   color: var(--pixel-fill-ink);
   border: var(--frame-width) solid transparent;
   border-image: var(--frame);

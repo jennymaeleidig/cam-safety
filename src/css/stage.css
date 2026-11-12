@@ -541,6 +541,7 @@ body[data-stage-mode] {
 .stage-reply[data-state="filled"] {
   padding: calc(var(--stage-unit) * 28) calc(var(--stage-unit) * 40);
   background: var(--pixel-fill);
+  background-clip: padding-box;
   color: var(--pixel-fill-ink);
   /* The frame is a real border here: the bar keeps its slot box, but its
      content box sits inside the ornament, so no line of the reply can land on
