@@ -1,13 +1,10 @@
 /* ===== The player's knobs: how fast the reveal runs, how loud the voice is =====
-   This file is the whole contract for the two settings. It owns their stored
-   names, labels, units, ranges, tuned defaults, fallbacks and the conversions
-   their consumers need — SugarCube's Settings dialog reads the same constants
-   that the semantic reads below use, so a rename or a retune is one edit.
-
-   The tuned defaults themselves live in settings-defaults.js, which also
-   derives the converted fallbacks the Reveal and the Voice use when this file
-   is absent. This file builds the dialog definitions and the semantic reads
-   from those specs, so the numbers are stated once.
+   This file and settings-defaults.js together are the settings contract. The
+   defaults file owns the stored names, labels, units, ranges and tuned
+   defaults; this file builds SugarCube's dialog definitions and the semantic
+   reads from those specs, so a rename or a retune is one edit. The converted
+   fallbacks the Reveal and the Voice use when this file is absent are derived
+   in settings-defaults.js from the same numbers.
 
    The interface is semantic, and is the only thing reveal.js and voice.js use:
 
@@ -47,9 +44,15 @@
   var Setting = win.SugarCube.Setting;
 
   /* The contract. Both the dialog definitions and the semantic reads below
-     take their names, ranges and defaults from here. */
-  var SPEED = win.CamSettingsDefaults.speed;
-  var VOLUME = win.CamSettingsDefaults.volume;
+     take their names, ranges and defaults from here. A build without the
+     defaults file has no contract to register; the consumers' own fallback
+     path remains, so the story stays readable rather than throwing. */
+  var defaults = win.CamSettingsDefaults;
+  if (!defaults) {
+    return;
+  }
+  var SPEED = defaults.speed;
+  var VOLUME = defaults.volume;
 
   Setting.addHeader(
     "Cam",
