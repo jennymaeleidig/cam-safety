@@ -1,7 +1,7 @@
 sugarcube-2:
   macros:
-    raise_pressure:
-      description: Increments $pressure (default 1, or pass an amount). Side-effect only; renders nothing.
+    set_layout:
+      description: Sets the current layout (0-3) and publishes it as data-layout. Applies to the passage that contains it, before it is displayed. Renders nothing; a missing argument reports an authoring error and leaves the layout unchanged.
       container: false
     cam_line:
       description: Fills the stage's speech-bubble slot with Cam's line. Renders nothing into the passage. Takes a quoted line, wiki-processed.
@@ -10,5 +10,5 @@ sugarcube-2:
       description: Fills the stage's reply-bar slot with the player's line. Renders nothing into the passage. Takes a quoted line, wiki-processed so links and choices work.
       container: false
     portrait:
-      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text. Omit it and the slot shows the current pressure level's neutral pose (images/cam/phase-N/neutral/).
+      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text. Omit it and the slot shows the current layout's neutral pose (images/cam/phase-N/neutral/).
       container: false

@@ -15,15 +15,19 @@ Cam Safety
    #passages, so the stage owns all visible content for [checker] passages.
 
    Authoring:
+     <<set_layout 2>>
      <<cam_line "Cam's line">>
      <<player_line "The player's reply">>
      <<portrait "images/cam/phase-3/talking/phase-3-talking.gif" "alt (opt)">>
+   <<set_layout>> chooses this passage's layout directly: it publishes the
+   number (0-3) while the passage renders, before the passage is displayed,
+   so the first visible frame is already composed. It renders nothing.
    <<cam_line>> is spoken: the stage reveals it one character at a time, with a
    letter of voice per character (src/js/reveal.js, src/js/voice.js).
    <<player_line>> is the player's own line and is not: it arrives whole, once
    Cam has finished, and its links are silent and never half-revealed. Neither
    line is revealed under prefers-reduced-motion.
-   An omitted <<portrait>> leaves the level's neutral pose in place (the
+   An omitted <<portrait>> leaves the layout's neutral pose in place (the
    NEUTRAL_POSE table in src/js/stage.js), so most passages need no portrait
    line at all. The lines are wiki-processed, so $variables, markup and [[links]] work in
    them. A [checker] passage's exits belong in <<player_line>> (the reply
@@ -32,10 +36,12 @@ Cam Safety
    the player. */
 <<script>>
 (function () {
-	Macro.add("raise_pressure", {
+	Macro.add("set_layout", {
 		handler : function () {
-			const amt = Number(this.args[0] ?? 1);
-			State.variables.pressure = (State.variables.pressure ?? 0) + amt;
+			if (this.args.length === 0) {
+				return this.error("missing layout number (0-3)");
+			}
+			Layout.set(this.args[0]);
 		}
 	});
 
@@ -60,51 +66,48 @@ Cam Safety
 <</script>>
 
 /* Cam's portrait needs no story variable: a [checker] passage that omits
-   <<portrait>> shows the current level's neutral pose (NEUTRAL_POSE in
+   <<portrait>> shows the current layout's neutral pose (NEUTRAL_POSE in
    src/js/stage.js), and the phase GIFs live in include/images/cam/. */
 
-:: Levels [scratch] {"position":"0,750"}
-/* Entry point for the four level scratch passages — open it from the browser
+:: Layouts [scratch] {"position":"0,750"}
+/* Entry point for the four layout scratch passages — open it from the browser
    console:
-     SugarCube.Engine.play("Levels")
-   Each link sets $pressure before navigating. That is what makes the target
-   level render correctly on entry: pressure-level.js applies the level on
-   :passagestart, before the target passage's own <<set>> runs, so a passage's
-   own <<set $pressure>> only applies from the next passage on. The per-level
-   <<set>> below is kept so each passage states its own pressure and a later
-   visit is consistent. */
-[[Level 0->Level 0][$pressure = 0]] · [[Level 1->Level 1][$pressure = 1]] · [[Level 2->Level 2][$pressure = 2]] · [[Level 3->Level 3][$pressure = 3]]
+     SugarCube.Engine.play("Layouts")
+   Each link only navigates: the target passage's own <<set_layout>> applies
+   while that passage renders, before it is displayed, so the first visible
+   frame is already the layout it names. */
+[[Layout 0->Layout 0]] · [[Layout 1->Layout 1]] · [[Layout 2->Layout 2]] · [[Layout 3->Layout 3]]
 
-:: Level 0 [checker scratch] {"position":"100,750"}
+:: Layout 0 [checker scratch] {"position":"100,750"}
 /* Wide and distant Cam (bottom-right, the default phase-0 neutral pose);
    bubble tail bottom-right; menu on. */
-<<set $pressure = 0>>
-<<cam_line "Level 0 — wide and distant. The tail should point down-right at me.">>
-<<player_line "Level 0 reply. [[Levels->Levels]]">>
+<<set_layout 0>>
+<<cam_line "Layout 0 — wide and distant. The tail should point down-right at me.">>
+<<player_line "Layout 0 reply. [[Layouts->Layouts]]">>
 
-:: Level 1 [checker scratch] {"position":"200,750"}
+:: Layout 1 [checker scratch] {"position":"200,750"}
 /* Cam moves to the bottom-left (the default phase-1 neutral pose); tail
    bottom-left; reply bar shifts right. */
-<<set $pressure = 1>>
-<<cam_line "Level 1 — I am at the bottom-left now. The tail should point down-left at me.">>
-<<player_line "Level 1 reply. [[Levels->Levels]]">>
+<<set_layout 1>>
+<<cam_line "Layout 1 — I am at the bottom-left now. The tail should point down-left at me.">>
+<<player_line "Layout 1 reply. [[Layouts->Layouts]]">>
 
-:: Level 2 [checker scratch] {"position":"300,750"}
+:: Layout 2 [checker scratch] {"position":"300,750"}
 /* Cam moves to the upper-left (the default phase-2 neutral pose); tail
    top-left; reply bar drops slightly. */
-<<set $pressure = 2>>
-<<cam_line "Level 2 — I am up in the top-left. The tail should point up-left at me.">>
-<<player_line "Level 2 reply. [[Levels->Levels]]">>
+<<set_layout 2>>
+<<cam_line "Layout 2 — I am up in the top-left. The tail should point up-left at me.">>
+<<player_line "Layout 2 reply. [[Layouts->Layouts]]">>
 
-:: Level 3 [checker scratch] {"position":"400,750"}
+:: Layout 3 [checker scratch] {"position":"400,750"}
 /* Tall close-in on the left (the default phase-3 neutral pose); tail
    left-mid; the menu is gone. */
-<<set $pressure = 3>>
-<<cam_line "Level 3 — right up close. The tail should point left at me, and the menu should be gone.">>
-<<player_line "Level 3 reply. [[Levels->Levels]]">>
+<<set_layout 3>>
+<<cam_line "Layout 3 — right up close. The tail should point left at me, and the menu should be gone.">>
+<<player_line "Layout 3 reply. [[Layouts->Layouts]]">>
 
 :: Stage content [checker scratch] {"position":"500,750"}
-/* Bubble and reply bar filled; the portrait slot shows the level's default
+/* Bubble and reply bar filled; the portrait slot shows the layout's default
    neutral pose because this passage omits <<portrait>> — add one to override
    it for a single passage. The next-step link is rendered by <<player_line>>
    into the reply bar, because a [checker] passage's own #passages content is
@@ -115,6 +118,6 @@ Cam Safety
 
 :: Stage content empty [checker scratch] {"position":"600,750"}
 /* No content macros: the bubble and reply slots must be empty — nothing left
-   over from the previous passage — and the cam slot must show the level's
+   over from the previous passage — and the cam slot must show the layout's
    neutral pose, not a portrait the previous passage overrode. Use the
    browser's Back button to return. */

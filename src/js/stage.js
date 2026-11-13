@@ -143,9 +143,9 @@
     return slot;
   }
 
-  /* ---- the default portrait: the level's neutral pose -------------------
+  /* ---- the default portrait: the layout's neutral pose ------------------
      Cam's artwork is one GIF per phase, in a neutral and a talking pose.
-     A [checker] passage that omits <<portrait>> shows the current level's
+     A [checker] passage that omits <<portrait>> shows the current layout's
      neutral pose, so Cam is on stage without any per-passage wiring;
      <<portrait>> overrides it for that one passage (a talking pose, a
      one-off image).
@@ -153,8 +153,8 @@
      Paths are relative to the built story.html: the build copies
      include/images beside it as dist/images (the assets: copy task).
 
-     The level is read from the body attribute pressure-level.js owns, never
-     recomputed here — that file is the only place pressure becomes a level.
+     The layout is read from the body attribute layout.js owns, never
+     recomputed here — that file is the only writer of the published seam.
      It is already set when the flush runs, since start handlers run before
      render handlers. */
   var NEUTRAL_POSE = [
@@ -165,8 +165,8 @@
   ];
 
   function neutralPose() {
-    var level = Number(document.body.getAttribute("data-pressure-level"));
-    return NEUTRAL_POSE[level] || NEUTRAL_POSE[0];
+    var layout = Number(document.body.getAttribute("data-layout"));
+    return NEUTRAL_POSE[layout] || NEUTRAL_POSE[0];
   }
 
   /* ---- the two phases ------------------------------------------------- */

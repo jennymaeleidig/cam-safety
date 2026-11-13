@@ -3,7 +3,7 @@
    Accessed: 2026-10-22
    Modified by jennymaeleidig on 2026-10-22 — compiled from SCSS to plain
    CSS; adapted for SugarCube (passage-tag visibility via body.checker,
-   selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for per-level
+   selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for per-layout
    overrides, prefers-reduced-motion support added) */
 
 /* ===== Tokimeki-style animated checkerboard background ===== */
@@ -18,30 +18,30 @@ body {
   z-index: 10;
 }
 
-/* Palette: one hue drives all four greens, set per pressure level so pressure
-   selects layout (stage.css) and background through the same attribute and
-   the same seam. :root is the level-0 fallback for the moment before
-   pressure-level.js sets data-pressure-level — the trick stage.css uses — and
-   the four blocks below carry each level's values. All four levels are green
-   today; giving a level its own background is a value change here, not a new
-   code path. No JavaScript writes these. */
+/* Palette: one hue drives all four greens, set per layout so the layout
+   selects slot geometry (stage.css) and background through the same
+   attribute and the same seam. :root is the layout-0 fallback for the moment
+   before layout.js sets data-layout — the trick stage.css uses — and the four
+   blocks below carry each layout's values. All four layouts are green today;
+   giving a layout its own background is a value change here, not a new code
+   path. No JavaScript writes these. */
 :root {
   --tmem-hue: 152;
 }
 
-body[data-pressure-level="0"] {
+body[data-layout="0"] {
   --tmem-hue: 152;
 }
 
-body[data-pressure-level="1"] {
+body[data-layout="1"] {
   --tmem-hue: 200;
 }
 
-body[data-pressure-level="2"] {
+body[data-layout="2"] {
   --tmem-hue: 45;
 }
 
-body[data-pressure-level="3"] {
+body[data-layout="3"] {
   --tmem-hue: 0;
 }
 

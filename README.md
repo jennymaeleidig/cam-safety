@@ -1,7 +1,8 @@
 # Cam Safety
 
-A SugarCube 2 story. Pressure (0-3) selects one of four visual-novel stage
-layouts, and Cam's portrait, speech-bubble and reply bar re-flow around it.
+A SugarCube 2 story. A layout (0-3) selects one of four fixed visual-novel
+stage compositions, and Cam's portrait, speech-bubble and reply bar re-flow
+around it. A passage chooses its layout directly with `<<set_layout>>`.
 
 ## Prerequisites
 
@@ -42,8 +43,8 @@ used to do, and why `story.html` was 232 KB larger than it needed to be.
 | `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                                                                                                                                 |
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
-| `src/css/`               | `checker.css` (background + per-level background values), `shell.css`, `stage.css` (per-level slot geometry and the shared nine-patch frame and speech-paper tokens).                                                                                                                                                  |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `pressure-level.js`, `reveal.js` (Cam's line, a character at a time), `settings.js` (the two Settings-dialog ranges, read by `reveal.js` and `voice.js`), `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-level neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
+| `src/css/`               | `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry and the shared nine-patch frame and speech-paper tokens).                                                                                                                                                  |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `reveal.js` (Cam's line, a character at a time), `settings.js` (the two Settings-dialog ranges, read by `reveal.js` and `voice.js`), `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-layout neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
@@ -53,18 +54,20 @@ There is no test runner, headless DOM, or browser automation; verification is
 manual, by design.
 
 1. Build and open the story.
-2. Click through Title → Level 0
+2. Click through Title → Layout 0
 3. Open scratch passages from the browser console:
 
    ```js
-   SugarCube.Engine.play("Levels");
+   SugarCube.Engine.play("Layouts");
    SugarCube.Engine.play("Stage content");
    SugarCube.Engine.play("Stage content empty");
    ```
 
-   Each level must show its own phase's neutral pose (phase-0 … phase-3) in
-   that level's slot position, and the slot geometry must not change when the
-   artwork does.
+   Each layout must show its own phase's neutral pose (phase-0 … phase-3) in
+   that layout's slot position, and the slot geometry must not change when the
+   artwork does. Confirm `document.body.dataset.layout` names the layout just
+   entered, that a passage with no `$layout` composes as Layout 0, and that
+   Layout 3 hides the menu while Layouts 0–2 show it.
 
 4. Outline the still-empty slots:
 

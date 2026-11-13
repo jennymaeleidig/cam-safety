@@ -15,8 +15,8 @@
    The attribute is valueless — present means stage mode, absent means shell
    mode — matching the existing data-stage-debug affordance.
 
-   Applied on the lifecycle's start phase (like the pressure level, and for
-   the same reason: it must be in place before the passage renders), and also
+   Applied on the lifecycle's start phase (like the layout, and for the same
+   reason: it must be in place before the passage renders), and also
    once at load from whatever classes <body> already carries, so the attribute
    is never a lagging copy of the mode it names.
 

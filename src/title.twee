@@ -2,7 +2,7 @@
 <div class="title-screen">
 	<h1><<print Story.name>></h1>
 	<p>
-		<<link "Start" "Level 0">><</link>>
+		<<link "Start" "Layout 0">><</link>>
 		<<if Save.browser.size > 0>> · <<link "Load">><<run UI.saves()>>><</link>><</if>>
 	</p>
 	<!-- Licence term, not decoration: the letter sounds are CC BY 4.0 and the

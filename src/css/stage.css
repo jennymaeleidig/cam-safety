@@ -29,25 +29,24 @@
                      repositioned into the menu slot; chrome, shared with the
                      shell
 
-   Slot geometry is data: each pressure level is one block below, under a
-   body[data-pressure-level="N"] selector, holding the same small set of
-   values — the four slots' boxes (the portrait's as a scale on the artwork's
-   own box, not as a box), the menu's visibility, and the tail's aim (kept
-   for the deferred tail). Level 0 doubles as the fallback on :root for the
-   moment before
-   pressure-level.js sets the attribute (and if it ever doesn't). A new or
-   re-tuned level is a value change, not a fork: no markup or structure
-   changes. The level itself is applied before the passage renders
-   (pressure-level.js), so the stage is already in the right layout when
-   content arrives. Changing the level changes these values with no
-   transition, so the switch is instant.
+   Slot geometry is data: each layout is one block below, under a
+   body[data-layout="N"] selector, holding the same small set of values —
+   the four slots' boxes (the portrait's as a scale on the artwork's own box,
+   not as a box), the menu's visibility, and the tail's aim (kept for the
+   deferred tail). Layout 0 doubles as the fallback on :root for the moment
+   before layout.js sets the attribute (and if it ever doesn't). A new or
+   re-tuned layout is a value change, not a fork: no markup or structure
+   changes. The layout itself is applied before the passage renders
+   (layout.js), so the stage is already in the right layout when content
+   arrives. Changing the layout changes these values with no transition, so
+   the switch is instant.
 
-   For the cam slot the box is the artwork's own box times the level's
+   For the cam slot the box is the artwork's own box times the layout's
    --slot-cam-scale, so its width:height ratio is always the artwork's and the
    portrait never crops: closing in is scale, and only scale. A framing that
-   is a different SHAPE — the tall close-in once planned for level 3 — cannot
+   is a different SHAPE — the tall close-in once planned for layout 3 — cannot
    be reached this way. It needs artwork at that shape, and then --cam-art-w/h
-   change for every level at once; making the ratio a per-level value is the
+   change for every layout at once; making the ratio a per-layout value is the
    change that would reopen it. Nothing here assumes that stays impossible.
 
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
@@ -76,10 +75,10 @@
   --stage-unit: calc(var(--stage-w) / var(--canvas-w));
 
   /* Cam's artwork, at its own size in design pixels. The portrait slot is this
-     box multiplied by the level's --slot-cam-scale, so slot aspect and
+     box multiplied by the layout's --slot-cam-scale, so slot aspect and
      artwork aspect are the same number by construction and object-fit: cover
      has nothing to crop. A new artwork size is these two values; a new
-     framing is one scale value per level. */
+     framing is one scale value per layout. */
   --cam-art-w: 719;
   --cam-art-h: 551;
 
@@ -91,7 +90,7 @@
      lengthen the tail — but it widens the base at the same time, and the base
      is the part the card hides. This one moves the whole triangle tip-ward
      after the rotation: the silhouette keeps its angle and only its reach
-     changes. Signed, per level, and the sign follows the aim rather than the
+     changes. Signed, per layout, and the sign follows the aim rather than the
      page — at --tail-rotate: 90deg the pointer aims left, so a positive reach
      travels into NEGATIVE x. 0 is where the pointer has always sat. */
   --tail-reach: 0;
@@ -159,20 +158,21 @@
   --pixel-inset: calc(var(--stage-unit) * 24);
 }
 
-/* ---- per-level layout ---------------------------------------------------
+/* ---- per-layout composition ---------------------------------------------
    Slot boxes are design pixels on the canvas above, never fractions: the
    numbers here are the numbers in the artwork and in the composition, so
    "is this slot the portrait's own box?" is answered by reading rather than
    by multiplying by 2840 and dividing back. The cam slot states a position
    and a scale; the words "flush to the gutter" in its comments mean the
-   level's own numbers already contain --pixel-inset, because shrinking the
+   layout's own numbers already contain --pixel-inset, because shrinking the
    box by the gutter would tilt its aspect away from the artwork's.
 
-   Every level states its full box, including values that repeat across
-   levels. That is deliberate: a level is a composition that may be retuned
+   Every layout states its full box, including values that repeat across
+   layouts. That is deliberate: a layout is a composition that may be retuned
    alone, so a repeated value is not a shared constant — see
-   docs/adr/0001-slot-geometry-is-per-level.md. Level 0 also applies on :root
-   so the stage has a complete layout before the level attribute exists.
+   docs/adr/0001-slot-geometry-is-per-layout.md. Layout 0 also applies on
+   :root so the stage has a complete layout before the layout attribute
+   exists.
 
    Tail knobs: --tail-anchor-x / --tail-anchor-y place the pointer's centre
    along the bubble's edge (0 = left/top, 1 = right/bottom, 0.5 = middle) —
@@ -183,7 +183,7 @@
    out past the bubble's foot. */
 
 :root,
-body[data-pressure-level="0"] {
+body[data-layout="0"] {
   /* cam — bottom-right, right and bottom edges flush to the gutter, scale 1 */
   --slot-cam-left: 2097;
   --slot-cam-top: 1125;
@@ -214,7 +214,7 @@ body[data-pressure-level="0"] {
   --tail-reach: 0;
 }
 
-body[data-pressure-level="1"] {
+body[data-layout="1"] {
   /* cam — bottom-left, bottom edge flush to the gutter, scale 1 */
   --slot-cam-left: 414;
   --slot-cam-top: 1125;
@@ -245,7 +245,7 @@ body[data-pressure-level="1"] {
   --tail-reach: 20;
 }
 
-body[data-pressure-level="2"] {
+body[data-layout="2"] {
   /* cam — upper-left, top-left corner held, scale 1.1 */
   --slot-cam-left: 12;
   --slot-cam-top: 65;
@@ -276,10 +276,11 @@ body[data-pressure-level="2"] {
   --tail-reach: 50;
 }
 
-body[data-pressure-level="3"] {
-  /* cam — left, flush to the gutter, still at scale 1. The close-in this level
-     is for is one value here — --slot-cam-scale above 1 — and the box keeps
-     the artwork's aspect, so getting closer never crops the pose. A framing
+body[data-layout="3"] {
+  /* cam — left, flush to the gutter, still at scale 1. The close-in this
+     layout is for is one value here — --slot-cam-scale above 1 — and the box
+     keeps the artwork's aspect, so getting closer never crops the pose. A
+     framing
      of a different SHAPE is a different decision; see the framing note in the
      header. */
   --slot-cam-left: -450;
@@ -298,8 +299,8 @@ body[data-pressure-level="3"] {
   --slot-reply-width: 1164;
   --slot-reply-height: 245;
 
-  /* menu — hidden: no easy escape at maximum pressure. Geometry matches
-     level 2 so re-showing it is a one-value change. */
+  /* menu — hidden in this layout. Geometry matches layout 2 so re-showing it
+     is a one-value change. */
   --slot-menu-left: 0;
   --slot-menu-top: 449;
   --slot-menu-width: 273;
@@ -399,14 +400,14 @@ body[data-stage-mode] {
 /* The portrait's box. Phase 2's neutral pose is one drawing cut in two — a body
    and a hand on the same canvas — and the halves have to land back on each
    other pixel for pixel, so they state their box once, here, instead of each
-   writing it: a second copy would drift the moment a level is retuned and the
+   writing it: a second copy would drift the moment a layout is retuned and the
    hand would come off the wrist. The body reads it inside .stage, under the
    menu; the hand reads it in .stage-cam-hand, above the menu. Same box either
    way, so a layered pose sits exactly where the single image used to. */
 .stage-cam,
 .stage-hand {
-  /* The artwork's own box, scaled by the level. The gutter is baked into each
-     level's left/top instead of being subtracted from this box: shaving
+  /* The artwork's own box, scaled by the layout. The gutter is baked into each
+     layout's left/top instead of being subtracted from this box: shaving
      --pixel-inset off both axes would make the box's ratio differ from the
      artwork's, and object-fit: cover would then crop the pose — a different
      amount at every scale. Position carries the gutter; size stays exactly
@@ -449,7 +450,7 @@ body[data-stage-mode] {
    renders, so a slot a passage did not fill is written empty. */
 
 /* Cam's portrait: the image fills its slot, so the slot box — whose
-   width/height are per-level values above — is the framing window. That is
+   width/height are per-layout values above — is the framing window. That is
    what makes the wide → tall framing change visible rather than letterboxed
    whitespace.
 
@@ -586,7 +587,7 @@ body[data-stage-mode] {
   top: calc(var(--stage-unit) * var(--slot-bubble-top));
   width: calc(var(--stage-unit) * var(--slot-bubble-width));
   height: calc(var(--stage-unit) * var(--slot-bubble-height));
-  /* Above the cam slot, so the level-0 corner is not hidden by the portrait;
+  /* Above the cam slot, so the layout-0 corner is not hidden by the portrait;
      below the prose (z-index 2). */
   z-index: 1;
   pointer-events: none;
@@ -644,13 +645,13 @@ body[data-stage-debug] .stage-slot:empty::before {
 
 /* Offsets are measured from the stage box, so they add the letterbox bar
    ((viewport - stage) / 2) to the slot's own design pixels. The menu's
-   visibility is a per-level value too: hidden at level 3. The rail's frame
+   visibility is a per-layout value too: hidden at layout 3. The rail's frame
    comes from shell.css, so this rule only moves it. */
 body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
   /* Slot box, inset by the gutter on all four sides so the menu's frame
      clears the stage's edge. The cam slot can't shrink this way — it would
-     tilt the artwork's aspect — so its levels state the gutter in their own
+     tilt the artwork's aspect — so its layouts state the gutter in their own
      left/top instead. */
   top: calc(
     (100vh - var(--stage-h)) / 2 + var(--stage-unit) * var(--slot-menu-top) +
@@ -681,7 +682,7 @@ body[data-stage-mode] .rail {
    or in the stage's menu slot.
 
    Expressed on <body> rather than on .rail so the value inherits down, the way
-   the level's do; a second body[data-stage-mode] rule is deliberate, the one
+   the layout's do; a second body[data-stage-mode] rule is deliberate, the one
    above stating the mode's colours and this one the menu's scale. */
 body[data-stage-mode] {
   --rail-unit: var(--stage-unit);
