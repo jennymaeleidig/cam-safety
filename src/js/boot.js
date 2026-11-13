@@ -15,7 +15,6 @@
 
      passage   the INCOMING passage object (null when unknown)
      tags      its tags as an array (empty when unknown)
-     layout    State.variables.layout as-is (may be undefined)
 
    Take the incoming passage from the event, never from State.passage: at
    :passagestart State still names the passage being left.
@@ -50,14 +49,6 @@
   var startHandlers = [];
   var renderHandlers = [];
 
-  function currentLayout() {
-    var sc = window.SugarCube;
-    if (sc && sc.State && sc.State.variables) {
-      return sc.State.variables.layout;
-    }
-    return undefined;
-  }
-
   function passageOf(ev) {
     return (ev && ev.passage) || (ev && ev.detail && ev.detail.passage) || null;
   }
@@ -67,7 +58,6 @@
     var ctx = {
       passage: passage,
       tags: (passage && passage.tags) || [],
-      layout: currentLayout(),
     };
 
     for (var i = 0; i < handlers.length; i += 1) {

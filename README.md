@@ -44,32 +44,52 @@ used to do, and why `story.html` was 232 KB larger than it needed to be.
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
 | `src/css/`               | `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry and the shared nine-patch frame and speech-paper tokens).                                                                                                                                                  |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `reveal.js` (Cam's line, a character at a time), `settings.js` (the two Settings-dialog ranges, read by `reveal.js` and `voice.js`), `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-layout neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `reveal.js` (Cam's line, a character at a time), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the two Settings-dialog ranges and their semantic reads), `shell.js`, `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the slots, and the per-layout neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
 ## Verification
 
 There is no test runner, headless DOM, or browser automation; verification is
-manual, by design.
+manual, by design. Open the built story and drive it from the browser console:
 
-1. Build and open the story.
-2. Click through Title → Layout 0
-3. Open scratch passages from the browser console:
+```js
+SugarCube.Engine.play("Layouts");
+SugarCube.Engine.play("Stage content");
+SugarCube.Engine.play("Stage content long");
+SugarCube.Engine.play("Stage content empty");
+```
 
-   ```js
-   SugarCube.Engine.play("Layouts");
-   SugarCube.Engine.play("Stage content");
-   SugarCube.Engine.play("Stage content empty");
-   ```
-
-   Each layout must show its own phase's neutral pose (phase-0 … phase-3) in
-   that layout's slot position, and the slot geometry must not change when the
-   artwork does. Confirm `document.body.dataset.layout` names the layout just
-   entered, that a passage with no `$layout` composes as Layout 0, and that
-   Layout 3 hides the menu while Layouts 0–2 show it.
-
-4. Outline the still-empty slots:
+1. **Title and layouts.** Title → Layout 0, and
+   `document.body.dataset.layout` is `"0"`. Enter Layouts 0–3: each layout
+   shows its own phase's neutral pose (phase-0 … phase-3) in that layout's slot
+   position, the geometry matches the present composition, and the artwork
+   changing does not move the boxes. The attribute names the layout just
+   entered. Menu visible at 0–2, hidden at 3. Each layout passage's first
+   macro is `<<set_layout>>`: its first visible frame is that layout, with no
+   previous composition flashing first — the attribute write is synchronous,
+   not deferred to a later frame. With no `$layout`, or a non-numeric
+   one, the stage composes as Layout 0; a finite out-of-range value is clamped.
+2. **Bubble.** Play `Stage content long` and scroll the bubble: only the prose
+   moves, the paper's edge stays put, no line lands on the outline, the paper's
+   translucency and shadow do not fade the ink, and the link inside Cam's line
+   is still clickable after the line lands. Paper never swallows a click
+   beneath it. Play `Stage content empty`: no orphan paper is drawn.
+3. **Settings.** Open Settings from the menu: one Cam header, two ranges,
+   labels Text speed and Letter volume, defaults 62.5 and 25. Change Text
+   speed — the current line keeps its pace, the next uses the new one. Drag
+   Letter volume — the next letter is audible at once. Reload: saved values
+   restore. Corrupt or remove a value (console/local storage) and reload: the
+   tuned default returns. Set volume to zero: the line still reveals in
+   silence. Emulate reduced motion: both ranges are present and the line
+   arrives whole.
+4. **Slot state.** During a reveal on `Stage content`, inspect the bubble and
+   reply: the reply is `data-state="empty"`, `is-revealing` and `inert` until
+   Cam lands, then filled and reachable. Space, enter, escape and a pointer
+   press land both lines; tab and the arrow keys do not. `Stage content empty`
+   leaves no stale state, paper, inertness or held reply. Under reduced motion
+   there is no hold and no `inert`. Turn on the debug outline and confirm empty
+   slots are outlined and a revealing slot is exempt:
 
    ```js
    document.body.setAttribute("data-stage-debug", "");

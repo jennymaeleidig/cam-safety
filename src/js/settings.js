@@ -4,6 +4,11 @@
    their consumers need — SugarCube's Settings dialog reads the same constants
    that the semantic reads below use, so a rename or a retune is one edit.
 
+   The tuned defaults themselves live in settings-defaults.js, which also
+   derives the converted fallbacks the Reveal and the Voice use when this file
+   is absent. This file builds the dialog definitions and the semantic reads
+   from those specs, so the numbers are stated once.
+
    The interface is semantic, and is the only thing reveal.js and voice.js use:
 
      window.CamSettings.msPerChar()  milliseconds per character (Reveal asks)
@@ -27,14 +32,14 @@
 
    Units are the dialog's: letters a second (a speed, so higher is faster, which
    is also the direction of a range input's left-to-right) and percent for the
-   volume. The defaults are the numbers the reveal was tuned and measured at —
-   62.5 letters a second is 16 ms per character, and 25 % is the gain of 0.25 —
-   so the story opens at the settings the measurements in
-   docs/research/animalese-typewriter.md §7 describe.
+   volume. The defaults are the numbers the reveal was tuned and measured at
+   (settings-defaults.js), so the story opens at the settings the measurements
+   in docs/research/animalese-typewriter.md §7 describe.
 
    Fallbacks: a setting that is missing, non-finite or unreadable (an editor
    preview, or a build without SugarCube's settings) falls back to the tuned
-   default. A finite value outside the dialog's range is clamped to it. */
+   default. A finite value outside the dialog's range is clamped to it. A value
+   is read as a number only; anything else falls back. */
 (function () {
   "use strict";
 
@@ -43,27 +48,8 @@
 
   /* The contract. Both the dialog definitions and the semantic reads below
      take their names, ranges and defaults from here. */
-  var SPEED = {
-    key: "revealSpeed",
-    label: "Text speed",
-    min: 25,
-    max: 125,
-    step: 12.5,
-    fallback: 62.5,
-    desc:
-      "Letters a second: higher is faster. No effect when your system asks for reduced motion, which arrives the whole line at once.",
-  };
-
-  var VOLUME = {
-    key: "voiceVolume",
-    label: "Letter volume",
-    min: 0,
-    max: 100,
-    step: 5,
-    fallback: 25,
-    desc:
-      "The sound under Cam's letters, against the background. At zero the letters are silent and the line still reveals.",
-  };
+  var SPEED = win.CamSettingsDefaults.speed;
+  var VOLUME = win.CamSettingsDefaults.volume;
 
   Setting.addHeader(
     "Cam",
@@ -76,7 +62,7 @@
     min: SPEED.min,
     max: SPEED.max,
     step: SPEED.step,
-    default: SPEED.fallback,
+    default: SPEED.default,
   });
 
   Setting.addRange(VOLUME.key, {
@@ -85,24 +71,19 @@
     min: VOLUME.min,
     max: VOLUME.max,
     step: VOLUME.step,
-    default: VOLUME.fallback,
+    default: VOLUME.default,
   });
 
   /* A setting's value, normalised to its range, or the tuned default.
      SugarCube replaces its settings object when it loads saved values, so ask
-     it rather than reading the object once. */
+     it rather than reading the object once. Only a number is trusted: a
+     non-number is a missing or corrupt value, not something to parse. */
   function read(spec) {
     var sc = win.SugarCube;
     var get = sc && sc.Setting && sc.Setting.getValue;
-    var raw = get ? get(spec.key) : undefined;
-    var value = NaN;
-    if (typeof raw === "number") {
-      value = raw;
-    } else if (typeof raw === "string" && raw.trim() !== "") {
-      value = Number(raw);
-    }
-    if (!isFinite(value)) {
-      return spec.fallback;
+    var value = get ? get(spec.key) : undefined;
+    if (typeof value !== "number" || !isFinite(value)) {
+      return spec.default;
     }
     return Math.min(spec.max, Math.max(spec.min, value));
   }
