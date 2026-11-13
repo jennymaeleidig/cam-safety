@@ -13,10 +13,11 @@
    While Cam speaks, the reply is held empty: the Stage publishes it
    data-state="empty" and inert for the length of the reveal, and filled and
    reachable the moment the line lands. This file does not write those — it
-   asks the Stage for hold, land and abandon. The Stage is the only writer of
-   data-state, is-revealing and inert; the flush records what it gave each
-   slot, so abandoning a line after a newer flush cannot clobber the newer
-   state.
+   asks the Stage for reveal, hold, land and abandon. The Stage is the only
+   writer of data-state, is-revealing and inert; the flush publishes
+   data-state and records what it gave each slot, while is-revealing and inert
+   are written only by those transitions. So abandoning a line after a newer
+   flush cannot clobber the newer state.
 
    The reveal grows text nodes rather than re-wikifying: jQuery.wiki() output is
    already live on the detached passage element, SugarCube having bound link
@@ -37,7 +38,8 @@
 
    Pacing is asked of the settings module as milliseconds per character
    (settings.js, window.CamSettings.msPerChar(), the "Text speed" range). This
-   file knows neither its unit nor its default. The value is read when a line
+   file knows neither its unit nor its default; settings-defaults.js holds the
+   tuned fallback and its converted value. The value is read when a line
    starts, so a change lands on the next line rather than mid-line. A whole
    line is capped at MAX_MS by shortening the per-character delay once a line
    is long enough to exceed it, so no passage can make the player wait, however
@@ -57,11 +59,6 @@
   var win = /** @type {any} */ (window);
   var Reveal = (win.Reveal = win.Reveal || {});
 
-  /* The one fallback for a build without settings.js (an editor preview, or a
-     stripped build): 16 ms per character, the tuned default. The contract and
-     the tuned numbers live in settings.js; this literal must not grow into a
-     second copy of them. */
-  var ABSENT_SETTINGS_MS = 16;
   var MAX_MS = 6000;
   var MIN_MS = 4;
   /* How many letters one frame may sound when it is catching up. Two is under
@@ -73,13 +70,19 @@
 
   /* Milliseconds per character, from the settings module's semantic read.
      The module owns the dialog's unit, default and clamping; this file only
-     consumes the time. A story built without it gets the tuned 16 ms. */
+     consumes the time. Without the settings module, the tuned default's
+     converted value comes from the defaults module; with neither, the reveal
+     runs as fast as the clock allows rather than stalling. */
   function msPerChar() {
     var settings = win.CamSettings;
     if (settings && typeof settings.msPerChar === "function") {
       return settings.msPerChar();
     }
-    return ABSENT_SETTINGS_MS;
+    var defaults = win.CamSettingsDefaults;
+    if (defaults && typeof defaults.msPerChar === "number") {
+      return defaults.msPerChar;
+    }
+    return 0;
   }
 
   function reducedMotion() {
@@ -157,34 +160,46 @@
     paint(entry.plan, entry.step > 0 ? steps[entry.step - 1].chars : 0);
   }
 
-  /* Ask the Stage to publish the transition. It owns data-state, is-revealing
-     and inert; absent only if that file failed to load, in which case the
-     flush has already put both lines on screen in full. */
-  function request(name, entry, blank) {
+  /* Each transition asks the Stage, which owns data-state, is-revealing and
+     inert. The Stage is absent only if that file failed to load, in which case
+     the flush has already put both lines on screen in full. */
+
+  /* Cam's growing line keeps the paper the flush gave it. Used when Cam
+     starts speaking. */
+  function reveal(entry) {
     var stage = win.Stage;
-    if (stage && typeof stage[name] === "function") {
-      stage[name](entry.prose, blank);
+    if (stage && typeof stage.reveal === "function") {
+      stage.reveal(entry.prose);
     }
   }
 
   /* Hide the line's paper and its text. Used for the line waiting its turn. */
   function hold(entry) {
     paint(entry.plan, 0);
-    request("hold", entry, true);
+    var stage = win.Stage;
+    if (stage && typeof stage.hold === "function") {
+      stage.hold(entry.prose);
+    }
   }
 
   /* Show all of it, at once. Also what skipping does. */
   function land(entry) {
     entry.step = total(entry);
     paintTo(entry);
-    request("land", entry);
+    var stage = win.Stage;
+    if (stage && typeof stage.land === "function") {
+      stage.land(entry.prose);
+    }
   }
 
   /* Forget the line without restoring it: the incoming passage's flush is
      about to rewrite the slot anyway, and the Stage restores the state that
      flush published. */
   function abandon(entry) {
-    request("abandon", entry);
+    var stage = win.Stage;
+    if (stage && typeof stage.abandon === "function") {
+      stage.abandon(entry.prose);
+    }
   }
 
   /* Show as much as `now` has earned, and report whether the line is done. */
@@ -216,8 +231,8 @@
       Math.min(msPerChar(), MAX_MS / Math.max(total(entry), 1)),
     );
     /* Cam's line is revealed in place: its paper stays up while the prose
-       grows, so hold it without blanking its published state. */
-    request("hold", entry, false);
+       grows, so keep the flushed state and only mark it revealing. */
+    reveal(entry);
     return advance(entry, now);
   }
 
@@ -262,8 +277,8 @@
      camLine or reply, both, or neither. Also called with neither: a passage
      with no lines is exactly when the previous passage's reveal has to be
      dropped, or it would hold and then paint slots the flush has emptied. */
-  Reveal.start = function (lines) {
-    var record = lines || {};
+  Reveal.start = function (handles) {
+    handles = handles || {};
     stop();
     if (speaking) {
       abandon(speaking);
@@ -277,15 +292,15 @@
       return;
     }
 
-    var camIn = record.camLine ? line(record.camLine) : null;
+    var camIn = handles.camLine ? line(handles.camLine) : null;
     if (!camIn || total(camIn) === 0) {
       /* Nobody speaks: a passage with no Cam line, or a bubble that wiki'd down
          to whitespace. Nothing is revealed, so nothing waits. */
       return;
     }
 
-    if (record.reply) {
-      var queued = line(record.reply);
+    if (handles.reply) {
+      var queued = line(handles.reply);
       if (total(queued) > 0) {
         hold(queued);
         waiting = queued;

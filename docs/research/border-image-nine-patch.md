@@ -138,12 +138,13 @@ There is no test runner in this repo; verification is manual, in the built
 story (see the README). The relevant seams already exist:
 
 - shell vs stage mode: `body[data-stage-mode]`
-- pressure level: `body[data-pressure-level]`
+- layout: `body[data-layout]`
 - slot state: `[data-state="filled"]`
-- the scratch passages: `Levels`, `Stage content`, `Stage content empty`
+- the scratch passages: `Layouts` / `Layout 0..3`, `Stage content`,
+  `Stage content empty`
 
-No new seam is needed. The visual checks are: both modes, all four levels,
-empty/filled slots, long scrolling text, the hidden menu at level 3, a short
+No new seam is needed. The visual checks are: both modes, all four layouts,
+empty/filled slots, long scrolling text, the hidden menu at layout 3, a short
 window, and a 2dppx display.
 
 ## 7. Follow-up: the speech bubble's `speech.png`

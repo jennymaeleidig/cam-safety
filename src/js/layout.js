@@ -6,11 +6,13 @@
    This file is the only writer of the attribute, and the only place the
    running value is normalised.
 
-   Everything else reads the published seam and never recomputes a layout:
-   stage.js reads data-layout for Cam's neutral pose, and the stylesheets key
-   their per-layout blocks on body[data-layout="N"]. The <<set_layout>> macro
-   (story.twee) and the lifecycle's start phase both delegate here, so there
-   is one writer rather than one per entry point.
+   Everything else reads the published seam, data-layout, and never recomputes
+   a layout: stage.js reads the attribute for Cam's neutral pose, and the
+   stylesheets key their per-layout blocks on body[data-layout="N"]. The
+   <<set_layout>> macro (story.twee) and the lifecycle's start phase both
+   delegate here, so there is one writer rather than one per entry point. The
+   start-phase publisher owns the running-value read: it takes
+   State.variables.layout itself, so no other module passes the layout down.
 
    Normalisation is the whole rule: a non-finite value (including a missing
    $layout, as in an old save) becomes 0; a finite value is rounded and
@@ -60,7 +62,9 @@
 
   win.Layout = Layout;
 
-  stage.onPassageStart(function (ctx) {
-    Layout.set(ctx.layout);
+  stage.onPassageStart(function () {
+    var sc = window.SugarCube;
+    var variables = sc && sc.State && sc.State.variables;
+    Layout.set(variables && variables.layout);
   });
 })();

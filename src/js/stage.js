@@ -27,16 +27,18 @@
    Whether a slot is filled is decided here, in the same pass that writes it,
    and published as data-state on the slot; stage.css gates every per-slot
    look on that attribute. Never let CSS infer it from :empty: a line of wiki
-   output that renders to whitespace leaves a slot non-empty and blank, and
-   only this file knows the difference.
+   output that renders to whitespace leaves a slot non-empty yet drawing
+   nothing, and only this file knows the difference.
 
-   The visible state has one writer: this file. The reveal (reveal.js) does
-   not touch data-state, is-revealing or inert; it asks this file for a
-   transition. hold marks a slot as not yet landed (a waiting reply is
-   published empty, Cam's growing line keeps its paper), land publishes it
-   filled and reachable, and abandon puts back the state the most recent flush
-   gave that slot. The flush records that state here, so abandoning a line
-   that a newer flush has already replaced cannot clobber the newer state. */
+   The visible state has one writer: this file. The flush publishes data-state
+   and records what it gave each slot; is-revealing and inert are written only
+   by the transitions the reveal requests. reveal marks Cam's growing line as
+   revealing while keeping the flushed paper, hold publishes a waiting reply
+   empty, land publishes a slot filled and reachable, and abandon puts back the
+   state the most recent flush gave that slot. The flush records that state
+   here, so abandoning a line that a newer flush has already replaced cannot
+   clobber the newer state. A passage start clears the record, so an abandon
+   can never restore state from a passage before a failed or absent flush. */
 (function () {
   "use strict";
 
@@ -63,20 +65,20 @@
      write:
        publish   the flush's write, which also records what the slot was
                  given (lastFlush) so abandon can restore it;
-       show      a transition requested by the reveal, which never changes
+       setState  a transition requested by the reveal, which never changes
                  that record.
      stage.css reads data-state and never guesses from :empty, which
      whitespace-only wiki output defeats. */
   var lastFlush = new WeakMap();
   var slotByProse = new WeakMap();
 
-  function show(slot, filled) {
+  function setState(slot, filled) {
     slot.setAttribute("data-state", filled ? "filled" : "empty");
   }
 
   function publish(slot, filled) {
     lastFlush.set(slot, filled);
-    show(slot, filled);
+    setState(slot, filled);
   }
 
   /* A prose handle (the bubble's inner box, or the reply slot itself) maps to
@@ -210,6 +212,11 @@
 
   function reset() {
     record = emptyRecord();
+    /* A passage start is the boundary: old prose handles and their flushed
+       state belong to the passage being left. An abandon from the previous
+       reveal then finds nothing to restore. */
+    lastFlush = new WeakMap();
+    slotByProse = new WeakMap();
   }
 
   function flush() {
@@ -232,21 +239,28 @@
   }
 
   /* ---- transitions requested by the reveal ----------------------------
-     hold    the slot is not yet landed. `blank` (the default) means its line
-             is not on screen yet, so it is published empty — the held reply.
-             Cam's growing line passes false: its paper stays up while the
-             prose grows. Either way the slot is revealing and inert.
+     reveal  Cam's line is growing: keep the data-state the flush published
+             (its paper stays up), and mark it revealing and inert.
+     hold    a waiting reply has not landed: publish it empty, and mark it
+             revealing and inert.
      land    the line is whole: filled, not revealing, reachable.
      abandon the new flush has already rewritten the slot; drop the transient
              class and inertness and put back the state that flush gave it. */
-  function hold(handle, blank) {
+  function reveal(handle) {
     var slot = slotOf(handle);
     if (!slot) {
       return;
     }
-    if (blank !== false) {
-      show(slot, false);
+    slot.classList.add("is-revealing");
+    slot.setAttribute("inert", "");
+  }
+
+  function hold(handle) {
+    var slot = slotOf(handle);
+    if (!slot) {
+      return;
     }
+    setState(slot, false);
     slot.classList.add("is-revealing");
     slot.setAttribute("inert", "");
   }
@@ -256,7 +270,7 @@
     if (!slot) {
       return;
     }
-    show(slot, true);
+    setState(slot, true);
     slot.classList.remove("is-revealing");
     slot.removeAttribute("inert");
   }
@@ -268,7 +282,7 @@
     }
     slot.classList.remove("is-revealing");
     slot.removeAttribute("inert");
-    show(slot, lastFlush.get(slot) === true);
+    setState(slot, lastFlush.get(slot) === true);
   }
 
   /* ---- the interface: content, not slots ------------------------------
@@ -282,6 +296,7 @@
      widened for this one read. */
   var stage = (/** @type {any} */ (window)).Stage;
 
+  stage.reveal = reveal;
   stage.hold = hold;
   stage.land = land;
   stage.abandon = abandon;

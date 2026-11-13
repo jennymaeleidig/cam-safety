@@ -116,6 +116,15 @@ Cam Safety
 <<cam_line "You again. At this hour.">>
 <<player_line "The flock needed a night watch. [[Next (no macros)->Stage content empty]]">>
 
+:: Stage content long [checker scratch] {"position":"550,750"}
+/* A Cam line long enough to scroll the bubble. Scroll it and confirm the
+   paper stays put and no line lands on its outline; the link inside the Cam
+   line proves links stay bound and clickable after the reveal grows the
+   prose. Reach it from the browser console:
+     SugarCube.Engine.play("Stage content long") */
+<<cam_line "This line is deliberately longer than the bubble, so the prose has to scroll inside it while the paper stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the black outline rather than paint over it, and the paper's translucency and shadow should not fade a single letter. Keep reading, because the point is to see the same card hold still while the words travel. A link lives in this line too, [[Layouts->Layouts]], and once the line has landed it should still be a link you can click. That proves the reveal grew the text nodes in place instead of replacing the markup.">>
+<<player_line "The long line has landed. [[Layouts->Layouts]]">>
+
 :: Stage content empty [checker scratch] {"position":"600,750"}
 /* No content macros: the bubble and reply slots must be empty — nothing left
    over from the previous passage — and the cam slot must show the layout's

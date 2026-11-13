@@ -429,7 +429,8 @@ body[data-stage-mode] {
   top: calc(var(--stage-unit) * var(--slot-bubble-top));
   width: calc(var(--stage-unit) * var(--slot-bubble-width));
   height: calc(var(--stage-unit) * var(--slot-bubble-height));
-  /* Above the silhouette (z-index 1): the prose sits on the paper. */
+  /* Above the portrait: this stacking context holds the bubble's paper (its
+     ::before, z-index 0) with the prose above it. */
   z-index: 2;
 }
 

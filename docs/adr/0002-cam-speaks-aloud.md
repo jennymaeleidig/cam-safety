@@ -39,12 +39,14 @@ to arrive in the accessibility tree as it is spoken, not be clipped into it).
 
 ## Consequences
 
-**The Stage is the only writer of a slot's visible state.** `stage.js`
-publishes `data-state`, `is-revealing` and `inert` in the flush that writes a
-slot, and the reveal asks the Stage for transitions instead of writing them:
-`hold` while a line is not yet landed, `land` when it is whole, and `abandon`
-when a new passage replaces it. A held reply is published `empty` and inert for
-the length of Cam's line; the Stage puts it back as the last flush left it. The
+**The Stage is the only writer of a slot's visible state.** `stage.js`'s flush
+publishes `data-state` and records what it gave each slot; `is-revealing` and
+`inert` are written only by the transitions. The reveal asks the Stage for
+those transitions instead of writing them: `reveal` while Cam's line grows,
+`hold` while a waiting reply is not yet landed, `land` when a line is whole,
+and `abandon` when a new passage replaces it. A held reply is published `empty`
+and inert for the length of Cam's line; the Stage puts it back as the last
+flush left it. The
 reveal still decides when; the Stage decides what is true. “Is this Slot
 showing a line, and if not why?” has one answer, in one module.
 
