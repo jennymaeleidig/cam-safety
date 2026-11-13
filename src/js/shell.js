@@ -20,7 +20,7 @@
   /* ---- rail title visibility ------------------------------------------ */
 
   function applyRailTitle(ctx) {
-    var railTitle = document.querySelector(".rail-title");
+    var railTitle = /** @type {HTMLElement|null} */ (document.querySelector(".rail-title"));
     if (railTitle) {
       railTitle.style.display = ctx.tags.indexOf("title") === -1 ? "" : "none";
     }

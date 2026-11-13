@@ -1,0 +1,21 @@
+{
+  "$schema": "https://raw.githubusercontent.com/apmantza/pi-lens/master/docs/schema/pi-lens-config-v1.json",
+  "ignore": [
+    "dist/**",
+    "include/**",
+    ".storyformats/**",
+    ".scratch/**",
+    "node_modules/**"
+  ],
+  "lsp": {
+    "serverOverrides": {
+      "typescript": {
+        "initializationOptions": {
+          "diagnostics": {
+            "ignoredCodes": [7043, 7044, 7045, 7046, 7047]
+          }
+        }
+      }
+    }
+  }
+}

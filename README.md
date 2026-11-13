@@ -36,6 +36,16 @@ already sources, the story would carry two copies of each — double the script
 payload, two AudioContexts, every handler running twice. That is what the build
 used to do, and why `story.html` was 232 KB larger than it needed to be.
 
+## Language servers
+
+`npm install` also provides the language servers pi-lens runs over `src/`:
+`typescript-language-server` (using the project's TypeScript), and the VS Code
+CSS, JSON, HTML and YAML servers. `jsconfig.json` puts the story scripts in one
+TypeScript project, and `types/story-globals.d.ts` names the globals they share
+at load. Twee has no language server, so pi-lens leaves `.twee` files unchecked;
+`story.twee-config.yaml` only describes the macros to the editor. The build
+still needs nothing but Tweego.
+
 ## Source layout
 
 | Path                     | Purpose                                                                                                                                                                                                                                                        |

@@ -40,7 +40,7 @@
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var Voice = (win.Voice = win.Voice || {});
+  var Voice = /** @type {any} */ (win.Voice = win.Voice || {});
   var letters = win.VoiceLetters || null;
 
   var PITCH = 0.8;

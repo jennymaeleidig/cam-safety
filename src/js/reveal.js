@@ -57,7 +57,7 @@
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var Reveal = (win.Reveal = win.Reveal || {});
+  var Reveal = /** @type {any} */ (win.Reveal = win.Reveal || {});
 
   var MAX_MS = 6000;
   var MIN_MS = 4;

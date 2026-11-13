@@ -22,5 +22,5 @@ dist/
 !.vscode/
 .vscode/*
 !.vscode/tasks.json
-# Node toolchain (TypeScript, for the local language server) — not build input
+# Node toolchain (language servers for the editor) — not build input
 node_modules/

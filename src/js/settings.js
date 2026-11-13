@@ -91,7 +91,7 @@
     return Math.min(spec.max, Math.max(spec.min, value));
   }
 
-  var CamSettings = (win.CamSettings = win.CamSettings || {});
+  var CamSettings = /** @type {any} */ (win.CamSettings = win.CamSettings || {});
 
   /* The Reveal's unit: how long one character stays on screen. */
   CamSettings.msPerChar = function () {

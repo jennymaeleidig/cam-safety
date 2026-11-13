@@ -44,7 +44,7 @@
   /* window.Stage has no declaration for the editor's TypeScript server
      (TS2568), so window is widened for this create-or-keep assignment. */
   var win = /** @type {any} */ (window);
-  var Stage = (win.Stage = win.Stage || {});
+  var Stage = /** @type {any} */ (win.Stage = win.Stage || {});
 
   var startHandlers = [];
   var renderHandlers = [];

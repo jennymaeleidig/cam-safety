@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "allowJs": true,
+    "checkJs": true,
+    "noEmit": true,
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM"],
+    "module": "none",
+    "strict": false,
+    /* The story's JS carries no annotations; keeping implicit any off makes
+       tsserver report infer-from-usage as suggestions (7043-7047) rather than
+       errors. .pi-lens.json filters that suggestion family, so it stays quiet. */
+    "noImplicitAny": false
+  },
+  "include": ["src/js/**/*.js", "types/**/*.d.ts"],
+  "exclude": ["node_modules", "dist"]
+}

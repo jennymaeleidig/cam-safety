@@ -2,9 +2,12 @@
   "name": "flock-cam-twine",
   "version": "0.0.0",
   "private": true,
-  "description": "Tweego + SugarCube 2 story. npm is here only for tooling (TypeScript, for the local language server); the build itself is the tweego task in .vscode/tasks.json.",
+  "description": "Tweego + SugarCube 2 story. npm is here only for tooling (the local language servers); the build itself is the tweego task in .vscode/tasks.json.",
   "license": "UNLICENSED",
   "devDependencies": {
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "typescript-language-server": "^5.3.0",
+    "vscode-langservers-extracted": "^4.10.0",
+    "yaml-language-server": "^2.0.0"
   }
 }
