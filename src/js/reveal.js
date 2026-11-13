@@ -1,27 +1,29 @@
 /* ===== The reveal: Cam's line arrives one character at a time =====
-   stage.js writes both lines into their slots in one flush; this file then
-   takes the filled slots and grows the bubble's prose box, with one letter of
-   voice per character.
+   stage.js writes both lines into their slots in one flush and hands this
+   file the prose element for each: `{ camLine, reply }`, either may be null.
+   This file then grows the bubble's prose box, with one letter of voice per
+   character, and asks the Stage for every visible state change.
 
    Only Cam speaks. The reply bar is the player's own line, so it is neither
    revealed nor sounded: it arrives whole, at its turn, once Cam has finished.
-   That is one rule, stated in `start()` by slot name, and it is why this file
-   can be small — at most one line is ever revealed per passage, so at most one
-   line ever waits.
+   That is one rule, stated in `start()` by role (`camLine` or `reply`), and it
+   is why this file can be small — at most one line is ever revealed per
+   passage, so at most one line ever waits.
 
-   While Cam speaks, the reply's paper is held empty: data-state is set back to
-   "empty" for the length of the reveal, and to "filled" the moment the line
-   lands. stage.js publishes the attribute in the flush that writes the slot;
-   the reveal owns it from there until it lands. A held slot is also blanked,
-   because stage.css only styles a filled slot — the reply would otherwise show
-   as unstyled black prose at the reply bar's position.
+   While Cam speaks, the reply is held empty: the Stage publishes it
+   data-state="empty" and inert for the length of the reveal, and filled and
+   reachable the moment the line lands. This file does not write those — it
+   asks the Stage for hold, land and abandon. The Stage is the only writer of
+   data-state, is-revealing and inert; the flush records what it gave each
+   slot, so abandoning a line after a newer flush cannot clobber the newer
+   state.
 
    The reveal grows text nodes rather than re-wikifying: jQuery.wiki() output is
    already live on the detached passage element, SugarCube having bound link
    handling per anchor at parse time. Emptying a text node leaves its anchor in
    place, so a link interrupted by a new passage is still a link.
 
-   A revealing or held slot is also `inert`, which is what makes its links
+   A revealing or held slot is also inert, which is what makes its links
    genuinely unreachable: not just unclickable with the pointer but unfocusable
    and out of the accessibility tree, so a held reply cannot be tabbed to and
    entered before the player has seen it. The skip listener is on the document
@@ -92,8 +94,8 @@
      link. `chars` is how much of the line is on screen after the step, so the
      paint never needs to know which kind of step it is; `letter` is what to
      say, and is empty for a link. */
-  function planLine(slot) {
-    var walker = document.createTreeWalker(slot, NodeFilter.SHOW_TEXT, null);
+  function planLine(prose) {
+    var walker = document.createTreeWalker(prose, NodeFilter.SHOW_TEXT, null);
     var nodes = [];
     var steps = [];
     var at = 0;
@@ -133,13 +135,13 @@
 
   /* ---- one line -------------------------------------------------------- */
 
-  function line(slot, prose) {
+  function line(prose) {
     return {
-      slot: slot,
-      /* The bubble's slot carries the paper; its prose lives in an inner box
-         (stage.js), and that is the text the reveal grows. The reply is a
-         single element, so its prose is the slot itself. */
-      plan: planLine(prose || slot),
+      /* The prose handle the Stage handed over: the bubble's inner box, or the
+         reply slot itself. This is the only text the reveal grows; it never
+         identifies a slot from markup. */
+      prose: prose,
+      plan: planLine(prose),
       step: 0,
       startedAt: 0,
       ms: msPerChar(),
@@ -155,36 +157,34 @@
     paint(entry.plan, entry.step > 0 ? steps[entry.step - 1].chars : 0);
   }
 
-  function block(entry, on) {
-    if (on) {
-      entry.slot.setAttribute("inert", "");
-    } else {
-      entry.slot.removeAttribute("inert");
+  /* Ask the Stage to publish the transition. It owns data-state, is-revealing
+     and inert; absent only if that file failed to load, in which case the
+     flush has already put both lines on screen in full. */
+  function request(name, entry, blank) {
+    var stage = win.Stage;
+    if (stage && typeof stage[name] === "function") {
+      stage[name](entry.prose, blank);
     }
   }
 
   /* Hide the line's paper and its text. Used for the line waiting its turn. */
   function hold(entry) {
     paint(entry.plan, 0);
-    entry.slot.setAttribute("data-state", "empty");
-    entry.slot.classList.add("is-revealing");
-    block(entry, true);
+    request("hold", entry, true);
   }
 
   /* Show all of it, at once. Also what skipping does. */
   function land(entry) {
     entry.step = total(entry);
     paintTo(entry);
-    entry.slot.setAttribute("data-state", "filled");
-    entry.slot.classList.remove("is-revealing");
-    block(entry, false);
+    request("land", entry);
   }
 
   /* Forget the line without restoring it: the incoming passage's flush is
-     about to rewrite the slot anyway. */
+     about to rewrite the slot anyway, and the Stage restores the state that
+     flush published. */
   function abandon(entry) {
-    entry.slot.classList.remove("is-revealing");
-    block(entry, false);
+    request("abandon", entry);
   }
 
   /* Show as much as `now` has earned, and report whether the line is done. */
@@ -215,8 +215,9 @@
       MIN_MS,
       Math.min(msPerChar(), MAX_MS / Math.max(total(entry), 1)),
     );
-    entry.slot.classList.add("is-revealing");
-    block(entry, true);
+    /* Cam's line is revealed in place: its paper stays up while the prose
+       grows, so hold it without blanking its published state. */
+    request("hold", entry, false);
     return advance(entry, now);
   }
 
@@ -257,11 +258,12 @@
     frame = win.requestAnimationFrame(tick);
   }
 
-  /* Called by stage.js's flush with the slots it just filled. Sometimes one,
-     sometimes both, never an empty slot. Also called with nothing to fill: a
-     passage with no lines is exactly when the previous passage's reveal has to
-     be dropped, or it would hold and then paint slots the flush has emptied. */
-  Reveal.start = function (slots) {
+  /* Called by stage.js's flush with the prose handles it just filled: one of
+     camLine or reply, both, or neither. Also called with neither: a passage
+     with no lines is exactly when the previous passage's reveal has to be
+     dropped, or it would hold and then paint slots the flush has emptied. */
+  Reveal.start = function (lines) {
+    var record = lines || {};
     stop();
     if (speaking) {
       abandon(speaking);
@@ -275,33 +277,22 @@
       return;
     }
 
-    var cam = null;
-    var reply = null;
-    for (var i = 0; i < slots.length; i += 1) {
-      if (slots[i].getAttribute("data-stage-slot") === "bubble") {
-        cam = slots[i];
-      } else {
-        reply = slots[i];
-      }
-    }
-
-    var camProse = cam && cam.querySelector(".stage-bubble-prose");
-    var lineIn = cam ? line(cam, camProse) : null;
-    if (!lineIn || total(lineIn) === 0) {
+    var camIn = record.camLine ? line(record.camLine) : null;
+    if (!camIn || total(camIn) === 0) {
       /* Nobody speaks: a passage with no Cam line, or a bubble that wiki'd down
          to whitespace. Nothing is revealed, so nothing waits. */
       return;
     }
 
-    if (reply) {
-      var queued = line(reply);
+    if (record.reply) {
+      var queued = line(record.reply);
       if (total(queued) > 0) {
         hold(queued);
         waiting = queued;
       }
     }
 
-    speaking = lineIn;
+    speaking = camIn;
     /* A line that is all link — or one character — can be whole before this
        function returns. */
     if (start(speaking, win.performance.now())) {

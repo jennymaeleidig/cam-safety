@@ -39,12 +39,14 @@ to arrive in the accessibility tree as it is spoken, not be clipped into it).
 
 ## Consequences
 
-**`data-state` is published twice for one line.** `stage.js` still decides what
-a slot holds and publishes it in the flush, but the reveal owns the attribute
-until the line lands: a queued reply is set back to `empty` and blanked for the
-length of Cam's line. That is an exception to "one writer", and it is the only
-one — the reveal is the single other writer of the attribute, and it restores
-the value it was given.
+**The Stage is the only writer of a slot's visible state.** `stage.js`
+publishes `data-state`, `is-revealing` and `inert` in the flush that writes a
+slot, and the reveal asks the Stage for transitions instead of writing them:
+`hold` while a line is not yet landed, `land` when it is whole, and `abandon`
+when a new passage replaces it. A held reply is published `empty` and inert for
+the length of Cam's line; the Stage puts it back as the last flush left it. The
+reveal still decides when; the Stage decides what is true. “Is this Slot
+showing a line, and if not why?” has one answer, in one module.
 
 **A revealing or held slot is `inert`.** Blanking the text of a held reply
 leaves its anchors in the DOM, and anchors are focusable: tab-then-enter could

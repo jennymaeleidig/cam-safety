@@ -615,9 +615,9 @@ body[data-stage-mode] {
 
 /* Debug only: outline the slots that are still empty. The attribute flips to
    "filled" the moment stage.js writes content, so this never hides real
-   content. A slot that is revealing is exempt: its paper is deliberately held
-   empty while a line waits its turn (reveal.js), which is not a gap in the
-   authoring to be outlined. */
+   content. A slot that is revealing is exempt: a waiting reply is deliberately
+   held empty until it lands (stage.js, at the reveal's request), which is not a
+   gap in the authoring to be outlined. */
 body[data-stage-debug] .stage-slot[data-state="empty"] {
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 10px;
