@@ -33,12 +33,13 @@
    milliseconds, so a link-heavy line does not stall while the link sits on
    screen. A link is a word to act on, not a word to hear.
 
-   Pacing: 16 ms per character by default, tuned by ear, and a range in the
-   Settings dialog (settings.js, "Text speed", in letters a second). The value
-   is read when a line starts, so a change lands on the next line rather than
-   mid-line. A whole line is capped at MAX_MS by shortening the per-character
-   delay once a line is long enough to exceed it, so no passage can make the
-   player wait, however slowly they set the pace.
+   Pacing is asked of the settings module as milliseconds per character
+   (settings.js, window.CamSettings.msPerChar(), the "Text speed" range). This
+   file knows neither its unit nor its default. The value is read when a line
+   starts, so a change lands on the next line rather than mid-line. A whole
+   line is capped at MAX_MS by shortening the per-character delay once a line
+   is long enough to exceed it, so no passage can make the player wait, however
+   slowly they set the pace.
 
    A frame that catches up — a stalled frame, or a tab returning from the
    background — can owe a hundred characters. It gets to speak two of them:
@@ -54,10 +55,11 @@
   var win = /** @type {any} */ (window);
   var Reveal = (win.Reveal = win.Reveal || {});
 
-  /* The default pace, in letters a second: 62.5 is the 16 ms per character this
-     was tuned and measured at. What the Settings dialog's revealSpeed range
-     changes, and what a story built without it gets. */
-  var DEFAULT_LETTERS_PER_SECOND = 62.5;
+  /* The one fallback for a build without settings.js (an editor preview, or a
+     stripped build): 16 ms per character, the tuned default. The contract and
+     the tuned numbers live in settings.js; this literal must not grow into a
+     second copy of them. */
+  var ABSENT_SETTINGS_MS = 16;
   var MAX_MS = 6000;
   var MIN_MS = 4;
   /* How many letters one frame may sound when it is catching up. Two is under
@@ -67,26 +69,15 @@
      sum in range. */
   var LETTERS_PER_FRAME = 2;
 
-  /* A setting's value, or NaN when the story carries no such setting (an
-     editor preview, or a build that dropped settings.js). SugarCube replaces
-     its settings object when it loads saved values, so ask it rather than
-     reading the object once. */
-  function readSetting(name) {
-    var sc = win.SugarCube;
-    var get = sc && sc.Setting && sc.Setting.getValue;
-    return get ? Number(get(name)) : NaN;
-  }
-
-  /* Milliseconds per character, from the letters-per-second the dialog shows.
-     Nothing but a positive number is usable, so anything else — no setting,
-     a corrupted save — falls back to the tuned default rather than to a pause
-     of zero or of Infinity. */
+  /* Milliseconds per character, from the settings module's semantic read.
+     The module owns the dialog's unit, default and clamping; this file only
+     consumes the time. A story built without it gets the tuned 16 ms. */
   function msPerChar() {
-    var pace = readSetting("revealSpeed");
-    if (!(pace > 0)) {
-      pace = DEFAULT_LETTERS_PER_SECOND;
+    var settings = win.CamSettings;
+    if (settings && typeof settings.msPerChar === "function") {
+      return settings.msPerChar();
     }
-    return 1000 / pace;
+    return ABSENT_SETTINGS_MS;
   }
 
   function reducedMotion() {
