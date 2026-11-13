@@ -3,11 +3,13 @@
    (voice-letters.js, animalese), pitched down slightly so it reads as a voice
    and not a chipmunk. reveal.js decides when: this file knows only how.
 
-   Three numbers, all chosen by ear on the built story:
+   Two numbers, chosen by ear on the built story:
      PITCH      0.8  — below the recording's own pitch
-     VOLUME     25 % — under the background, not over it; a range in the
-                 Settings dialog (settings.js), defaulted to the measured 0.25
      FADE_MS    10.5 — see below; 0 makes the crackle audible again
+
+   The gain is the player's: settings.js owns the dialog's unit, range and
+   tuned default, and this file asks only for window.CamSettings.letterGain(),
+   a gain in [0, 1]. It is read per letter, so a drag is audible at once.
 
    Two faults shape this file, both of them about letters cut out of a longer
    recording:
@@ -41,32 +43,24 @@
   var letters = win.VoiceLetters || null;
 
   var PITCH = 0.8;
-  /* The default gain: the Settings dialog stores percent, and 25 is the 0.25
-     the graph was measured at. Kept as a gain because that is what the graph
-     wants. */
-  var DEFAULT_VOLUME = 0.25;
   var FADE_MS = 10.5;
 
-  /* A setting's value, or NaN when the story carries no such setting (an
-     editor preview, or a build that dropped settings.js). SugarCube replaces
-     its settings object when it loads saved values, so ask it rather than
-     reading the object once. */
-  function readSetting(name) {
-    var sc = win.SugarCube;
-    var get = sc && sc.Setting && sc.Setting.getValue;
-    return get ? Number(get(name)) : NaN;
-  }
+  /* The one fallback for a build without settings.js (an editor preview, or a
+     stripped build): the measured 0.25 gain. The contract and the tuned
+     numbers live in settings.js; this literal must not grow into a second
+     copy of them. */
+  var ABSENT_SETTINGS_GAIN = 0.25;
 
-  /* Gain from the dialog's percentage. Read per letter rather than once, so a
-     player dragging the slider hears the change without waiting for a new
-     line, and nothing scheduled before the drag is cut off — a letter is
+  /* The player's gain, from the settings module. Read per letter rather than
+     once, so a player dragging the slider hears the change without waiting for
+     a new line, and nothing scheduled before the drag is cut off — a letter is
      75 ms long. */
   function level() {
-    var percent = readSetting("voiceVolume");
-    if (!(percent >= 0 && percent <= 100)) {
-      return DEFAULT_VOLUME;
+    var settings = win.CamSettings;
+    if (settings && typeof settings.letterGain === "function") {
+      return settings.letterGain();
     }
-    return percent / 100;
+    return ABSENT_SETTINGS_GAIN;
   }
 
   /* Wall-clock length of one letter: the library's own output length. The
