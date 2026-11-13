@@ -52,10 +52,10 @@
 </aside>
 <div class="stage">
 	<div class="stage-slot stage-cam" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
-	<!-- The bubble's paper: the speech nine-patch (stage.css,
-	     .stage-bubble-shape). Drawn before the prose so the slot above it
-	     carries text and no paper. The pointer tail is deferred. -->
-	<div class="stage-bubble-shape" aria-hidden="true"></div>
+	<!-- The bubble slot owns its surface: the speech nine-patch is drawn on
+	     .stage-bubble::before (stage.css) and stage.js writes the line into
+	     an inner .stage-bubble-prose box, so the paper stays put while the
+	     prose scrolls. The pointer tail is deferred. -->
 	<div class="stage-slot stage-bubble" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
 	<div class="stage-slot stage-reply" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
 </div>

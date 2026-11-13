@@ -127,7 +127,13 @@
   }
 
   /* Returns the slot it filled, so the flush can hand the filled slots to the
-     reveal in one call; null when there was nothing to write. */
+     reveal in one call; null when there was nothing to write.
+
+     The bubble owns two layers inside its one slot: the paper is a ::before
+     on .stage-bubble (stage.css) and the line goes into an inner
+     .stage-bubble-prose box, so the paper stays fixed to the slot while a
+     long line scrolls and never lands on its outline. Every other slot is a
+     single element whose own box scrolls; the reply keeps that write. */
   function writeLine(name, html) {
     var slot = slotElement(name);
     if (!slot) {
@@ -138,7 +144,13 @@
       setState(slot, false);
       return null;
     }
-    jQuery(slot).wiki(String(html));
+    var target = slot;
+    if (name === "bubble") {
+      target = document.createElement("div");
+      target.className = "stage-bubble-prose";
+      slot.appendChild(target);
+    }
+    jQuery(target).wiki(String(html));
     setState(slot, true);
     return slot;
   }
