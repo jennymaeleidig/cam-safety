@@ -33,9 +33,10 @@
 
    Tunable knobs — a second layout is a value change, not a fork:
      --rail-w / --rail-h       the menu panel's box, in design pixels: the
-                               273:877 ratio both display modes share
-     --rail-unit               one design pixel of that panel — the single
-                               number everything in it is sized by
+                               width and height references both display modes
+                               share
+     --rail-unit               one design pixel of the panel's width, type
+                               and gaps
      --shell-column-max-width  max width of the reading card
      --shell-frame-gap         space between rail and card
      --shell-frame-padding     inset of the whole frame from the viewport */
@@ -45,26 +46,34 @@
   --shell-frame-gap: clamp(24px, 5vw, 64px);
   --shell-frame-padding: clamp(24px, 6vh, 64px);
 
-  /* The menu panel's box, in design pixels, and the one number both display
-     modes are sized by. The 273:877 ratio is the constraint: width, height,
-     padding, type and gaps are all --rail-unit multiples, so the panel scales
-     as one piece rather than reflowing — the title screen's menu is the same
-     vertical panel the stage's menu slot holds.
+  /* The menu panel's box, in design pixels, and the references both display
+     modes are sized by. --rail-w sets the width reference, and width,
+     padding, type and gaps are --rail-unit multiples, so the panel's contents
+     scale as one piece rather than reflowing. --rail-h sets the height
+     reference.
 
-     Each mode derives --rail-unit, and the rules below never branch. Stage
-     mode takes the stage's design pixel (stage.css), because there the panel
-     is part of the letterboxed composition. Shell mode — the title screen —
-     has no canvas, so it derives a unit from the viewport height: one design
-     pixel when the panel fits at full size, less when it does not, so a short
-     window shrinks the panel instead of clipping it. */
+     The panel is one size in both modes. --rail-unit sets its width: the
+     midpoint between the stage's design pixel (stage.css) and the shell's
+     height fit, then capped so the panel still fits inside the stage and the
+     viewport. --rail-height sets its height from the stage's design pixel, so
+     the panel keeps the stage menu's old top edge while its top and bottom
+     pull in around the same centre. A short window shrinks the panel instead
+     of clipping it. */
   --rail-w: 273;
   --rail-h: 877;
-  --rail-unit: min(
+  --rail-unit-shell: min(
     1px,
     (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
       var(--rail-h)
   );
-
+  --rail-unit: min(
+    1px,
+    (var(--stage-unit) + var(--rail-unit-shell)) / 2,
+    (var(--stage-h) - var(--pixel-inset) * 2) / var(--rail-h)
+  );
+  --rail-height: calc(
+    var(--stage-unit) * var(--rail-h) - var(--pixel-inset) * 2
+  );
 }
 
 html,
@@ -116,8 +125,8 @@ body {
   transform: translateY(-50%);
   z-index: 1; /* above .stage — see stage.css */
   width: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
-  height: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
-  max-height: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
+  height: var(--rail-height);
+  max-height: var(--rail-height);
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -131,11 +140,13 @@ body {
      corner pixels keep showing the checkerboard, as they do on the cam. */
   background-clip: padding-box;
   /* The rail is a framed surface in both modes: the same nine-patch, at the
-     same 16px as every other framed surface. The real border reserves the
-     ornament, and the narrow horizontal padding keeps the title on one line
-     inside the small stage-mode panel. The green background above is the
-     failed-image fallback. */
-  border: var(--frame-width) solid transparent;
+     same 16px as every other framed surface. The real border
+     reserves the ornament, and the narrow horizontal padding keeps the title
+     on one line inside the small stage-mode panel. The green background above
+     is the failed-image fallback. */
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--frame-width);
   border-image: var(--frame);
   image-rendering: pixelated;
   box-sizing: border-box;
@@ -190,7 +201,9 @@ body {
   background: var(--pixel-fill);
   background-clip: padding-box;
   color: var(--pixel-fill-ink);
-  border: var(--frame-width) solid transparent;
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--frame-width);
   border-image: var(--frame);
   image-rendering: pixelated;
   box-sizing: border-box;

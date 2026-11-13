@@ -32,10 +32,13 @@
 
    Slot geometry is data: each layout is one block below, under a
    body[data-layout="N"] selector, holding the same small set of values —
-   the four slots' boxes (the portrait's as a scale on the artwork's own box,
-   not as a box), the menu's visibility, and the tail's aim (kept for the
-   deferred tail). Layout 0 doubles as the fallback on :root for the moment
-   before layout.js sets the attribute (and if it ever doesn't). A new or
+   the three content slots' boxes (the portrait's as a scale on the artwork's
+   own box, not as a box), the menu's visibility, and the tail's aim (kept for
+   the deferred tail). The menu and the reply bar take their size from
+   --rail-unit (shell.css) instead: the reply is the menu's box rotated a
+   quarter turn, so the two panels stay one pair in every layout. Layout 0
+   doubles as the fallback on :root for the moment before layout.js sets the
+   attribute (and if it ever doesn't). A new or
    re-tuned layout is a value change, not a fork: no markup or structure
    changes. The layout itself is applied before the passage renders
    (layout.js), so the stage is already in the right layout when content
@@ -53,8 +56,8 @@
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
    shrinking with the frame rather than reflowing out of its slot. The
-   nine-patch frame is the one exception: it is pixel art drawn at its own 16
-   px so the painted corners stay crisp (see --frame-width below).
+   nine-patch frame is the one exception: it is pixel art drawn at its own
+   source pixels so the painted corners stay crisp (see --frame-width below).
 
    Debug affordance: set a data-stage-debug attribute on <body> to outline the
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
@@ -76,10 +79,11 @@
   --stage-unit: calc(var(--stage-w) / var(--canvas-w));
 
   /* Cam's artwork, at its own size in design pixels. The portrait slot is this
-     box multiplied by the layout's --slot-cam-scale, so slot aspect and
-     artwork aspect are the same number by construction and object-fit: cover
-     has nothing to crop. A new artwork size is these two values; a new
-     framing is one scale value per layout. */
+     box multiplied by the layout's --slot-cam-scale, so the outer slot keeps
+     the artwork's aspect. The frame's inset content box is filled rather than
+     cropped, so the pose and its layered hand stay whole without a letterbox
+     gap. A new artwork
+     size is these two values; a new framing is one scale value per layout. */
   --cam-art-w: 719;
   --cam-art-h: 551;
 
@@ -104,18 +108,28 @@
      side, so the corners stay square and 16 x 16 at 1:1.
 
      The image is painted above the element's background and below its
-     content. Text surfaces therefore reserve a real border width; the cam
-     slot does not, because its portrait must keep the artwork's full box and
-     aspect, so the border image area comes from --frame-width alone. The
-     speech bubble is prose, not chrome, and takes no frame.
+     content. Every framed surface reserves a real border width, so its
+     content sits inside the painted green centre rather than under the
+     ornament. The speech bubble is prose, not chrome, and takes no frame.
+
+     The cam portrait is the exception. It keeps the full 16 x 16 cut and
+     draws the border image at that full 16px, so every corner keeps its
+     painted art. Its real border — the content inset — stays 7px top/bottom
+     and 13px sides. The extra 9px/3px of border image paints inward behind
+     the portrait, which covers it; the visible ornament is therefore the
+     native 7px/13px band with no green padding between it and the portrait.
+     Every other framed surface keeps the square 16px cut, width and inset.
 
      The width is deliberately CSS pixels, not design pixels: the source's
      corners are 16 x 16 and pixel art is authored to be seen at its own
      size. Scaling the frame with the stage would lose the ornament. Replace
-     the source and the four values below and every framed surface follows. */
+     the source and the values below and every framed surface follows. */
   --frame-src: url("images/dialogue/border.png");
   --frame-slice: 16;
   --frame-width: 16px;
+  --cam-frame-slice: 16;
+  --cam-frame-width: 7px 13px;
+  --cam-frame-image-width: 16px;
   --frame-outset: 0;
   --frame-repeat: stretch;
   /* The one shorthand every framed surface applies. The individual values are
@@ -123,6 +137,8 @@
      flush with the element's border box. */
   --frame: var(--frame-src) var(--frame-slice) fill / var(--frame-width) /
     var(--frame-outset) var(--frame-repeat);
+  --cam-frame: var(--frame-src) var(--cam-frame-slice) fill /
+    var(--cam-frame-image-width) / var(--frame-outset) var(--frame-repeat);
 
   /* The speech bubble's own paper. It is prose, not chrome, so it takes its
      own nine-patch rather than the frame's green border: 16-pixel corners,
@@ -199,14 +215,8 @@ body[data-layout="0"] {
   /* reply */
   --slot-reply-left: 841;
   --slot-reply-top: 1302;
-  --slot-reply-width: 1164;
-  --slot-reply-height: 245;
 
   /* menu — visible */
-  --slot-menu-left: 0;
-  --slot-menu-top: 439;
-  --slot-menu-width: 273;
-  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 1;
@@ -230,14 +240,8 @@ body[data-layout="1"] {
   /* reply */
   --slot-reply-left: 1400;
   --slot-reply-top: 1302;
-  --slot-reply-width: 1164;
-  --slot-reply-height: 245;
 
   /* menu — visible */
-  --slot-menu-left: 0;
-  --slot-menu-top: 439;
-  --slot-menu-width: 273;
-  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 0;
@@ -248,8 +252,8 @@ body[data-layout="1"] {
 
 body[data-layout="2"] {
   /* cam — upper-left, top-left corner held, scale 1.1 */
-  --slot-cam-left: 12;
-  --slot-cam-top: 65;
+  --slot-cam-left: 115;
+  --slot-cam-top: 30;
   --slot-cam-scale: 1.1;
 
   /* bubble — tail points top-left */
@@ -261,14 +265,8 @@ body[data-layout="2"] {
   /* reply */
   --slot-reply-left: 843;
   --slot-reply-top: 1314;
-  --slot-reply-width: 1164;
-  --slot-reply-height: 245;
 
   /* menu — visible */
-  --slot-menu-left: 0;
-  --slot-menu-top: 449;
-  --slot-menu-width: 273;
-  --slot-menu-height: 877;
   --slot-menu-display: flex;
 
   --tail-anchor-x: 0;
@@ -297,15 +295,8 @@ body[data-layout="3"] {
   /* reply */
   --slot-reply-left: 843;
   --slot-reply-top: 1314;
-  --slot-reply-width: 1164;
-  --slot-reply-height: 245;
 
-  /* menu — hidden in this layout. Geometry matches layout 2 so re-showing it
-     is a one-value change. */
-  --slot-menu-left: 0;
-  --slot-menu-top: 449;
-  --slot-menu-width: 273;
-  --slot-menu-height: 877;
+  /* menu — hidden in this layout */
   --slot-menu-display: none;
 
   --tail-anchor-x: 0;
@@ -411,12 +402,22 @@ body[data-stage-mode] {
      layout's left/top instead of being subtracted from this box: shaving
      --pixel-inset off both axes would make the box's ratio differ from the
      artwork's, and object-fit: cover would then crop the pose — a different
-     amount at every scale. Position carries the gutter; size stays exactly
-     the artwork's. */
+     amount at every scale. Position carries the gutter; the outer size stays
+     the artwork's. The frame's content box is inset asymmetrically, so the
+     portrait and hand fill it rather than being cropped or letterboxed.
+
+     The painted frame is a real border inside that box, so the portrait's
+     content sits wholly in the green centre and never paints over the
+     ornament. Reserving it here, on both halves of a layered pose, keeps the
+     hand in the same content box as the body. */
   left: calc(var(--stage-unit) * var(--slot-cam-left));
   top: calc(var(--stage-unit) * var(--slot-cam-top));
   width: calc(var(--stage-unit) * var(--cam-art-w) * var(--slot-cam-scale));
   height: calc(var(--stage-unit) * var(--cam-art-h) * var(--slot-cam-scale));
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--cam-frame-width);
+  box-sizing: border-box;
 }
 
 .stage-cam {
@@ -437,8 +438,12 @@ body[data-stage-mode] {
 .stage-reply {
   left: calc(var(--stage-unit) * var(--slot-reply-left));
   top: calc(var(--stage-unit) * var(--slot-reply-top));
-  width: calc(var(--stage-unit) * var(--slot-reply-width));
-  height: calc(var(--stage-unit) * var(--slot-reply-height));
+  /* The wide panel: its height is the menu's width, but its width keeps the
+     design-height reference rather than following the menu's reduced height,
+     so the player's line stays wide. The frame turns with the box. Only the
+     slot's position is per layout. */
+  width: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
+  height: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
 }
 
 /* ---- slot content — what the content macros put into each slot ----------
@@ -469,10 +474,10 @@ body[data-stage-mode] {
   display: block;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
   image-rendering: pixelated;
-  /* The GIFs are cut-outs, so the portrait paints above the frame's green
-     centre and its transparent pixels show that green. The image carries no
+  /* The GIFs are cut-outs, so the portrait fills the frame's green centre
+     and its transparent pixels show that green. The image carries no
      backdrop of its own: an empty cam slot draws nothing, which is the rule
      every slot look follows. */
 }
@@ -485,30 +490,21 @@ body[data-stage-mode] {
 .stage-hand {
   position: absolute;
   display: block;
-  object-fit: cover;
+  object-fit: fill;
   image-rendering: pixelated;
 }
 
 /* ---- the nine-patch frame on the stage slots ---------------------------
-   The reply bar reserves the frame as a real border, so its content box sits
-   inside the ornament and its overflow scrolls under the text, not under the
-   frame. The cam slot cannot do that without shrinking and re-cropping the
-   portrait, so it gets the border image with no border width: --frame-width
-   defines the drawn area alone, the slot keeps the artwork's full box, and
-   the portrait (content) paints above the green centre and the ornament.
+   The reply bar and the cam slot reserve the frame as a real border, so their
+   content boxes sit inside the ornament: text never lands on it and the
+   portrait stays wholly in the green centre. The image is painted above the
+   background and below the content.
 
-   The image is painted above the background and below the content, so the
-   green centre is what shows through the portrait's transparent pixels.
    Gated on [data-state="filled"] like every other slot look, so an empty
    slot carries no frame. The menu and the reading card are not slots; their
    frame is set in shell.css. */
 .stage-cam[data-state="filled"] {
-  /* Zero border width so the slot keeps the artwork's full box; the border
-     image area is --frame-width alone. The solid style is for engines that
-     will not paint a border image over `border-style: none`. */
-  border-style: solid;
-  border-width: 0;
-  border-image: var(--frame);
+  border-image: var(--cam-frame);
   image-rendering: pixelated;
 }
 
@@ -560,7 +556,9 @@ body[data-stage-mode] {
   /* The frame is a real border here: the bar keeps its slot box, but its
      content box sits inside the ornament, so no line of the reply can land on
      the band. The green background above is the failed-image fallback. */
-  border: var(--frame-width) solid transparent;
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--frame-width);
   border-image: var(--frame);
   image-rendering: pixelated;
   font-size: calc(var(--stage-unit) * 38);
@@ -644,47 +642,17 @@ body[data-stage-debug] .stage-slot:empty::before {
 
 /* ---- the menu slot: the reused rail, repositioned ----------------------- */
 
-/* Offsets are measured from the stage box, so they add the letterbox bar
-   ((viewport - stage) / 2) to the slot's own design pixels. The menu's
-   visibility is a per-layout value too: hidden at layout 3. The rail's frame
-   comes from shell.css, so this rule only moves it. */
+/* The panel keeps the size shell.css gives it and is centred vertically in
+   the stage, inset from the stage's left edge by the gutter. Only its
+   visibility is per layout: hidden at layout 3. Centring the panel's whole
+   border box in the viewport also centres it in the letterboxed stage. */
 body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
-  /* Slot box, inset by the gutter on all four sides so the menu's frame
-     clears the stage's edge. The cam slot can't shrink this way — it would
-     tilt the artwork's aspect — so its layouts state the gutter in their own
-     left/top instead. */
-  top: calc(
-    (100vh - var(--stage-h)) / 2 + var(--stage-unit) * var(--slot-menu-top) +
-      var(--pixel-inset)
-  );
-  left: calc(
-    (100vw - var(--stage-w)) / 2 + var(--stage-unit) * var(--slot-menu-left) +
-      var(--pixel-inset)
-  );
-  width: calc(
-    var(--stage-unit) * var(--slot-menu-width) - var(--pixel-inset) * 2
-  );
-  height: calc(
-    var(--stage-unit) * var(--slot-menu-height) - var(--pixel-inset) * 2
-  );
-  max-height: calc(
-    var(--stage-unit) * var(--slot-menu-height) - var(--pixel-inset) * 2
-  );
+  top: calc((100vh - var(--rail-height)) / 2);
+  left: calc((100vw - var(--stage-w)) / 2 + var(--pixel-inset));
+  width: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
+  height: var(--rail-height);
+  max-height: var(--rail-height);
   transform: none;
   z-index: 1;
-}
-
-/* The menu's scale, not its rules — and the last word this file has about the
-   rail. shell.css sizes the panel from --rail-unit alone, so stage mode has
-   exactly one thing to say about it: which design pixel applies. The panel's
-   box (273 × 877 design px, --rail-w/--rail-h in shell.css) is the box the
-   menu slot states below — one panel, one shape, whether it sits in the shell
-   or in the stage's menu slot.
-
-   Expressed on <body> rather than on .rail so the value inherits down, the way
-   the layout's do; a second body[data-stage-mode] rule is deliberate, the one
-   above stating the mode's colours and this one the menu's scale. */
-body[data-stage-mode] {
-  --rail-unit: var(--stage-unit);
 }

@@ -39,7 +39,8 @@ use `<<set_layout>>`. The two writers are otherwise one module.
 **The four compositions are unchanged.** This removes a vocabulary and an
 indirection, not a retune: per-layout geometry, palette, Cam's phase and menu
 availability keep their present values, and ADR-0001's per-layout blocks still
-state full geometry.
+state full geometry, except for the menu and reply sizes carved out by
+ADR-0004.
 
 **Documentation follows the model.** The glossary defines Layout, Phase and
 Slot in these terms, ADR-0001 is named per layout, and the README and macro

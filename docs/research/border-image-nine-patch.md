@@ -54,9 +54,17 @@ top and bottom edge. The top and bottom border disappear, and the side bands
 balloon. This is why the 32 in the request is read as the centre of the
 16 | 32 | 16 division, not as a CSS slice value or a border weight.
 
-A natural slice at the actual ornament boundary (`7 13 7 13`) also works and
-looks cleaner on tall panels, but it does not match the requested 16 | 32 | 16
-division. The spec uses the requested division.
+A natural slice at the actual ornament boundary (`7 13 7 13`) looks cleaner on
+tall panels, but it cuts into the side band's corner motif, which is 16 rows
+tall: the fragment left in the edge tile stretches into a dark-green notch.
+The cam portrait therefore keeps the 16 | 32 | 16 slice and draws the border
+image at its full 16px, preserving every corner. Its real border width — the
+content inset — is `7px 13px`. The border image is painted below content, so
+the portrait covers the extra 9px/3px of image that reaches into the padding
+box; the visible ornament is the native 7px/13px band, with no green padding
+between it and the portrait. Every other framed surface keeps the 16 | 32 | 16
+slice, 16px width and 16px inset. The measured bands are the art's own edges,
+and the cam is the one surface whose content meets them.
 
 ## 3. CSS border-image behaviour that matters here
 
@@ -117,10 +125,12 @@ The CSS equivalent of the desired panel:
   and the painted frame as the portrait's backdrop. The portrait image is
   content, so it paints above the border image. Transparent GIF pixels show
   the green centre; opaque pixels can overlap the ornament. This matches the
-  request to replace the "cam background" with the painted panel. If the
-  overlap is judged ugly in review, the alternatives are an inset portrait
-  (changes the artwork's box and aspect) or a second border-image overlay
-  without `fill` (duplicates the ring). Neither is chosen here.
+  request to replace the "cam background" with the painted panel. The shipped
+  slot instead reserves the border as a real width, the inset-portrait
+  alternative below: the portrait's content box shrinks by the ornament, so
+  the whole image stays in the green centre, at the cost of a slightly smaller
+  portrait and a small object-fit crop. The other rejected alternative is a
+  second border-image overlay without `fill` (duplicates the ring).
 - **Text surfaces.** A real border width keeps the content inside the
   ornament. The green centre is the panel's fill, so the surfaces no longer
   need a separate `--pixel-fill` background; keeping it as a fallback is
