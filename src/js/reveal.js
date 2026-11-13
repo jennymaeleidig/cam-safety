@@ -1,7 +1,7 @@
 /* ===== The reveal: Cam's line arrives one character at a time =====
    stage.js writes both lines into their slots in one flush; this file then
-   takes the filled slots and grows the bubble's text, with one letter of voice
-   per character.
+   takes the filled slots and grows the bubble's prose box, with one letter of
+   voice per character.
 
    Only Cam speaks. The reply bar is the player's own line, so it is neither
    revealed nor sounded: it arrives whole, at its turn, once Cam has finished.
@@ -142,10 +142,13 @@
 
   /* ---- one line -------------------------------------------------------- */
 
-  function line(slot) {
+  function line(slot, prose) {
     return {
       slot: slot,
-      plan: planLine(slot),
+      /* The bubble's slot carries the paper; its prose lives in an inner box
+         (stage.js), and that is the text the reveal grows. The reply is a
+         single element, so its prose is the slot itself. */
+      plan: planLine(prose || slot),
       step: 0,
       startedAt: 0,
       ms: msPerChar(),
@@ -291,7 +294,8 @@
       }
     }
 
-    var lineIn = cam ? line(cam) : null;
+    var camProse = cam && cam.querySelector(".stage-bubble-prose");
+    var lineIn = cam ? line(cam, camProse) : null;
     if (!lineIn || total(lineIn) === 0) {
       /* Nobody speaks: a passage with no Cam line, or a bubble that wiki'd down
          to whitespace. Nothing is revealed, so nothing waits. */

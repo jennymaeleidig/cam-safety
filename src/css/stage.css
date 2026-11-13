@@ -22,8 +22,9 @@
                      outside the frame, for the pose that is cut in two; see
                      the hand layer below
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
-                     .stage-bubble-shape draws its paper as a nine-patch;
-                     the pointer tail is deferred
+                     its ::before draws the paper nine-patch and its inner
+                     .stage-bubble-prose box scrolls the line; the pointer
+                     tail is deferred
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
@@ -510,9 +511,8 @@ body[data-stage-mode] {
   image-rendering: pixelated;
 }
 
-/* Cam's speech-bubble and the player's reply bar share one reading layout:
+/* The player's reply bar is one element: its own box is the reading layout —
    a centred vertical stack that scrolls instead of clipping a long line. */
-.stage-bubble[data-state="filled"],
 .stage-reply[data-state="filled"] {
   display: flex;
   flex-direction: column;
@@ -524,15 +524,27 @@ body[data-stage-mode] {
 }
 
 /* Cam's speech-bubble: a large, high-contrast card of prose — the stage's
-   main reading surface. It paints no paper of its own: the paper is
-   .stage-bubble-shape, behind the text, so card and pointer are one
-   silhouette. This element is the prose — colour, padding, scrolling — and
-   nothing else. */
-.stage-bubble[data-state="filled"] {
-  color: #1c1c22;
+   main reading surface. The slot owns the paper (its ::before, below); the
+   inner prose box is the part that reads and scrolls. The slot itself neither
+   scrolls nor clips, so the paper stays fixed while a long line moves inside
+   it. Opacity and shadow live on the paper only, so the ink stays crisp. */
+.stage-bubble-prose {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  padding: calc(var(--stage-unit) * 52) calc(var(--stage-unit) * 64);
   /* Reserve the paper's border on the prose too: a scrolled line must not
-     land on the black outline, which is painted behind this slot. */
+     land on the black outline, which is painted behind this box. */
   border: var(--speech-width) solid transparent;
+  font-size: calc(var(--stage-unit) * 52);
+  line-height: 1.35;
+  color: #1c1c22;
 }
 
 /* The player's reply bar: a separate, darker band, so speaker and response
@@ -566,30 +578,26 @@ body[data-stage-mode] {
 
 /* ---- the speech bubble's paper -----------------------------------------
    The bubble is prose, not chrome, so it takes its own paper art: the
-   dialogue speech nine-patch, drawn on the shape itself. The source is cut
+   dialogue speech nine-patch, drawn on the slot's ::before. The source is cut
    16 | 32 | 16, the same division as the frame, which keeps its 2px black
    outline and stepped corners at 1:1. The image's #f8f8f8 centre is the
    paper; the fallback background is clipped to the padding box so the
    image's transparent corners keep showing the checkerboard through.
 
    The tail is deliberately not drawn yet. It is a separate silhouette that
-   would sit outside this outline, and the tail art is its own piece of work.
-   The prose still sits above this layer in .stage-bubble; the group opacity
-   and drop shadow are unchanged, so the paper keeps the same translucency
-   and shadow as before.
+   would sit outside this outline, and the tail art is its own piece of work;
+   this paper layer is its future home. The layer is fixed to the slot's box,
+   sits behind the inner prose box and never intercepts a pointer, so links
+   and choices remain reachable. Opacity and shadow are applied here, once to
+   the finished paper, and not to the prose.
 
-   A real border reserves the nine-patch, which is why the paper's box is
-   border-box and the text's own padding keeps every line inside the centre. */
-.stage-bubble-shape {
-  display: none;
+   A real border reserves the nine-patch, which is why the layer's box is
+   border-box and the prose's own padding keeps every line inside the centre. */
+.stage-bubble[data-state="filled"]::before {
+  content: "";
   position: absolute;
-  left: calc(var(--stage-unit) * var(--slot-bubble-left));
-  top: calc(var(--stage-unit) * var(--slot-bubble-top));
-  width: calc(var(--stage-unit) * var(--slot-bubble-width));
-  height: calc(var(--stage-unit) * var(--slot-bubble-height));
-  /* Above the cam slot, so the layout-0 corner is not hidden by the portrait;
-     below the prose (z-index 2). */
-  z-index: 1;
+  inset: 0;
+  z-index: 0;
   pointer-events: none;
   /* The group's opacity, applied once to the finished paper. */
   opacity: var(--stage-bubble-alpha);
@@ -603,14 +611,6 @@ body[data-stage-mode] {
   background-clip: padding-box;
   box-sizing: border-box;
   image-rendering: pixelated;
-}
-
-/* Gated on the bubble actually having content, so an omitted <<cam_line>>
-   leaves no orphan paper. */
-body[data-stage-mode]
-  .stage:has(.stage-bubble[data-state="filled"])
-  .stage-bubble-shape {
-  display: block;
 }
 
 /* Debug only: outline the slots that are still empty. The attribute flips to
