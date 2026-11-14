@@ -52,6 +52,12 @@
   );
   --rail-height: calc(var(--rail-unit) * var(--rail-h));
 
+  /* The reply bar is the Menu's box turned a quarter turn and widened by
+     this scale, so the player's line reads across more of the stage. Its
+     width is the Menu's height times the scale; its height is still the
+     Menu's width. */
+  --reply-width-scale: 1.2;
+
   /* The panel's frame: 40 design pixels, floored at 16px so it stops
      shrinking with the panel the way Cam's fixed frame does, and capped at
      40px. The border is a real inset, so the floor cannot eat the labels. */

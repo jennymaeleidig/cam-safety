@@ -47,9 +47,9 @@
    own box, not as a box), the menu's visibility, and the tail's piece, aim
    and seat on the card. The menu and the reply bar take their size from
    --rail-unit (measure.css) instead: the reply is the menu's box rotated a
-   quarter turn, so the two panels stay one pair in every layout. Layout 0
-   doubles as the fallback on :root for the moment before layout.js sets the
-   attribute (and if it ever doesn't). A new or
+   quarter turn and widened, so the two panels stay one pair in every layout.
+   Layout 0 doubles as the fallback on :root for the moment before layout.js
+   sets the attribute (and if it ever doesn't). A new or
    re-tuned layout is a value change, not a fork: no markup or structure
    changes. The layout itself is applied before the passage renders
    (layout.js), so the stage is already in the right layout when content
@@ -420,17 +420,17 @@ body[data-stage-mode] {
 .stage-reply {
   left: calc(var(--stage-unit) * var(--slot-reply-left));
   top: calc(var(--stage-unit) * var(--slot-reply-top));
-  /* The wide panel: the menu's box turned a quarter turn, so its width is
-     the menu's height and its height the menu's width. Both follow
-     --rail-unit, the same unit the menu uses, so the pair scales together at
-     every resolution. The frame turns with the box. Only the slot's position
-     is per layout.
+  /* The wide panel: the menu's box turned a quarter turn and widened. Its
+     width is the menu's height times --reply-width-scale and its height the
+     menu's width. Both follow --rail-unit, the same unit the menu uses, so
+     the pair scales together at every resolution. The frame turns with the
+     box. Only the slot's position is per layout.
 
      --slot-reply-shift-x moves the bar off its left edge after placement; a
      layout centring the bar on a point states that point as the left and
      -50% here. The value is the bar's own width, so it lands on the centre
      whatever the rail measures. */
-  width: calc(var(--rail-unit) * var(--rail-h));
+  width: calc(var(--rail-unit) * var(--rail-h) * var(--reply-width-scale));
   height: calc(var(--rail-unit) * var(--rail-w));
   transform: translateX(var(--slot-reply-shift-x, 0));
 }

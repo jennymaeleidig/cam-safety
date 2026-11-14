@@ -1,10 +1,11 @@
 # The menu and the reply are one panel in two orientations
 
 The menu and the player's reply bar are a pair of chrome panels: one tall, one
-wide, the same box turned a quarter turn. The menu keeps one physical size in
-both display modes, so entering or leaving the stage does not resize it, and
-the reply bar swaps that box's width and height rather than carrying a size of
-its own.
+wide, the same box turned a quarter turn and then widened by one shared
+scale. The menu keeps one physical size in both display modes, so entering or
+leaving the stage does not resize it, and the reply bar derives its dimensions
+from that box rather than carrying a size of its own: its width is the box's
+height times `--reply-width-scale`, its height the box's width.
 
 The title screen used to size the menu from the viewport height, and the stage
 sized it from the letterboxed canvas, which made the menu change size on the
@@ -33,5 +34,8 @@ still follow `--rail-unit`, so the title and stage menus are identical rather
 than merely similar. A short or narrow window shrinks both together.
 
 **The reply keeps the frame and the wide box.** Its width is the menu's
-height and its height the menu's width, both from `--rail-unit`, so the two
-panels scale together and the player's line stays as wide as the menu is tall.
+height times `--reply-width-scale` and its height the menu's width, both from
+`--rail-unit`, so the two panels scale together and the player's line stays as
+wide as the menu is tall, plus that fixed share. The scale is shared, not
+per-layout art direction: per-layout reply widths would reintroduce the two
+panels drifting apart.

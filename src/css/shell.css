@@ -132,14 +132,14 @@ body {
 .rail-actions {
   display: flex;
   /* Columns, not rows: the menu reads down through each label, then across to
-     the next, like Japanese vertical setting. --rail-unit*24 is the panel's
+     the next, like Japanese vertical setting. --rail-unit*30 is the panel's
      design type; the three columns plus their gaps fit the frame's content
      box on every screen because the whole panel scales together. */
   flex-direction: row;
   align-items: flex-start;
   justify-content: center;
   gap: calc(var(--rail-unit) * 20);
-  font-size: calc(var(--rail-unit) * 24);
+  font-size: calc(var(--rail-unit) * 30);
   /* The group is one box: hug the columns rather than stretching to the
      panel's width, and centre that box. The rail then has a single element
      whose top and bottom are the menu's own, so centring it leaves equal
