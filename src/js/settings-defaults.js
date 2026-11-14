@@ -1,9 +1,9 @@
 /* ===== The tuned defaults for the two player settings =====
    One home for the numbers the reveal and the voice were tuned and measured
    at. settings.js builds the Settings dialog's ranges and its semantic reads
-   from these specs; reveal.js and voice.js fall back to the converted values
-   here only when the settings module itself is absent (an editor preview, or
-   a stripped build). Nothing else states a tuned default.
+   from these specs, and uses the converted values below as its fallback when
+   a setting is missing or corrupt. reveal.js and voice.js call the settings
+   module and carry no default. Nothing else states a tuned default.
 
    The specs carry the dialog's units: letters a second for Text speed (a
    speed, so higher is faster) and percent for Letter volume. The converted
@@ -39,9 +39,9 @@
   win.CamSettingsDefaults = {
     speed: SPEED,
     volume: VOLUME,
-    /* The Reveal's unit. */
+    /* The Reveal's tuned fallback. */
     msPerChar: 1000 / SPEED.default,
-    /* The Voice's unit. */
+    /* The Voice's tuned fallback. */
     letterGain: VOLUME.default / 100,
   };
 })();

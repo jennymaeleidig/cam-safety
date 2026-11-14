@@ -7,10 +7,10 @@
      PITCH      0.8  — below the recording's own pitch
      FADE_MS    10.5 — see below; 0 makes the crackle audible again
 
-   The gain is the player's: settings.js owns the dialog's unit, range and
-   tuned default, and this file asks only for window.CamSettings.letterGain(),
-   a gain in [0, 1]. settings-defaults.js holds the tuned fallback and its
-   converted value. It is read per letter, so a drag is audible at once.
+   The gain is the player's: settings.js owns the dialog's unit, range, tuned
+   default and fallback, and this file asks only for
+   window.CamSettings.letterGain(), a gain in [0, 1]. It is read per letter, so
+   a drag is audible at once.
 
    Two faults shape this file, both of them about letters cut out of a longer
    recording:
@@ -52,19 +52,13 @@
   /* The player's gain, from the settings module. Read per letter rather than
      once, so a player dragging the slider hears the change without waiting for
      a new line, and nothing scheduled before the drag is cut off — a letter is
-     75 ms long. Without the settings module, the tuned gain's converted value
-     comes from the defaults module; with neither, the voice is silent rather
-     than guessing a level. */
+     75 ms long. The module owns the tuned default and the fallback; without
+     it, the voice is silent rather than guessing a level. */
   function level() {
     var settings = win.CamSettings;
-    if (settings && typeof settings.letterGain === "function") {
-      return settings.letterGain();
-    }
-    var defaults = win.CamSettingsDefaults;
-    if (defaults && typeof defaults.letterGain === "number") {
-      return defaults.letterGain;
-    }
-    return 0;
+    return settings && typeof settings.letterGain === "function"
+      ? settings.letterGain()
+      : 0;
   }
 
   /* Wall-clock length of one letter: the library's own output length. The

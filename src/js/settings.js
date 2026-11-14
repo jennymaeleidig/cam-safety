@@ -1,10 +1,8 @@
 /* ===== The player's knobs: how fast the reveal runs, how loud the voice is =====
-   This file and settings-defaults.js together are the settings contract. The
-   defaults file owns the stored names, labels, units, ranges and tuned
-   defaults; this file builds SugarCube's dialog definitions and the semantic
-   reads from those specs, so a rename or a retune is one edit. The converted
-   fallbacks the Reveal and the Voice use when this file is absent are derived
-   in settings-defaults.js from the same numbers.
+   This file is the settings contract. settings-defaults.js holds the tuned
+   specs — stored names, labels, units, ranges and defaults — and this file
+   builds SugarCube's dialog definitions and the semantic reads from them, so a
+   rename or a retune is one edit.
 
    The interface is semantic, and is the only thing reveal.js and voice.js use:
 
@@ -12,7 +10,8 @@
      window.CamSettings.letterGain() gain in [0, 1] (Voice asks)
 
    Neither consumer knows letters a second or percent, and neither carries its
-   own copy of a setting's default.
+   own copy of a setting's default or a fallback branch. This module is always
+   defined; the fallback rule lives inside it.
 
    Two ranges in SugarCube's own Settings dialog — the rail's Settings button,
    UI.settings() — because that dialog is native to the story format and already
@@ -36,23 +35,59 @@
    Fallbacks: a setting that is missing, non-finite or unreadable (an editor
    preview, or a build without SugarCube's settings) falls back to the tuned
    default. A finite value outside the dialog's range is clamped to it. A value
-   is read as a number only; anything else falls back. */
+   is read as a number only; anything else falls back. The rule is here, so a
+   consumer asks for a unit and receives one. */
 (function () {
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var Setting = win.SugarCube.Setting;
+  var defaults = win.CamSettingsDefaults || null;
+  var SPEED = defaults && defaults.speed;
+  var VOLUME = defaults && defaults.volume;
 
-  /* The contract. Both the dialog definitions and the semantic reads below
-     take their names, ranges and defaults from here. A build without the
-     defaults file has no contract to register; the consumers' own fallback
-     path remains, so the story stays readable rather than throwing. */
-  var defaults = win.CamSettingsDefaults;
-  if (!defaults) {
+  var CamSettings = /** @type {any} */ (win.CamSettings = win.CamSettings || {});
+
+  /* A setting's value in the dialog's unit, clamped to its range, or null when
+     it is missing, unreadable or not a number. SugarCube replaces its settings
+     object when it loads saved values, so ask it rather than reading the
+     object once. Only a number is trusted: a non-number is a missing or
+     corrupt value, not something to parse. */
+  function read(spec) {
+    var sc = win.SugarCube;
+    var get = sc && sc.Setting && sc.Setting.getValue;
+    var value = get ? get(spec.key) : undefined;
+    if (typeof value !== "number" || !isFinite(value)) {
+      return null;
+    }
+    return Math.min(spec.max, Math.max(spec.min, value));
+  }
+
+  /* The Reveal's unit: how long one character stays on screen. The tuned
+     default is the converted value in settings-defaults.js. */
+  CamSettings.msPerChar = function () {
+    if (!SPEED) {
+      return 0;
+    }
+    var speed = read(SPEED);
+    return speed == null ? defaults.msPerChar : 1000 / speed;
+  };
+
+  /* The Voice's unit: a gain, silence at zero. */
+  CamSettings.letterGain = function () {
+    if (!VOLUME) {
+      return 0;
+    }
+    var volume = read(VOLUME);
+    return volume == null ? defaults.letterGain : volume / 100;
+  };
+
+  /* A build without the defaults file has no contract to register and no
+     tuned value to fall back to; the semantic reads above stay defined and
+     return the silent/fast end of their ranges. */
+  var Setting = win.SugarCube && win.SugarCube.Setting;
+  if (!Setting || !SPEED || !VOLUME) {
     return;
   }
-  var SPEED = defaults.speed;
-  var VOLUME = defaults.volume;
 
   Setting.addHeader(
     "Cam",
@@ -76,30 +111,4 @@
     step: VOLUME.step,
     default: VOLUME.default,
   });
-
-  /* A setting's value, normalised to its range, or the tuned default.
-     SugarCube replaces its settings object when it loads saved values, so ask
-     it rather than reading the object once. Only a number is trusted: a
-     non-number is a missing or corrupt value, not something to parse. */
-  function read(spec) {
-    var sc = win.SugarCube;
-    var get = sc && sc.Setting && sc.Setting.getValue;
-    var value = get ? get(spec.key) : undefined;
-    if (typeof value !== "number" || !isFinite(value)) {
-      return spec.default;
-    }
-    return Math.min(spec.max, Math.max(spec.min, value));
-  }
-
-  var CamSettings = /** @type {any} */ (win.CamSettings = win.CamSettings || {});
-
-  /* The Reveal's unit: how long one character stays on screen. */
-  CamSettings.msPerChar = function () {
-    return 1000 / read(SPEED);
-  };
-
-  /* The Voice's unit: a gain, silence at zero. */
-  CamSettings.letterGain = function () {
-    return read(VOLUME) / 100;
-  };
 })();

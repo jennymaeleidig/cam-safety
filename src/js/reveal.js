@@ -41,8 +41,7 @@
 
    Pacing is asked of the settings module as milliseconds per character
    (settings.js, window.CamSettings.msPerChar(), the "Text speed" range). This
-   file knows neither its unit nor its default; settings-defaults.js holds the
-   tuned fallback and its converted value. The value is read when a line
+   file knows neither its unit nor its default. The value is read when a line
    starts, so a change lands on the next line rather than mid-line. A whole
    line is capped at MAX_MS by shortening the per-character delay once a line
    is long enough to exceed it, so no passage can make the player wait, however
@@ -78,20 +77,14 @@
   var LETTERS_PER_FRAME = 2;
 
   /* Milliseconds per character, from the settings module's semantic read.
-     The module owns the dialog's unit, default and clamping; this file only
-     consumes the time. Without the settings module, the tuned default's
-     converted value comes from the defaults module; with neither, the reveal
+     The module owns the dialog's unit, tuned default, clamping and fallback;
+     this file only consumes the time. Without the settings module, the reveal
      runs as fast as the clock allows rather than stalling. */
   function msPerChar() {
     var settings = win.CamSettings;
-    if (settings && typeof settings.msPerChar === "function") {
-      return settings.msPerChar();
-    }
-    var defaults = win.CamSettingsDefaults;
-    if (defaults && typeof defaults.msPerChar === "number") {
-      return defaults.msPerChar;
-    }
-    return 0;
+    return settings && typeof settings.msPerChar === "function"
+      ? settings.msPerChar()
+      : 0;
   }
 
   function reducedMotion() {
