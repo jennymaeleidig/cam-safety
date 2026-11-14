@@ -37,10 +37,10 @@
 <div id="tmem-bg"><div class="pattern"></div></div>
 <div class="shell">
 	<div class="main">
-		<div id="passages"></div>
+		<div id="passages" class="pixel-frame"></div>
 	</div>
 </div>
-<aside class="rail">
+<aside class="rail pixel-frame">
 	<nav class="rail-actions">
 		<a href="#" title="Settings" data-shell-action="settings">Settings</a>
 		<a href="#" title="Saves" data-shell-action="saves">Saves</a>
@@ -50,13 +50,14 @@
 	</nav>
 </aside>
 <div class="stage">
-	<div class="stage-slot stage-cam" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
+	<div class="stage-slot stage-cam pixel-frame" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
 	<!-- The bubble slot owns its surface: the speech nine-patch is drawn on
-	     .stage-bubble::before (stage.css) and stage.js writes the line into
-	     an inner .stage-bubble-prose box, so the paper stays put while the
-	     prose scrolls. The pointer tail is deferred. -->
-	<div class="stage-slot stage-bubble" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
-	<div class="stage-slot stage-reply" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
+	     .stage-bubble::before by the Pixel frame's paper variant (frame.css),
+	     and stage.js writes the line into an inner .stage-bubble-prose box, so
+	     the paper stays put while the prose scrolls. The pointer tail is
+	     deferred. -->
+	<div class="stage-slot stage-bubble pixel-frame-paper" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
+	<div class="stage-slot stage-reply pixel-frame" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
 </div>
 <!-- Cam's hand, for a pose that is drawn in two halves. Outside the frame
      because a fixed box is a stacking context, and the hand has to reach over

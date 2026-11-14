@@ -1,0 +1,127 @@
+/* Citation: JustAJoke — Pixel Speech Balloon [free for any use, per the
+   pack's comments]
+   Source: https://justajoke.itch.io/pixel-speech-balloon
+   The dialogue art is adapted from that pack: border.png (the painted
+   nine-patch frame), speech.png (the speech paper) and the tail pieces
+   (speech-tail-right.png / speech-tail-iso.png).
+
+   Visual reference: Tokimeki Memorial (Konami, 1994) — the setting's green
+   palette, the title screen, Cam's portrait framing and the player's dialogue
+   border follow its visual-novel language. */
+
+/* ===== The Pixel frame: one nine-patch language for every framed surface =====
+   Every framed surface in the story — the Menu, the reading card, Cam's
+   portrait, the reply bar and the speech paper — is the same painted
+   nine-patch protocol. This file owns the protocol and the art tokens; a
+   surface opts in by class and states only what differs:
+
+     .pixel-frame               an element that is itself the framed surface
+     .pixel-frame-paper         a slot whose paper is its ::before
+
+   The interface is four custom properties, all inherited into a paper pseudo:
+
+     --pixel-frame-art    the border-image shorthand       (default: none)
+     --pixel-frame-width  the border-image width           (default: 0)
+     --pixel-frame-inset  the real border width that         (default: 0)
+                          reserves the ornament for content
+     --pixel-frame-fill   the failed-image fill behind       (default: transparent)
+                          the art
+
+   The protocol below is stated once: transparent border, border image, the
+   failed-image fill clipped to the padding box, pixelated sampling and
+   border-box sizing. A surface that sets no art draws nothing, so an empty
+   Slot can carry the class without painting a frame.
+
+   The art is cut 16 | 32 | 16 on both axes: 16 x 16 corners, a 32 x 32
+   centre. `fill` keeps that centre — the panel's green — and the frame is
+   drawn at 32 CSS px on every side, two source pixels per authored pixel, so
+   the painted ornament reads at the panels' scale.
+
+   The cam portrait is the exception. It keeps the full 16 x 16 cut and draws
+   the border image at its native 16px, so every corner keeps its painted art
+   1:1. Its real border — the content inset — stays 7px top/bottom and 13px
+   sides. The extra 9px/3px of border image paints inward behind the portrait,
+   which covers it; the visible ornament is therefore the native 7px/13px band
+   with no green padding between it and the portrait.
+
+   The speech paper is prose, not chrome, so it takes its own nine-patch
+   rather than the frame's green border: 16-pixel corners, a 2px black outline
+   and a #f8f8f8 centre. The authored pixels are 16px; a linear --speech-scale
+   enlarges them while keeping each source pixel a whole block.
+
+   The widths are deliberately CSS pixels, not design pixels: the source's
+   corners are 16 x 16 and the frame is chrome drawn at a fixed weight rather
+   than a design-pixel box. A retune of the art is the values below; a surface
+   only chooses which of them it uses. */
+
+:root {
+  /* ---- the painted dialogue border ---- */
+  --frame-src: url("images/dialogue/border.png");
+  --frame-slice: 16;
+  --frame-width: 32px;
+  --cam-frame-slice: 16;
+  --cam-frame-width: 7px 13px;
+  --cam-frame-image-width: 16px;
+  --frame-outset: 0;
+  --frame-repeat: stretch;
+  /* The one shorthand every chrome surface applies. The individual values are
+     kept above for tuning; the outset is stated because the asset is drawn
+     flush with the element's border box. */
+  --frame: var(--frame-src) var(--frame-slice) fill / var(--frame-width) /
+    var(--frame-outset) var(--frame-repeat);
+  --cam-frame: var(--frame-src) var(--cam-frame-slice) fill /
+    var(--cam-frame-image-width) / var(--frame-outset) var(--frame-repeat);
+
+  /* ---- the speech paper ---- */
+  --speech-src: url("images/dialogue/speech.png");
+  --speech-slice: 16;
+  --speech-scale: 2;
+  --speech-width: calc(16px * var(--speech-scale));
+  /* The outline inside the slice: 2 source px, so the paper's visible edge
+     sits this far inside the slot. The pointer's mouth is set on that edge. */
+  --speech-line: calc(2px * var(--speech-scale));
+  --speech-outset: 0;
+  --speech-repeat: stretch;
+  --speech: var(--speech-src) var(--speech-slice) fill / var(--speech-width) /
+    var(--speech-outset) var(--speech-repeat);
+
+  /* ---- the pointer's art ----
+     Drawn at the paper's own pixel scale: one source pixel is --speech-scale
+     CSS px, so the pointer's 2px outline weighs exactly what the card's does
+     and the two silhouettes read as one shape. Two pieces: a wedge for a
+     corner (16 x 16 source px) and a symmetric pointer for an edge (26 x 16
+     source px). */
+  --speech-tail-right: url("images/dialogue/speech-tail-right.png");
+  --speech-tail-iso: url("images/dialogue/speech-tail-iso.png");
+  --tail-size: calc(var(--speech-scale) * 16px);
+  --tail-point: calc(var(--speech-scale) * 26px);
+  /* One authored pixel of the art — the size of the card's outline and its
+     corner step, at 2 source px. The pointer's mouth is seated this far
+     inside the card's paper edge, so the card's outline band and the stepped
+     corner under it are both covered where the mouth opens through them.
+     Both papers are opaque, so the overlap does not show. */
+  --tail-seat: calc(var(--speech-scale) * 2px);
+
+  /* ---- the fills ----
+     The bubble's fill is its own paper. The image paints its own centre over
+     this fill; the fill is clipped to the padding box so a failed image still
+     leaves a legible panel without filling in the image's transparent
+     corners. The panel fill matches the border image's centre green and
+     stays as the failed-image fallback for the chrome surfaces. */
+  --stage-bubble-fill: #f8f8f8;
+  --pixel-fill: #216b00;
+  --pixel-fill-ink: #f5f5f7;
+}
+
+.pixel-frame,
+.pixel-frame-paper::before {
+  border-style: solid;
+  border-color: transparent;
+  border-width: var(--pixel-frame-inset, 0);
+  border-image: var(--pixel-frame-art, none);
+  border-image-width: var(--pixel-frame-width, 0);
+  background: var(--pixel-frame-fill, transparent);
+  background-clip: padding-box;
+  box-sizing: border-box;
+  image-rendering: pixelated;
+}

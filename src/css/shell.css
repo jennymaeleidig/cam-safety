@@ -156,23 +156,14 @@ body {
   justify-content: center;
   gap: calc(var(--rail-unit) * 22);
   padding: calc(var(--rail-unit) * 22) var(--rail-pad-x);
-  background: var(--pixel-fill);
-  /* Clip the fallback to the padding box so the border image's transparent
-     corner pixels keep showing the checkerboard, as they do on the cam. */
-  background-clip: padding-box;
-  /* The rail is a framed surface in both modes: the same nine-patch as the
-     other panels, drawn at the panel's own scale (--rail-frame-width) so the
-     border never crowds the menu labels on a small screen. The real border
-     reserves the ornament, and the narrow horizontal padding leaves room for
-     the longest label. The green background above is the failed-image
-     fallback. */
-  border-style: solid;
-  border-color: transparent;
-  border-width: var(--rail-frame-width);
-  border-image: var(--frame);
-  border-image-width: var(--rail-frame-width);
-  image-rendering: pixelated;
-  box-sizing: border-box;
+  /* The rail is a framed surface in both modes, drawn at the panel's own
+     scale (--rail-frame-width) so the border never crowds the menu labels on
+     a small screen. The Pixel frame reserves the ornament, and the narrow
+     horizontal padding leaves room for the longest label. */
+  --pixel-frame-art: var(--frame);
+  --pixel-frame-width: var(--rail-frame-width);
+  --pixel-frame-inset: var(--rail-frame-width);
+  --pixel-frame-fill: var(--pixel-fill);
 }
 
 .rail-actions {
@@ -248,20 +239,15 @@ body {
   max-width: var(--shell-column-max-width);
   margin: 0 auto;
   padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
-  /* The reading card takes the same nine-patch as the menu and the stage's
+  /* The reading card takes the same Pixel frame as the menu and the stage's
      slots, so the title screen reads as part of the frame and not as a
-     document with a page turned behind it. The real border reserves the
-     ornament, so no line of text sits on it; the green background above is
-     the failed-image fallback. */
-  background: var(--pixel-fill);
-  background-clip: padding-box;
+     document with a page turned behind it. The frame reserves the ornament,
+     so no line of text sits on it. */
   color: var(--pixel-fill-ink);
-  border-style: solid;
-  border-color: transparent;
-  border-width: var(--frame-width);
-  border-image: var(--frame);
-  image-rendering: pixelated;
-  box-sizing: border-box;
+  --pixel-frame-art: var(--frame);
+  --pixel-frame-width: var(--frame-width);
+  --pixel-frame-inset: var(--frame-width);
+  --pixel-frame-fill: var(--pixel-fill);
 }
 
 /* Links inside the reading card take the card's own ink rather than the

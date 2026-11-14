@@ -68,7 +68,7 @@
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
    shrinking with the frame rather than reflowing out of its slot. The
    nine-patch frame is the one exception: it is pixel art, so its weight is
-   set in CSS pixels rather than design pixels (see --frame-width below).
+   set in CSS pixels rather than design pixels (see frame.css).
 
    Debug affordance: set a data-stage-debug attribute on <body> to outline the
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
@@ -98,95 +98,7 @@
   --cam-art-w: 719;
   --cam-art-h: 551;
 
-  /* ---- the nine-patch frame: one language for every framed surface ------
-     Every framed surface takes the painted dialogue border as a nine-patch
-     (Godot NinePatchRect-style). The source is cut 16 | 32 | 16 on both
-     axes: 16 x 16 corners, a 32 x 32 centre. `fill` keeps that centre — it
-     is the panel's green — and the frame is drawn at 32 CSS px on every
-     side, two source pixels per authored pixel, so the painted ornament
-     reads at the panels' scale.
-
-     The image is painted above the element's background and below its
-     content. Every framed surface reserves a real border width, so its
-     content sits inside the painted green centre rather than under the
-     ornament. The speech bubble is prose, not chrome, and takes no frame.
-
-     The cam portrait is the exception. It keeps the full 16 x 16 cut and
-     draws the border image at its native 16px, so every corner keeps its
-     painted art 1:1. Its real border — the content inset — stays 7px
-     top/bottom and 13px sides. The extra 9px/3px of border image paints
-     inward behind the portrait, which covers it; the visible ornament is
-     therefore the native 7px/13px band with no green padding between it and
-     the portrait. The menu and reply draw the frame at their own scale
-     (--rail-frame-width, shell.css); every other framed surface keeps the
-     square 32px cut, width and inset.
-
-     The width is deliberately CSS pixels, not design pixels: the source's
-     corners are 16 x 16 and the frame is chrome drawn at a fixed weight
-     rather than a design-pixel box. Replace the source and the values below
-     and every framed surface follows. */
-  --frame-src: url("images/dialogue/border.png");
-  --frame-slice: 16;
-  --frame-width: 32px;
-  --cam-frame-slice: 16;
-  --cam-frame-width: 7px 13px;
-  --cam-frame-image-width: 16px;
-  --frame-outset: 0;
-  --frame-repeat: stretch;
-  /* The one shorthand every framed surface applies. The individual values are
-     kept above for tuning; the outset is stated because the asset is drawn
-     flush with the element's border box. */
-  --frame: var(--frame-src) var(--frame-slice) fill / var(--frame-width) /
-    var(--frame-outset) var(--frame-repeat);
-  --cam-frame: var(--frame-src) var(--cam-frame-slice) fill /
-    var(--cam-frame-image-width) / var(--frame-outset) var(--frame-repeat);
-
-  /* The speech bubble's own paper. It is prose, not chrome, so it takes its
-     own nine-patch rather than the frame's green border: 16-pixel corners,
-     a 2px black outline and a #f8f8f8 centre. The authored pixels are 16px;
-     a linear --speech-scale enlarges them while keeping each source pixel a
-     whole block. image-rendering: pixelated does the nearest-neighbour
-     sampling. */
-  --speech-src: url("images/dialogue/speech.png");
-  --speech-slice: 16;
-  --speech-scale: 2;
-  --speech-width: calc(16px * var(--speech-scale));
-  /* The outline inside the slice: 2 source px, so the paper's visible edge
-     sits this far inside the slot. The pointer's mouth is set on that edge. */
-  --speech-line: calc(2px * var(--speech-scale));
-  --speech-outset: 0;
-  --speech-repeat: stretch;
-  --speech: var(--speech-src) var(--speech-slice) fill / var(--speech-width) /
-    var(--speech-outset) var(--speech-repeat);
-
-  /* The pointer's art, drawn at the paper's own pixel scale: one source pixel
-     is --speech-scale CSS px, so the pointer's 2px outline weighs exactly what
-     the card's does and the two silhouettes read as one shape. That makes the
-     pointer a fixed CSS size rather than a design size, like the frame and
-     the paper's own outline. Two pieces: a wedge for a corner (16 x 16 source
-     px) and a symmetric pointer for an edge (26 x 16 source px). */
-  --speech-tail-right: url("images/dialogue/speech-tail-right.png");
-  --speech-tail-iso: url("images/dialogue/speech-tail-iso.png");
-  --tail-size: calc(var(--speech-scale) * 16px);
-  --tail-point: calc(var(--speech-scale) * 26px);
-  /* One authored pixel of the art — the size of the card's outline and its
-     corner step, at 2 source px. The pointer's mouth is seated this far
-     inside the card's paper edge, so the card's outline band and the stepped
-     corner under it are both covered where the mouth opens through them.
-     Both papers are opaque, so the overlap does not show. */
-  --tail-seat: calc(var(--speech-scale) * 2px);
-
-  /* The bubble's fallback paper. The image paints its own centre over this
-     fill; the fill is clipped to the padding box so a failed image still
-     leaves a legible panel without filling in the image's transparent
-     corners. */
-  --stage-bubble-fill: #f8f8f8;
-
-  /* The panel fill matches the border image's centre green. It stays as the
-     background fallback: if the image fails to load, the text surfaces remain
-     legible and the reserved border keeps their layout stable. */
-  --pixel-fill: #216b00;
-  --pixel-fill-ink: #f5f5f7;
+  /* The Pixel frame's art, paper and fills live in frame.css. */
 
   /* The gutter between a framed surface and the box it sits in. A surface
      flush against the stage's edge would have its frame cut by it, so the
@@ -561,20 +473,8 @@ body[data-stage-mode] {
    slot carries no frame. The menu and the reading card are not slots; their
    frame is set in shell.css. */
 .stage-cam[data-state="filled"] {
-  border-image: var(--cam-frame);
-  image-rendering: pixelated;
-}
-
-/* The player's reply bar is one element: its own box is the reading layout —
-   a centred vertical stack that scrolls instead of clipping a long line. */
-.stage-reply[data-state="filled"] {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  overflow: auto;
-  padding: calc(var(--stage-unit) * 52) calc(var(--stage-unit) * 64);
-  font-size: calc(var(--stage-unit) * 52);
-  line-height: 1.35;
+  --pixel-frame-art: var(--cam-frame);
+  --pixel-frame-width: var(--cam-frame-image-width);
 }
 
 /* Cam's speech-bubble: a large, high-contrast card of prose — the stage's
@@ -606,23 +506,23 @@ body[data-stage-mode] {
    <<player_line>> inherits the bar's ink, not the shell's dark-on-light
    page links. */
 .stage-reply[data-state="filled"] {
+  /* One element: its own box is the reading layout — a centred vertical stack
+     that scrolls instead of clipping a long line. */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: auto;
   padding: calc(var(--stage-unit) * 20) calc(var(--stage-unit) * 40);
-  background: var(--pixel-fill);
-  background-clip: padding-box;
-  color: var(--pixel-fill-ink);
-  /* The frame is a real border here: the bar keeps its slot box, but its
-     content box sits inside the ornament, so no line of the reply can land on
-     the band. It follows --rail-frame-width, the menu's frame, so the two
-     panels stay one box at every resolution. The green background above is
-     the failed-image fallback. */
-  border-style: solid;
-  border-color: transparent;
-  border-width: var(--rail-frame-width);
-  border-image: var(--frame);
-  border-image-width: var(--rail-frame-width);
-  image-rendering: pixelated;
   font-size: calc(var(--stage-unit) * 38);
   line-height: 1.3;
+  color: var(--pixel-fill-ink);
+  /* The bar follows --rail-frame-width, the Menu's frame, so the two panels
+     stay one box at every resolution. The Pixel frame reserves the ornament
+     as a real border, so no line of the reply can land on the band. */
+  --pixel-frame-art: var(--frame);
+  --pixel-frame-width: var(--rail-frame-width);
+  --pixel-frame-inset: var(--rail-frame-width);
+  --pixel-frame-fill: var(--pixel-fill);
 }
 
 .stage-bubble p,
@@ -651,6 +551,13 @@ body[data-stage-mode] {
 
    A real border reserves the nine-patch, which is why the layer's box is
    border-box and the prose's own padding keeps every line inside the centre. */
+.stage-bubble.pixel-frame-paper[data-state="filled"] {
+  --pixel-frame-art: var(--speech);
+  --pixel-frame-width: var(--speech-width);
+  --pixel-frame-inset: var(--speech-width);
+  --pixel-frame-fill: var(--stage-bubble-fill);
+}
+
 .stage-bubble[data-state="filled"]::before {
   content: "";
   position: absolute;
@@ -661,12 +568,6 @@ body[data-stage-mode] {
     0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
       rgba(0, 0, 0, 0.35)
   );
-  border: var(--speech-width) solid transparent;
-  border-image: var(--speech);
-  background: var(--stage-bubble-fill);
-  background-clip: padding-box;
-  box-sizing: border-box;
-  image-rendering: pixelated;
 }
 
 /* ---- the speech bubble's pointer ---------------------------------------
