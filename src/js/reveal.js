@@ -74,7 +74,7 @@
   var MIN_MS = 4;
   /* How many letters one frame may sound when it is catching up. Two is under
      what the compressor already handles at the default pace (a 75 ms letter
-     every 16 ms overlaps four voices); a hundred is not. A faster pace packs
+     every 20 ms overlaps four voices); a hundred is not. A faster pace packs
      more voices into the same 75 ms, and the compressor is what keeps that
      sum in range. */
   var LETTERS_PER_FRAME = 2;

@@ -20,7 +20,9 @@ knob on a panel (see `docs/research/animalese-typewriter.md` and its §7
 addendum): 16 ms per character, pitch 0.8, volume 0.25, a 10.5 ms fade on each
 letter, one compressor on the summed letters, sequential order, and a held
 reply. Two of those numbers — the pace and the volume — are ranges in the
-Settings dialog, with these values as their defaults (see below). The
+Settings dialog. The volume ships at the measured 0.25; the pace was measured
+at 16 ms and now ships slower, at 50 letters a second (20 ms), for
+readability. The
 investigation that led there — what animalese is, what
 SugarCube's built-in `<<type>>` does — is recorded in that research file rather
 than here; this record holds the outcome.
@@ -104,10 +106,12 @@ description says so.
 
 **Pace and volume are the player's, in SugarCube's own Settings dialog.**
 `settings.js` adds a `Cam` header and two ranges — `revealSpeed` in letters a
-second (25–125, default 62.5, which is the tuned 16 ms) and `voiceVolume` in
+second (25–125, default 50, which is 20 ms a character; it was measured at
+16 ms and slowed for readability) and `voiceVolume` in
 percent (0–100, default 25, which is the measured 0.25) — and the rail's
-Settings button already opens the native dialog. Their defaults are the values
-the measurements above describe, so the story opens as tuned. Both are read at
+Settings button already opens the native dialog. Their defaults are the
+measured volume and the slowed pace above, so the story opens as tuned. Both
+are read at
 use: the pace when a line starts, so a change lands on the next line; the
 volume per letter, so a drag is audible at once. Zero volume is silence, and it
 stops the audio graph being built at all until a gesture arrives with the

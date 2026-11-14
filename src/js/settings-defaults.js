@@ -20,7 +20,7 @@
     min: 25,
     max: 125,
     step: 12.5,
-    default: 62.5,
+    default: 50,
     desc:
       "Letters a second: higher is faster. No effect when your system asks for reduced motion, which arrives the whole line at once.",
   };

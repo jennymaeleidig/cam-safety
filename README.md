@@ -103,7 +103,7 @@ SugarCube.Engine.play("Stage content empty");
    is still clickable after the line lands. Paper never swallows a click
    beneath it. Play `Stage content empty`: no orphan paper is drawn.
 4. **Settings.** Open Settings from the menu: one Cam header, two ranges,
-   labels Text speed and Letter volume, defaults 62.5 and 25. Change Text
+   labels Text speed and Letter volume, defaults 50 and 25. Change Text
    speed — the current line keeps its pace, the next uses the new one. Drag
    Letter volume — the next letter is audible at once. Reload: saved values
    restore. Corrupt or remove a value (console/local storage) and reload: the
