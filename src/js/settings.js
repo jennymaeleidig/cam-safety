@@ -56,7 +56,7 @@
     var sc = win.SugarCube;
     var get = sc && sc.Setting && sc.Setting.getValue;
     var value = get ? get(spec.key) : undefined;
-    if (typeof value !== "number" || !isFinite(value)) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
       return null;
     }
     return Math.min(spec.max, Math.max(spec.min, value));

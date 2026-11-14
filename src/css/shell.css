@@ -168,11 +168,10 @@ body {
        Settings  0 advances
        Saves     6  — its first S sits on Settings's g
        Restart   9  — its R sits on Saves's e
-     One advance is --rail-menu-advance em, measured by menu-advance.js after the
-     face loads; the fallback is the Earthbound face at this letter-spacing
-     (one advance is 1.3083em). */
+     One advance is --rail-menu-advance em, published by menu-advance.js: it
+     seeds the Earthbound face's advance before it measures the loaded face. */
   margin-top: calc(
-    var(--rail-menu-advance, 1.3083) * var(--rail-menu-advances, 0) * 1em
+    var(--rail-menu-advance) * var(--rail-menu-advances, 0) * 1em
   );
 }
 

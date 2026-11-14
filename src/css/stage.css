@@ -46,7 +46,7 @@
    the three content slots' boxes (the portrait's as a scale on the artwork's
    own box, not as a box), the menu's visibility, and the tail's piece, aim
    and seat on the card. The menu and the reply bar take their size from
-   --rail-unit (shell.css) instead: the reply is the menu's box rotated a
+   --rail-unit (measure.css) instead: the reply is the menu's box rotated a
    quarter turn, so the two panels stay one pair in every layout. Layout 0
    doubles as the fallback on :root for the moment before layout.js sets the
    attribute (and if it ever doesn't). A new or
@@ -331,21 +331,30 @@ body[data-stage-mode] {
 
      The painted frame is a real border inside that box, so the portrait's
      content sits wholly in the green centre and never paints over the
-     ornament. Reserving it here, on both halves of a layered pose, keeps the
-     hand in the same content box as the body. */
+     ornament. The cam takes that inset from the Pixel frame; the hand is not
+     a framed surface, so it restates the same inset to stay in the body's
+     content box. */
   left: calc(var(--stage-unit) * var(--slot-cam-left));
   top: calc(var(--stage-unit) * var(--slot-cam-top));
   width: calc(var(--stage-unit) * var(--cam-art-w) * var(--slot-cam-scale));
   height: calc(var(--stage-unit) * var(--cam-art-h) * var(--slot-cam-scale));
+  box-sizing: border-box;
+}
+
+/* The hand half of a layered pose carries no frame image, but it must reserve
+   the same content inset as the body or the halves would not land. */
+.stage-hand {
   border-style: solid;
   border-color: transparent;
   border-width: var(--cam-frame-width);
-  box-sizing: border-box;
 }
 
 .stage-cam {
   /* The portrait is artwork, never a target. */
   pointer-events: none;
+  /* The content inset is the same empty or filled, so the pose and its
+     layered hand stay in one box. */
+  --pixel-frame-inset: var(--cam-frame-width);
 }
 
 .stage-bubble {

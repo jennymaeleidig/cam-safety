@@ -59,6 +59,11 @@
      whitespace-only wiki output defeats. */
   var slots = {};
 
+  /* A Slot's shape is declared once, by name, rather than inferred in the
+     writer. The bubble's line grows in an inner prose box; every other Slot's
+     prose is the Slot itself. */
+  var SLOT_SHAPES = { bubble: "inner" };
+
   function createSlot(name) {
     var element = document.querySelector(
       '.stage-slot[data-stage-slot="' + name + '"]',
@@ -67,11 +72,8 @@
       return null;
     }
     return {
-      name: name,
       element: element,
-      /* The bubble's line grows in an inner prose box; the reply's is its
-         own element. */
-      shape: name === "bubble" ? "inner" : "self",
+      shape: SLOT_SHAPES[name] || "self",
       content: null,
       prose: null,
       flushed: false,
@@ -85,9 +87,13 @@
     return slots[name];
   }
 
+  function setState(s, filled) {
+    s.element.setAttribute("data-state", filled ? "filled" : "empty");
+  }
+
   function publish(s, filled) {
     s.flushed = filled;
-    s.element.setAttribute("data-state", filled ? "filled" : "empty");
+    setState(s, filled);
   }
 
   function clear(s) {
@@ -275,7 +281,7 @@
     if (!s) {
       return;
     }
-    s.element.setAttribute("data-state", "filled");
+    setState(s, true);
     s.element.classList.remove("is-revealing");
     s.element.removeAttribute("inert");
   }
@@ -287,7 +293,7 @@
     }
     s.element.classList.remove("is-revealing");
     s.element.removeAttribute("inert");
-    s.element.setAttribute("data-state", s.flushed ? "filled" : "empty");
+    setState(s, s.flushed);
   }
 
   /* ---- the interface: content, not slots ------------------------------

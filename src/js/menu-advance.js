@@ -32,6 +32,10 @@
 
   var MAX_TRIES = 250;
   var RETRY_MS = 16;
+  /* The Earthbound face at the menu's letter-spacing, in em of the menu's
+     type. Seeded before the first measurement so a Menu that is never laid
+     out still hangs by whole letters. */
+  var FALLBACK_ADVANCE = 1.3083;
 
   /* The last measured advance, in em of the menu's type; null until measured. */
   MenuAdvance.advance = null;
@@ -43,6 +47,7 @@
     if (!list) {
       return Promise.resolve(null);
     }
+    list.style.setProperty("--rail-menu-advance", String(FALLBACK_ADVANCE));
     var first = list.querySelector("a");
     var text = first && first.firstChild;
     if (!text || text.nodeType !== 3 || !text.nodeValue) {

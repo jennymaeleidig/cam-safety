@@ -13,7 +13,7 @@
    fit inside the stage or the viewport, so a short window shrinks the panel
    instead of clipping it. --rail-height is the same unit times --rail-h, so
    the box keeps its 273:877 ratio when a cap bites. The Menu and the reply
-   bar take their size from this pair (ADR-0004).
+   bar take their size from this pair, which keeps them one panel.
 
    A surface consumes these values; nothing here consumes a surface's
    presentation. */

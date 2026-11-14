@@ -68,7 +68,7 @@ body.checker #tmem-bg {
 
 /* Stage mode ([checker] and not [title], published by stage-mode.js as
    body[data-stage-mode]): the same single layer letterboxes into the stage
-   box — the same --stage-w/--stage-h pair the .stage frame uses (stage.css) —
+   box — the same --stage-w/--stage-h pair the .stage frame uses (measure.css) —
    instead of covering the whole viewport. inset: 0 plus margin: auto centres
    the fixed box on both axes. The rule above keeps reading SugarCube's tag
    class, not the attribute: the title is tagged [checker] and is shell mode,
