@@ -1,8 +1,9 @@
 /* ===== The reveal: Cam's line arrives one character at a time =====
-   stage.js writes both lines into their slots in one flush and hands this
-   file the prose element for each: `{ camLine, reply }`, either may be null.
-   This file then grows the bubble's prose box, with one letter of voice per
-   character, and asks the Stage for every visible state change.
+   stage.js writes both lines into their Slots in one flush and hands this
+   file a handle for each role: `{ camLine, reply }`, each either a
+   `{ slot, prose }` handle or null. This file then grows the handle's prose
+   element, with one letter of voice per character, and asks the Stage for
+   every visible state change.
 
    Only Cam speaks. The reply bar is the player's own line, so it is neither
    revealed nor sounded: it arrives whole, at its turn, once Cam has finished.
@@ -146,13 +147,13 @@
 
   /* ---- one line -------------------------------------------------------- */
 
-  function line(prose) {
+  function line(handle) {
     return {
-      /* The prose handle the Stage handed over: the bubble's inner box, or the
-         reply slot itself. This is the only text the reveal grows; it never
-         identifies a slot from markup. */
-      prose: prose,
-      plan: planLine(prose),
+      /* The handle the Stage handed over: the Slot and the prose element the
+         reveal grows. This is the only text the reveal touches; it never
+         identifies a Slot from markup. */
+      handle: handle,
+      plan: planLine(handle.prose),
       step: 0,
       startedAt: 0,
       ms: msPerChar(),
@@ -177,7 +178,7 @@
   function reveal(entry) {
     var stage = win.Stage;
     if (stage && typeof stage.reveal === "function") {
-      stage.reveal(entry.prose);
+      stage.reveal(entry.handle);
     }
   }
 
@@ -186,7 +187,7 @@
     paint(entry.plan, 0);
     var stage = win.Stage;
     if (stage && typeof stage.hold === "function") {
-      stage.hold(entry.prose);
+      stage.hold(entry.handle);
     }
   }
 
@@ -196,17 +197,17 @@
     paintTo(entry);
     var stage = win.Stage;
     if (stage && typeof stage.land === "function") {
-      stage.land(entry.prose);
+      stage.land(entry.handle);
     }
   }
 
   /* Forget the line without restoring it: the incoming passage's flush is
-     about to rewrite the slot anyway, and the Stage restores the state that
+     about to rewrite the Slot anyway, and the Stage restores the state that
      flush published. */
   function abandon(entry) {
     var stage = win.Stage;
     if (stage && typeof stage.abandon === "function") {
-      stage.abandon(entry.prose);
+      stage.abandon(entry.handle);
     }
   }
 
@@ -281,10 +282,10 @@
     frame = win.requestAnimationFrame(tick);
   }
 
-  /* Called by stage.js's flush with the prose handles it just filled: one of
+  /* Called by stage.js's flush with the handles it just filled: one of
      camLine or reply, both, or neither. Also called with neither: a passage
      with no lines is exactly when the previous passage's reveal has to be
-     dropped, or it would hold and then paint slots the flush has emptied. */
+     dropped, or it would hold and then paint Slots the flush has emptied. */
   Reveal.start = function (handles) {
     handles = handles || {};
     stop();

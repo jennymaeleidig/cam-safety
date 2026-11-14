@@ -4,16 +4,15 @@
    The frame, the background and the menu persist; these three do not.
 
    One writer. The content macros (registered in StoryInit, story.twee)
-   record their content here while the passage renders; the record is reset
-   when a passage starts and written into all three slots in one flush after
-   the render. A passage that omits a macro therefore shows an empty slot
-   because the flush wrote nothing there — never because something cleared it
-   first.
+   record their content on their Slot while the passage renders; every Slot's
+   content is cleared when a passage starts and written in one flush after the
+   render. A passage that omits a macro therefore shows an empty Slot because
+   the flush wrote nothing there — never because something cleared it first.
 
    The flush runs at :passagerender, after every macro has run. Three facts
    about that moment:
      - the passage element is still detached, and #passages still holds the
-       OUTGOING passage: read content from the record, never from the DOM;
+       OUTGOING passage: read content from the Slots, never from the DOM;
      - jQuery.wiki() output is live on a detached element — SugarCube binds
        link handling per anchor at parse time — so it is safe here;
      - so the flush lands in the same task as the passage swap; nothing
@@ -36,67 +35,74 @@
    revealing while keeping the flushed paper, hold marks a waiting reply as
    revealing and inert while keeping the flushed bar — its prose is already
    empty — land publishes a slot filled and reachable, and abandon puts back
-   the state the most recent flush gave that slot. The flush records that state
-   here, so abandoning a line that a newer flush has already replaced cannot
-   clobber the newer state. A passage start clears the record, so an abandon
-   can never restore state from a passage before a failed or absent flush. */
+   the state the most recent flush gave that Slot. The flush records that
+   state on the Slot, so abandoning a line that a newer flush has already
+   replaced cannot clobber the newer state. A passage start clears each
+   Slot's content, so an abandon can never restore state from a passage before
+   a failed or absent flush. */
 (function () {
   "use strict";
 
   // Created by boot.js, which loads first; this file only adds members.
 
-  /* ---- the record: one passage's content ------------------------------ */
+  /* ---- the slots: one record per named Slot ---------------------------
+     A Slot owns its element, the prose element the Reveal grows, the content
+     this passage recorded for it, and the state its last flush published.
+     The bubble's prose is an inner box; every other Slot's prose is the Slot
+     itself, so a Slot's shape is data here rather than a branch in the
+     writer.
 
-  function emptyRecord() {
-    return { cam: null, bubble: null, reply: null };
-  }
+     A Slot's visible state is written nowhere else. publish() is the flush's
+     write, which also records what the Slot was given so abandon can restore
+     it; the transitions below change the element without changing that
+     record. stage.css reads data-state and never guesses from :empty, which
+     whitespace-only wiki output defeats. */
+  var slots = {};
 
-  var record = emptyRecord();
-
-  /* ---- writers: one per slot, each clearing before it fills ----------- */
-
-  function slotElement(name) {
-    return document.querySelector(
+  function createSlot(name) {
+    var element = document.querySelector(
       '.stage-slot[data-stage-slot="' + name + '"]',
     );
+    if (!element) {
+      return null;
+    }
+    return {
+      name: name,
+      element: element,
+      /* The bubble's line grows in an inner prose box; the reply's is its
+         own element. */
+      shape: name === "bubble" ? "inner" : "self",
+      content: null,
+      prose: null,
+      flushed: false,
+    };
   }
 
-  /* ---- the slot's visible state ---------------------------------------
-     data-state, is-revealing and inert are written nowhere else. Two kinds of
-     write:
-       publish   the flush's write, which also records what the slot was
-                 given (lastFlush) so abandon can restore it;
-       setState  a transition requested by the reveal, which never changes
-                 that record.
-     stage.css reads data-state and never guesses from :empty, which
-     whitespace-only wiki output defeats. */
-  var lastFlush = new WeakMap();
-  var slotByProse = new WeakMap();
-
-  function setState(slot, filled) {
-    slot.setAttribute("data-state", filled ? "filled" : "empty");
+  function slot(name) {
+    if (!slots[name]) {
+      slots[name] = createSlot(name);
+    }
+    return slots[name];
   }
 
-  function publish(slot, filled) {
-    lastFlush.set(slot, filled);
-    setState(slot, filled);
+  function publish(s, filled) {
+    s.flushed = filled;
+    s.element.setAttribute("data-state", filled ? "filled" : "empty");
   }
 
-  /* A prose handle (the bubble's inner box, or the reply slot itself) maps to
-     the slot whose state it shares; created in writeLine and kept after the
-     slot is rewritten, so an old line can still be abandoned safely. */
-  function slotOf(handle) {
-    return (handle && slotByProse.get(handle)) || null;
+  function clear(s) {
+    s.content = null;
+    s.prose = null;
   }
 
   function writePortrait(value) {
-    var slot = slotElement("cam");
-    if (!slot) {
+    var cam = slot("cam");
+    if (!cam) {
       return;
     }
-    slot.textContent = "";
+    cam.element.textContent = "";
     if (!value || !value.src) {
-      publish(slot, false);
+      publish(cam, false);
       writeHand(null);
       return;
     }
@@ -104,8 +110,8 @@
     img.className = "stage-portrait";
     img.setAttribute("src", String(value.src));
     img.setAttribute("alt", String(value.alt || "Cam"));
-    slot.appendChild(img);
-    publish(slot, true);
+    cam.element.appendChild(img);
+    publish(cam, true);
     /* A pose drawn in two layers lifts its hand out here; every other pose has
        none, and this clears whatever the last passage left. */
     writeHand(HAND_LAYER[String(value.src)] || null);
@@ -151,36 +157,34 @@
     layer.appendChild(img);
   }
 
-  /* Returns the prose handle the reveal must grow, so the flush can hand
-     camLine and reply to it in one call; null when there was nothing to
-     write.
+  /* Returns a handle for the Reveal — the Slot and the prose element it must
+     grow — or null when there was nothing to write.
 
-     The bubble owns two layers inside its one slot: the paper is a ::before
-     on .stage-bubble (stage.css) and the line goes into an inner
-     .stage-bubble-prose box, so the paper stays fixed to the slot while a
-     long line scrolls and never lands on its outline. Every other slot is a
-     single element whose own box scrolls; the reply's prose handle is the
-     slot itself. */
-  function writeLine(name, html) {
-    var slot = slotElement(name);
-    if (!slot) {
+     The bubble owns two layers inside its one Slot: the paper is its ::before
+     (the Pixel frame's paper variant) and the line goes into the inner prose
+     box the Slot's shape declares, so the paper stays fixed while a long line
+     scrolls and never lands on its outline. Every other Slot is a single
+     element whose own box scrolls. */
+  function writeLine(s, html) {
+    if (!s) {
       return null;
     }
-    slot.textContent = "";
+    s.element.textContent = "";
+    s.prose = null;
     if (html == null || html === "") {
-      publish(slot, false);
+      publish(s, false);
       return null;
     }
-    var target = slot;
-    if (name === "bubble") {
+    var target = s.element;
+    if (s.shape === "inner") {
       target = document.createElement("div");
       target.className = "stage-bubble-prose";
-      slot.appendChild(target);
+      s.element.appendChild(target);
     }
     jQuery(target).wiki(String(html));
-    publish(slot, true);
-    slotByProse.set(target, slot);
-    return target;
+    publish(s, true);
+    s.prose = target;
+    return { slot: s, prose: target };
   }
 
   /* ---- the default portrait: the layout's neutral pose ------------------
@@ -212,25 +216,31 @@
   /* ---- the two phases ------------------------------------------------- */
 
   function reset() {
-    record = emptyRecord();
     /* A passage start is the boundary: old prose handles and their flushed
        state belong to the passage being left. An abandon from the previous
        reveal then finds nothing to restore. */
-    lastFlush = new WeakMap();
-    slotByProse = new WeakMap();
+    for (var name in slots) {
+      if (Object.prototype.hasOwnProperty.call(slots, name) && slots[name]) {
+        clear(slots[name]);
+        slots[name].flushed = false;
+      }
+    }
   }
 
   function flush() {
-    writePortrait(record.cam || { src: neutralPose() });
-    /* Both lines are written before either is revealed: the reveal decides what
-       waits for what, and it needs the prose in place, because it reads its
-       text nodes. Each handle is the element to grow, or null when the
-       passage omitted that line. */
-    var camLine = writeLine("bubble", record.bubble);
-    var reply = writeLine("reply", record.reply);
+    var cam = slot("cam");
+    var bubble = slot("bubble");
+    var replySlot = slot("reply");
+    writePortrait((cam && cam.content) || { src: neutralPose() });
+    /* Both lines are written before either is revealed: the reveal decides
+       what waits for what, and it needs the prose in place because it reads
+       its text nodes. Each handle carries the Slot and the element to grow,
+       or is null when the passage omitted that line. */
+    var camLine = writeLine(bubble, bubble && bubble.content);
+    var reply = writeLine(replySlot, replySlot && replySlot.content);
     /* Called on every flush, nulls included: a passage with no lines is
        exactly when the previous passage's reveal must be abandoned, or it
-       would hold and then paint slots this flush has just emptied.
+       would hold and then paint Slots this flush has just emptied.
        Loaded after this file (reveal.js); absent only if it failed to load, in
        which case every line is already on screen in full. */
     var reveal = /** @type {any} */ (window).Reveal;
@@ -248,45 +258,36 @@
      land    the line is whole: filled, not revealing, reachable.
      abandon the new flush has already rewritten the slot; drop the transient
              class and inertness and put back the state that flush gave it. */
-  function reveal(handle) {
-    var slot = slotOf(handle);
-    if (!slot) {
-      return;
-    }
-    slot.classList.add("is-revealing");
-    slot.setAttribute("inert", "");
-  }
-
-  function hold(handle) {
-    var slot = slotOf(handle);
-    if (!slot) {
+  function busy(handle) {
+    var s = handle && handle.slot;
+    if (!s) {
       return;
     }
     /* The bar stays up while its message waits: the reveal has emptied the
-       prose already, so the slot keeps the filled state the flush published
+       prose already, so the Slot keeps the filled state the flush published
        and only the box is showing. */
-    slot.classList.add("is-revealing");
-    slot.setAttribute("inert", "");
+    s.element.classList.add("is-revealing");
+    s.element.setAttribute("inert", "");
   }
 
   function land(handle) {
-    var slot = slotOf(handle);
-    if (!slot) {
+    var s = handle && handle.slot;
+    if (!s) {
       return;
     }
-    setState(slot, true);
-    slot.classList.remove("is-revealing");
-    slot.removeAttribute("inert");
+    s.element.setAttribute("data-state", "filled");
+    s.element.classList.remove("is-revealing");
+    s.element.removeAttribute("inert");
   }
 
   function abandon(handle) {
-    var slot = slotOf(handle);
-    if (!slot) {
+    var s = handle && handle.slot;
+    if (!s) {
       return;
     }
-    slot.classList.remove("is-revealing");
-    slot.removeAttribute("inert");
-    setState(slot, lastFlush.get(slot) === true);
+    s.element.classList.remove("is-revealing");
+    s.element.removeAttribute("inert");
+    s.element.setAttribute("data-state", s.flushed ? "filled" : "empty");
   }
 
   /* ---- the interface: content, not slots ------------------------------
@@ -300,21 +301,33 @@
      widened for this one read. */
   var stage = (/** @type {any} */ (window)).Stage;
 
-  stage.reveal = reveal;
-  stage.hold = hold;
+  /* reveal and hold ask for the same visible state: the Slot is busy, keeps
+     its flushed paper, and is inert. They stay two names because the Reveal
+     asks for them for different reasons. */
+  stage.reveal = busy;
+  stage.hold = busy;
   stage.land = land;
   stage.abandon = abandon;
 
   stage.setCamLine = function (html) {
-    record.bubble = html;
+    var bubble = slot("bubble");
+    if (bubble) {
+      bubble.content = html;
+    }
   };
 
   stage.setPlayerLine = function (html) {
-    record.reply = html;
+    var reply = slot("reply");
+    if (reply) {
+      reply.content = html;
+    }
   };
 
   stage.setPortrait = function (src, alt) {
-    record.cam = { src: src, alt: alt };
+    var cam = slot("cam");
+    if (cam) {
+      cam.content = { src: src, alt: alt };
+    }
   };
 
   stage.onPassageStart(reset);
