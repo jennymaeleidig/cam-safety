@@ -9,6 +9,7 @@ declare const SugarCube: any;
 interface Window {
   Stage: any;
   Layout: any;
+  MenuAdvance: any;
   CamSettings: any;
   CamSettingsDefaults: any;
   Reveal: any;
