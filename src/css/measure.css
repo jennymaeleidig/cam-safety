@@ -1,0 +1,73 @@
+/* ===== The stage's measurement foundation =====
+   The Design canvas and everything that scales from it. The stage frame, the
+   hand layer and the background are one letterboxed window; the Menu and the
+   reply bar are one panel sized from the same design pixel. Those two facts
+   are stated here, once, so neither stage.css nor shell.css has to reach into
+   the other for a measurement.
+
+   --stage-w / --stage-h letterbox the 2840 x 1700 Design canvas to the
+   viewport, centred at its intrinsic ratio, never stretched and never
+   clipped. --stage-unit is one design pixel: chrome scales with it.
+
+   --rail-unit follows the Design pixel, capped only where the Menu would not
+   fit inside the stage or the viewport, so a short window shrinks the panel
+   instead of clipping it. --rail-height is the same unit times --rail-h, so
+   the box keeps its 273:877 ratio when a cap bites. The Menu and the reply
+   bar take their size from this pair (ADR-0004).
+
+   A surface consumes these values; nothing here consumes a surface's
+   presentation. */
+
+:root {
+  /* The Design canvas, as data. Every measurement is either a design pixel on
+     this canvas or derived from it, so retuning to a different canvas is this
+     pair of values and not a hunt for the ratio in three calc()s. */
+  --canvas-w: 2840;
+  --canvas-h: 1700;
+
+  --stage-w: min(100vw, calc(100vh * var(--canvas-w) / var(--canvas-h)));
+  --stage-h: calc(var(--stage-w) * var(--canvas-h) / var(--canvas-w));
+  --stage-unit: calc(var(--stage-w) / var(--canvas-w));
+
+  /* The gutter between a framed surface and the box it sits in. A surface
+     flush against the stage's edge would have its frame cut by it, so the
+     surfaces that hug an edge are inset by this much — measured outside the
+     frame, so the whole block moves in, border included. */
+  --pixel-inset: calc(var(--stage-unit) * 24);
+
+  /* The shell's outer padding is one of the rail's fit limits, so it lives
+     with the measurement that consumes it rather than with the shell's
+     presentation. */
+  --shell-frame-padding: clamp(24px, 6vh, 64px);
+
+  /* The Menu panel's box, in design pixels: the width and height references
+     both display modes share. */
+  --rail-w: 273;
+  --rail-h: 877;
+  --rail-unit: min(
+    var(--stage-unit),
+    (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
+      var(--rail-h),
+    (var(--stage-h) - var(--pixel-inset) * 2) / var(--rail-h)
+  );
+  --rail-height: calc(var(--rail-unit) * var(--rail-h));
+
+  /* The panel's frame: 40 design pixels, floored at 16px so it stops
+     shrinking with the panel the way Cam's fixed frame does, and capped at
+     40px. The border is a real inset, so the floor cannot eat the labels. */
+  --rail-frame-width: clamp(16px, calc(var(--rail-unit) * 40), 40px);
+}
+
+/* The letterboxed window. The stage frame and the hand layer are both this
+   window; the background takes its two dimensions in stage mode. A window is
+   not a target, so it never swallows a click aimed at the Menu or a Slot. */
+.stage-window {
+  position: fixed;
+  inset: 0;
+  margin: auto;
+  width: var(--stage-w);
+  height: var(--stage-h);
+  overflow: hidden;
+  box-sizing: border-box;
+  pointer-events: none;
+}

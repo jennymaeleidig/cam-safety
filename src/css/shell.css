@@ -20,8 +20,8 @@
    Values borrowed from the layout study (prototype/layout/css/layout-
    prototype.css; Variant A "Book" is faithful to the Simple Book template, see
    citation above): the rail is variant C/D's panel — a title over a column of
-   actions — but sized in design pixels (--rail-w / --rail-h / --rail-unit
-   below; the same box the stage's menu slot occupies), and framed like
+   actions — but sized in design pixels (--rail-w / --rail-h / --rail-unit,
+   from measure.css; the same box the stage's menu slot occupies), and framed like
    variant A's floating rail (vertically centred, never edge-to-edge) — with
    the stage's nine-patch frame and green fill in place of variant A's border
    + 12px radius and the study's #242429 panel, see .rail below. The reading
@@ -35,17 +35,13 @@
    per-passage markup.
 
    Tunable knobs — a second layout is a value change, not a fork:
-     --rail-w / --rail-h       the menu panel's box, in design pixels: the
-                               width and height references both display modes
-                               share
-     --rail-unit               one design pixel of the panel's width,
-                               height, type and gaps
+     --shell-column-max-width  max width of the reading card
+     --shell-frame-gap         space between rail and card
      --rail-menu-advances      the per-column cascade, in character advances:
                                each action's own rule states its offset
                                (Saves 6, Restart 9 below Settings)
-     --shell-column-max-width  max width of the reading card
-     --shell-frame-gap         space between rail and card
-     --shell-frame-padding     inset of the whole frame from the viewport */
+   The Menu panel's box, its design pixel and its frame width live in
+   measure.css; this file positions and presents the panel. */
 
 @font-face {
   font-family: "Earthbound Beginnings";
@@ -56,44 +52,11 @@
 :root {
   --shell-column-max-width: 720px;
   --shell-frame-gap: clamp(24px, 5vw, 64px);
-  --shell-frame-padding: clamp(24px, 6vh, 64px);
 
-  /* The menu panel's box, in design pixels, and the references both display
-     modes are sized by. --rail-w sets the width reference, and width,
-     height, padding, type and gaps are --rail-unit multiples, so the panel's
-     contents scale as one piece rather than reflowing. --rail-h sets the
-     height reference.
-
-     The panel is one size in both modes. --rail-unit follows the stage's
-     design pixel (stage.css), the same unit Cam and the speech bubble scale
-     with, so the menu and the reply bar keep their proportion to the rest of
-     the stage at every resolution. It is capped only where the panel would
-     not fit inside the stage or the viewport; a short window shrinks the
-     panel instead of clipping it. --rail-height is the same unit times
-     --rail-h, so the box keeps its 273:877 ratio when a cap bites. */
-  --rail-w: 273;
-  --rail-h: 877;
-  --rail-unit: min(
-    var(--stage-unit),
-    (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
-      var(--rail-h),
-    (var(--stage-h) - var(--pixel-inset) * 2) / var(--rail-h)
-  );
-  --rail-height: calc(var(--rail-unit) * var(--rail-h));
+  /* The Menu's box, the Design pixel, the rail unit and the rail frame width
+     live in measure.css. This file keeps the shell's presentation and the
+     rail's padding, which is a --rail-unit multiple. */
   --rail-pad-x: calc(var(--rail-unit) * 4);
-  /* The menu is set vertically, one upright column per action, and each
-     column hangs by a number of character advances below the group's top, so
-     the labels align by letter rather than by pixel: the first S of "Saves"
-     sits on the g of "Settings", and the R of "Restart" sits on the e of
-     "Saves". shell.css states those advances per column; shell.js measures
-     one advance (--rail-menu-advance), because it is the face's own vertical
-     metric plus the menu's letter-spacing and differs between fonts and
-     browsers. */
-  /* The panel's frame: 40 design pixels, floored at 16px so it stops
-     shrinking with the panel the way Cam's fixed frame does, and capped at
-     40px. The border is a real inset, so the floor cannot eat the labels;
-     --rail-actions sizes its type to the content box the frame leaves. */
-  --rail-frame-width: clamp(16px, calc(var(--rail-unit) * 40), 40px);
 }
 
 html,

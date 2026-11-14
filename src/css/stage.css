@@ -74,37 +74,18 @@
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
 
 :root {
-  /* The design canvas, as data. Every measurement below is either a design
-     pixel on this canvas or derived from it, so retuning to a different
-     canvas is this pair of values and not a hunt for the ratio in three
-     calc()s. 2840 x 1700 today. */
-  --canvas-w: 2840;
-  --canvas-h: 1700;
-
-  /* The stage box: letterboxed to the viewport, centred at its intrinsic
-     ratio, never stretched and never clipped. */
-  --stage-w: min(100vw, calc(100vh * var(--canvas-w) / var(--canvas-h)));
-  --stage-h: calc(var(--stage-w) * var(--canvas-h) / var(--canvas-w));
-
-  /* One design pixel: the stage is a fixed canvas, so chrome scales with it. */
-  --stage-unit: calc(var(--stage-w) / var(--canvas-w));
-
   /* Cam's artwork, at its own size in design pixels. The portrait slot is this
      box multiplied by the layout's --slot-cam-scale, so the outer slot keeps
      the artwork's aspect. The frame's inset content box is filled rather than
      cropped, so the pose and its layered hand stay whole without a letterbox
-     gap. A new artwork
-     size is these two values; a new framing is one scale value per layout. */
+     gap. A new artwork size is these two values; a new framing is one scale
+     value per layout. */
   --cam-art-w: 719;
   --cam-art-h: 551;
 
-  /* The Pixel frame's art, paper and fills live in frame.css. */
-
-  /* The gutter between a framed surface and the box it sits in. A surface
-     flush against the stage's edge would have its frame cut by it, so the
-     surfaces that hug an edge are inset by this much — measured outside the
-     frame, so the whole block moves in, border included. */
-  --pixel-inset: calc(var(--stage-unit) * 24);
+  /* The Design canvas, the stage window, the Design pixel and the rail
+     measurements live in measure.css; the Pixel frame's art lives in
+     frame.css. */
 }
 
 /* ---- per-layout composition ---------------------------------------------
@@ -271,16 +252,6 @@ body[data-layout="3"] {
 
 .stage {
   display: none;
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: var(--stage-w);
-  height: var(--stage-h);
-  overflow: hidden;
-  box-sizing: border-box;
-  /* The frame is a box, not a click target: it must never swallow clicks
-     aimed at the menu or at a slot's own content. */
-  pointer-events: none;
 }
 
 /* Stage mode: the passage is tagged [checker] and not [title]. The attribute
@@ -308,20 +279,10 @@ body[data-stage-mode] .stage {
    the twelve poses that are one image need no gate beyond having no hand. */
 .stage-cam-hand {
   display: none;
-  position: fixed;
-  inset: 0;
-  margin: auto;
-  width: var(--stage-w);
-  height: var(--stage-h);
-  overflow: hidden;
-  box-sizing: border-box;
   /* Above the menu (1). The bubble's z-index 2 is inside the frame's own
      stacking context and never competes with this number; the hand's business
      is with the menu. */
   z-index: 2;
-  /* A window, not a target: a hand resting on the panel must not swallow
-     clicks aimed at the buttons beneath it. */
-  pointer-events: none;
 }
 
 body[data-stage-mode] .stage-cam-hand {
@@ -634,17 +595,16 @@ body[data-stage-debug] .stage-slot:empty::before {
 
 /* ---- the menu slot: the reused rail, repositioned ----------------------- */
 
-/* The panel keeps the size shell.css gives it and is centred vertically in
+/* The panel keeps the box shell.css gives it and is centred vertically in
    the stage, inset from the stage's left edge by the gutter. Only its
    visibility is per layout: hidden at layout 3. Centring the panel's whole
-   border box in the viewport also centres it in the letterboxed stage. */
+   border box in the viewport also centres it in the letterboxed stage. This
+   override states only what stage mode changes; the box stays where it is
+   defined. */
 body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
   top: calc((100vh - var(--rail-height)) / 2);
   left: calc((100vw - var(--stage-w)) / 2 + var(--pixel-inset));
-  width: calc(var(--rail-unit) * var(--rail-w));
-  height: var(--rail-height);
-  max-height: var(--rail-height);
   transform: none;
   z-index: 1;
 }

@@ -49,7 +49,7 @@
 		<!-- <a href="#" title="Previous passage" data-shell-action="back">&#8249; Back</a> <a href="#" title="Next passage" data-shell-action="forward">Next &#8250;</a> -->
 	</nav>
 </aside>
-<div class="stage">
+<div class="stage stage-window">
 	<div class="stage-slot stage-cam pixel-frame" data-stage-slot="cam" data-slot-label="Cam portrait"></div>
 	<!-- The bubble slot owns its surface: the speech nine-patch is drawn on
 	     .stage-bubble::before by the Pixel frame's paper variant (frame.css),
@@ -64,4 +64,4 @@
      the menu. Same window as the frame, same design pixels: stage.css states
      the box once, for .stage-cam and .stage-hand both. stage.js fills it only
      for a pose that has a hand, so every other pose leaves it empty. -->
-<div class="stage-cam-hand"></div>
+<div class="stage-cam-hand stage-window"></div>
