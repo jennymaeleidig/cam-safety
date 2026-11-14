@@ -35,6 +35,13 @@
      background in shell mode — and so the pattern is markup a redesign edits
      rather than DOM a script fabricates. -->
 <div id="tmem-bg"><div class="pattern"></div></div>
+<!-- The background track: one looping media element that persists across
+     passages. music.js owns its source, playback and volume; declaring it here
+     keeps the page's persistent surfaces in markup and gives the page a single
+     audio element rather than one fabricated per track. No autoplay attribute:
+     the module starts it on the page's first gesture when the browser requires
+     one. -->
+<audio id="music" loop preload="auto"></audio>
 <div class="shell">
 	<div class="main">
 		<div id="passages" class="pixel-frame"></div>

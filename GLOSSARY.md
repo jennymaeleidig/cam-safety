@@ -72,3 +72,21 @@ _Avoid_: delay, timer, animation, effect
 The letter sounds the reveal plays — animalese slices, pitched and compressed.
 One voice, Cam's; the reply has none.
 _Avoid_: audio, sfx, blip, sample
+
+**Music**:
+The one looping background layer, playing a single Track at a time. Separate
+from Cam's Voice: the Voice belongs to the Reveal, Music to the scene. A gain
+of zero — a zero Music volume or the mute toggle — freezes the Track where it
+is.
+_Avoid_: soundtrack, BGM, audio
+
+**Track**:
+One looping background song. A passage selects a Track; the title and Layouts
+0–2 share one, and Layout 3 holds the same Track as a placeholder until its
+own arrives.
+_Avoid_: song, cue, loop
+
+**Mute**:
+The settings toggle that silences Music without changing its volume. Muting
+freezes the Track where it is; unmuting resumes it there.
+_Avoid_: mute button, silence switch

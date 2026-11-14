@@ -16,15 +16,20 @@ around it. A passage chooses its layout directly with `<<set_layout>>`.
 
 - `tweego: build` — one-shot build into `dist/story.html`.
 - `tweego: watch` — rebuild on change.
-- `assets: copy` — copies `include/images/` to `dist/images/`. The story
-  references Cam's portraits as relative `images/cam/...` URLs, so the artwork
-  has to sit beside `dist/story.html`. Both build tasks depend on it.
+- `assets: copy` — copies `include/images/`, `include/fonts/` and
+  `include/music/` to `dist/`. The story references Cam's portraits as relative
+  `images/cam/...` URLs and the track as a relative `music/...` URL, so the
+  assets have to sit beside `dist/story.html`. Both build tasks depend on it.
 - `run: build + open` — build, then open the story.
 
-By hand (both steps — the portraits are relative URLs):
+By hand (the assets, then the build — the portraits and the track are relative
+URLs):
 
 ```sh
-mkdir -p dist/images && cp -R include/images/. dist/images/
+mkdir -p dist/images dist/fonts dist/music
+cp -R include/images/. dist/images/
+cp -R include/fonts/. dist/fonts/
+cp -R include/music/. dist/music/
 TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -o dist/story.html src
 ```
 
@@ -54,8 +59,9 @@ still needs nothing but Tweego.
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
 | `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the two Settings-dialog ranges, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `music.js` (the one looping background track, its selection and the autoplay gesture), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the Settings dialog's three ranges and mute toggle, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
+| `include/music/`         | The background track, copied to `dist/music/` by the build and played from a relative URL.                                                                                                             |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
 ## Verification
@@ -102,14 +108,15 @@ SugarCube.Engine.play("Stage content empty");
    translucency and shadow do not fade the ink, and the link inside Cam's line
    is still clickable after the line lands. Paper never swallows a click
    beneath it. Play `Stage content empty`: no orphan paper is drawn.
-4. **Settings.** Open Settings from the menu: one Cam header, two ranges,
-   labels Text speed and Letter volume, defaults 50 and 25. Change Text
+4. **Settings.** Open Settings from the menu: a Cam header with two ranges,
+   labels Text speed and Letter volume, defaults 50 and 25; and a Music header
+   with Music volume (default 40) and a Mute music toggle (off). Change Text
    speed — the current line keeps its pace, the next uses the new one. Drag
    Letter volume — the next letter is audible at once. Reload: saved values
    restore. Corrupt or remove a value (console/local storage) and reload: the
    tuned default returns. Set volume to zero: the line still reveals in
-   silence. Emulate reduced motion: both ranges are present and Cam's line
-   arrives whole.
+   silence. Emulate reduced motion: all three ranges are present, Cam's line
+   arrives whole, and the music keeps playing.
 5. **Slot state.** During a reveal on `Stage content`, inspect the bubble and
    reply: the reply's text is empty and it is `is-revealing` and `inert` until
    Cam lands; its `data-state` stays `filled` so its paper is up, then it lands
@@ -125,6 +132,20 @@ SugarCube.Engine.play("Stage content empty");
 
    ```js
    document.body.setAttribute("data-stage-debug", "");
+   ```
+6. **Music.** Start the story and enter Layouts 0–3. The title track begins,
+   and `document.body.dataset.track` is `"theme"`. Moving between the title and
+   Layouts 0–2, and into Layout 3, never restarts it: the background element's
+   `currentTime` keeps advancing and its `paused` stays `false`. Let it reach
+   the end and it loops. Open Settings, Saves and the menu: playback survives.
+   Drag Music volume and hear it at once; mute pauses the track where it is and
+   unmuting continues from there. Reload and confirm the volume and mute state
+   restore. Check the letter sounds and the music never change each other's
+   loudness. Emulate reduced motion: music still plays.
+
+   ```js
+   document.body.dataset.track; // "theme"
+   document.getElementById("music").currentTime;
    ```
 
 ## Authoring

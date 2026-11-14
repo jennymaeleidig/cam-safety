@@ -13,6 +13,7 @@ interface Window {
   CamSettings: any;
   CamSettingsDefaults: any;
   Reveal: any;
+  Music: any;
   Voice: any;
   VoiceLetters: any;
   SugarCube: any;
