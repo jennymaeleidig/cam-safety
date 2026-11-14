@@ -74,17 +74,24 @@ One voice, Cam's; the reply has none.
 _Avoid_: audio, sfx, blip, sample
 
 **Music**:
-The one looping background layer, playing a single Track at a time. Separate
-from Cam's Voice: the Voice belongs to the Reveal, Music to the scene. A gain
-of zero — a zero Music volume or the mute toggle — freezes the Track where it
-is.
+The one looping background layer, playing a single Track at a time — a Track
+change overlaps the two for the Crossfade. Separate from Cam's Voice: the
+Voice belongs to the Reveal, Music to the scene. A gain of zero — a zero Music
+volume or the mute toggle — freezes the Track where it is.
 _Avoid_: soundtrack, BGM, audio
 
 **Track**:
 One looping background song. A passage selects a Track; the title and Layouts
-0–2 share one, and Layout 3 holds the same Track as a placeholder until its
-own arrives.
+0–2 share the Jamil theme, and Layout 3 has its own distorted arrangement of
+it. Each layout's Track is one entry in the track table.
 _Avoid_: song, cue, loop
+
+**Crossfade**:
+The overlap in which one Track fades out while the next fades in, over a fixed
+duration. A same-Track selection has none: the Track keeps playing from where
+it is. A Track change that arrives mid-Crossfade settles the running one and
+starts a fresh Crossfade from the track it landed on.
+_Avoid_: fade, transition, blend
 
 **Mute**:
 The settings toggle that silences Music without changing its volume. Muting

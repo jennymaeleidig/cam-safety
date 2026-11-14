@@ -59,9 +59,9 @@ still needs nothing but Tweego.
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
 | `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `music.js` (the one looping background track, its selection and the autoplay gesture), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the Settings dialog's three ranges and mute toggle, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `music.js` (the pair of looping background elements, the crossfade between tracks, and the autoplay gesture), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the Settings dialog's three ranges and mute toggle, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
-| `include/music/`         | The background track, copied to `dist/music/` by the build and played from a relative URL.                                                                                                             |
+| `include/music/`         | The background tracks — the Jamil theme and its distorted arrangement for Layout 3 — copied to `dist/music/` by the build and played from relative URLs.                                                                                                           |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
 ## Verification
@@ -135,17 +135,28 @@ SugarCube.Engine.play("Stage content empty");
    ```
 6. **Music.** Start the story and enter Layouts 0–3. The title track begins,
    and `document.body.dataset.track` is `"theme"`. Moving between the title and
-   Layouts 0–2, and into Layout 3, never restarts it: the background element's
-   `currentTime` keeps advancing and its `paused` stays `false`. Let it reach
-   the end and it loops. Open Settings, Saves and the menu: playback survives.
-   Drag Music volume and hear it at once; mute pauses the track where it is and
-   unmuting continues from there. Reload and confirm the volume and mute state
-   restore. Check the letter sounds and the music never change each other's
-   loudness. Emulate reduced motion: music still plays.
+   Layouts 0–2 never restarts it: the playing element's `currentTime` keeps
+   advancing and its `paused` stays `false`. Let it reach the end and it loops.
+   Enter Layout 3: `data-track` becomes `"distorted"` on that same passage,
+   the distorted arrangement fades in while the theme fades out over about a
+   second, and a fresh visit to Layout 3 after leaving starts the crossfade
+   again. The switch belongs to the passage that publishes the layout: no
+   passage plays the previous layout's track. Leaving
+   Layout 3 back to a theme layout crossfades back, and a same-track move
+   between Layouts 0–2 is unchanged. Open Settings, Saves and the menu:
+   playback survives. Drag Music volume and hear it at once, including
+   mid-crossfade; mute pauses both elements where they are and unmuting
+   continues from there. Reload and confirm the volume and mute state restore.
+   Check the letter sounds and the music never change each other's loudness.
+   Emulate reduced motion: music still plays, crossfade included.
 
    ```js
-   document.body.dataset.track; // "theme"
-   document.getElementById("music").currentTime;
+   document.body.dataset.track; // "theme", then "distorted" in Layout 3
+   Array.from(document.querySelectorAll("#music, #music-b")).map((el) => ({
+     src: el.getAttribute("src"),
+     level: el.volume,
+     paused: el.paused,
+   }));
    ```
 
 ## Authoring

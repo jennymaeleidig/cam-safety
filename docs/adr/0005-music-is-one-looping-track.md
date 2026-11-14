@@ -13,17 +13,22 @@ slices; music is a long-lived media element whose repetition is `loop` and
 whose gain is its `volume`. They share no node or gain, so the two settings
 cannot move each other.
 
-A passage selects its track through the existing passage-start lifecycle,
-before the passage renders, and the selection is published as
-`body[data-track]` — the same published-seam idiom as `data-layout` and
-`data-stage-mode`. Selection is by passage, not by layout alone: the title is a
-shell-mode passage and keeps whatever layout was last published, so it has to
-be named explicitly. Every other passage uses its layout's entry.
+A passage selects its track through the existing passage-render lifecycle,
+after the passage has run its own `<<set_layout>>` and before it is displayed,
+and the selection is published as `body[data-track]` — the same
+published-seam idiom as `data-layout` and `data-stage-mode`. The start phase
+is too early: `<<set_layout>>` runs while the passage renders, so a start-phase
+read still sees the passage being left. Selection is by passage, not by layout
+alone: the title is a shell-mode passage and keeps whatever layout was last
+published, so it has to be named explicitly. Every other passage uses its
+layout's entry.
 
 A same-track selection leaves the element alone, so the title into Layout 0 and
 Layouts 0 → 1 → 2 are one continuous track. A different track swaps the source
 and starts the new song. Layout 3 currently names the same track as the other
 layouts, as a placeholder; when its song arrives, only the track table changes.
+(ADR-0006 replaces the source swap with a crossfade and Layout 3's placeholder
+with its own song; the selection rules here stand.)
 
 The gain is read through the settings contract as one semantic value,
 `CamSettings.musicGain()`, a gain in [0, 1] with mute folded in. The music
@@ -43,7 +48,8 @@ unmute press is itself the gesture that starts it.
 
 **There is one audio element, not one per track.** A track change reuses it,
 so a new song cannot overlap the old one. There is no crossfade in this
-change.
+change. ADR-0006 supersedes this: a track change now crossfades on a declared
+pair of elements.
 
 **Track selection is inspectable without listening.** `data-track` names what
 is playing, so a placeholder cannot masquerade as a distinct track, and a
