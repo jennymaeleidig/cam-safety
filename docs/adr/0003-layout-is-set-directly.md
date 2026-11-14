@@ -23,7 +23,7 @@ an old save) becomes 0; a finite value is rounded and clamped to 0–3. The
 restoring a save publishes through the same writer. A `<<set_layout>>` with no
 argument reports an authoring error and leaves the current layout unchanged.
 
-The stylesheets, the stage module and Cam's neutral pose read the published
+The stylesheets, the stage module and Cam's poses read the published
 attribute and never recompute a layout. Layout 0 is the fallback: `:root`
 carries its values, so the stage is composed before any attribute exists.
 

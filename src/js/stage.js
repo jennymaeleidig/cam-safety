@@ -77,6 +77,12 @@
       content: null,
       prose: null,
       flushed: false,
+      /* The portrait's current pose and the artwork of the layout's phase. An
+         authored portrait has no pose: it is shown statically. */
+      pose: "neutral",
+      authored: false,
+      neutralSrc: null,
+      talkingSrc: null,
     };
   }
 
@@ -101,6 +107,23 @@
     s.prose = null;
   }
 
+  /* Paint the portrait and publish which pose it is. An authored portrait
+     carries no pose marker: the pose offsets belong to the layout's two
+     artworks, not to an image the passage pinned by hand. */
+  function paintPortrait(cam, src, alt, pose) {
+    var img = document.createElement("img");
+    img.className = "stage-portrait";
+    img.setAttribute("src", src);
+    img.setAttribute("alt", alt);
+    cam.element.appendChild(img);
+    cam.pose = pose;
+    if (pose) {
+      cam.element.setAttribute("data-pose", pose);
+    } else {
+      cam.element.removeAttribute("data-pose");
+    }
+  }
+
   function writePortrait(value) {
     var cam = slot("cam");
     if (!cam) {
@@ -108,19 +131,60 @@
     }
     cam.element.textContent = "";
     if (!value || !value.src) {
-      publish(cam, false);
-      writeHand(null);
+      var phase = phaseIndex();
+      cam.authored = false;
+      cam.neutralSrc = NEUTRAL_POSE[phase] || NEUTRAL_POSE[0];
+      cam.talkingSrc = TALKING_POSE[phase] || TALKING_POSE[0];
+      paintPortrait(cam, cam.neutralSrc, "Cam", "neutral");
+      publish(cam, true);
+      /* A pose drawn in two layers lifts its hand out here; every other pose
+         has none, and this clears whatever the last passage left. */
+      writeHand(handFor(cam.neutralSrc), "neutral");
+      preload(cam.talkingSrc);
       return;
     }
-    var img = document.createElement("img");
-    img.className = "stage-portrait";
-    img.setAttribute("src", String(value.src));
-    img.setAttribute("alt", String(value.alt || "Cam"));
-    cam.element.appendChild(img);
+    cam.authored = true;
+    cam.neutralSrc = String(value.src);
+    cam.talkingSrc = null;
+    paintPortrait(cam, cam.neutralSrc, String(value.alt || "Cam"), null);
     publish(cam, true);
-    /* A pose drawn in two layers lifts its hand out here; every other pose has
-       none, and this clears whatever the last passage left. */
-    writeHand(HAND_LAYER[String(value.src)] || null);
+    /* An authored portrait is shown as one image, so any hand it names keeps
+       the image's own framing rather than a pose offset. */
+    writeHand(handFor(cam.neutralSrc), null);
+  }
+
+  /* ---- switching the portrait's pose -----------------------------------
+     The Reveal decides when Cam is speaking; this file owns what that means
+     for the portrait. The swap replaces the one image's source, so the
+     talking GIF starts at its first frame. The hand layer follows the pose:
+     only a neutral pose has one, and a talking pose clears it. */
+  function setPose(cam, pose) {
+    if (!cam || cam.authored || cam.pose === pose) {
+      return;
+    }
+    cam.pose = pose;
+    cam.element.setAttribute("data-pose", pose);
+    var img = cam.element.querySelector(".stage-portrait");
+    if (img) {
+      img.setAttribute(
+        "src",
+        pose === "talking" ? cam.talkingSrc : cam.neutralSrc,
+      );
+    }
+    var hand = pose === "neutral" ? handFor(cam.neutralSrc) : null;
+    writeHand(hand, hand ? "neutral" : null);
+  }
+
+  /* Warm the talking artwork so the instant swap never waits on a fetch or a
+     decode. The cache is keyed by path; an already-warm pose is left alone. */
+  var preloaded = {};
+
+  function preload(src) {
+    if (!src || preloaded[src]) {
+      return;
+    }
+    preloaded[src] = new Image();
+    preloaded[src].src = src;
   }
 
   /* ---- the hand layer: poses drawn in two halves ------------------------
@@ -145,12 +209,23 @@
       "images/cam/phase-2/neutral/phase-2-neutral-hand.gif",
   };
 
-  function writeHand(src) {
+  function handFor(src) {
+    return HAND_LAYER[src] || null;
+  }
+
+  /* The layer carries the pose its image belongs to: only a neutral pose has a
+     hand, and an authored portrait's hand takes no pose offset. */
+  function writeHand(src, pose) {
     var layer = document.querySelector(".stage-cam-hand");
     if (!layer) {
       return;
     }
     layer.textContent = "";
+    if (pose) {
+      layer.setAttribute("data-pose", pose);
+    } else {
+      layer.removeAttribute("data-pose");
+    }
     if (!src) {
       return;
     }
@@ -193,12 +268,13 @@
     return { slot: s, prose: target };
   }
 
-  /* ---- the default portrait: the layout's neutral pose ------------------
+  /* ---- the default portrait: the layout's phase, in two poses ----------
      Cam's artwork is one GIF per phase, in a neutral and a talking pose.
      A [checker] passage that omits <<portrait>> shows the current layout's
-     neutral pose, so Cam is on stage without any per-passage wiring;
-     <<portrait>> overrides it for that one passage (a talking pose, a
-     one-off image).
+     neutral pose, so Cam is on stage without any per-passage wiring, and
+     switches to the talking pose while the Reveal grows his line. An authored
+     <<portrait>> pins one image for the whole passage instead; it has no
+     talking counterpart to switch to.
 
      Paths are relative to the built story.html: the build copies
      include/images beside it as dist/images (the assets: copy task).
@@ -214,9 +290,19 @@
     "images/cam/phase-3/neutral/phase-3-neutral.gif",
   ];
 
-  function neutralPose() {
+  var TALKING_POSE = [
+    "images/cam/phase-0/talking/phase-0-talking.gif",
+    "images/cam/phase-1/talking/phase-1-talking.gif",
+    "images/cam/phase-2/talking/phase-2-talking.gif",
+    "images/cam/phase-3/talking/phase-3-talking.gif",
+  ];
+
+  /* The Phase a layout selects, as the index of its artwork pair. Read from
+     the published attribute, never recomputed from $layout; an unknown index
+     falls back to the first pair. */
+  function phaseIndex() {
     var layout = Number(document.body.getAttribute("data-layout"));
-    return NEUTRAL_POSE[layout] || NEUTRAL_POSE[0];
+    return NEUTRAL_POSE[layout] ? layout : 0;
   }
 
   /* ---- the two phases ------------------------------------------------- */
@@ -237,7 +323,7 @@
     var cam = slot("cam");
     var bubble = slot("bubble");
     var replySlot = slot("reply");
-    writePortrait((cam && cam.content) || { src: neutralPose() });
+    writePortrait(cam && cam.content);
     /* Both lines are written before either is revealed: the reveal decides
        what waits for what, and it needs the prose in place because it reads
        its text nodes. Each handle carries the Slot and the element to grow,
@@ -314,6 +400,17 @@
   stage.hold = busy;
   stage.land = land;
   stage.abandon = abandon;
+
+  /* The portrait's pose, requested by the Reveal at the same moments it asks
+     for the bubble's transitions: speaking while a line is being revealed,
+     silent when it lands, is skipped or is abandoned. */
+  stage.speaking = function () {
+    setPose(slot("cam"), "talking");
+  };
+
+  stage.silent = function () {
+    setPose(slot("cam"), "neutral");
+  };
 
   stage.setCamLine = function (html) {
     var bubble = slot("bubble");

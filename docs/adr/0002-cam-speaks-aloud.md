@@ -50,6 +50,18 @@ flush left it. The
 reveal still decides when; the Stage decides what is true. “Is this Slot
 showing a line, and if not why?” has one answer, in one module.
 
+**The portrait speaks with the line.** The Stage also owns the portrait's
+pose: the reveal asks it to `speak` when a line starts and to fall quiet when
+the line lands, is skipped or is abandoned. The swap is a source change on the
+one portrait image, so the talking GIF begins at its first frame, and the
+artwork is warmed at flush so the swap never waits on a fetch. The pose is
+published on the cam slot, and the stylesheets use it to apply that pose's own
+nudge inside the fixed Pixel frame. The two poses are drawn at slightly
+different places on their shared canvas, so each carries its own offset in
+artwork pixels; the frame and the layout's composition never move to
+compensate. An authored `<<portrait>>` pins one image for the passage and has
+no pose to switch to.
+
 **A revealing or held slot is `inert`.** Blanking the text of a held reply
 leaves its anchors in the DOM, and anchors are focusable: tab-then-enter could
 have followed a link the player had seen for one frame. `inert` covers the
@@ -80,10 +92,15 @@ with it, so a fast reader is never made to wait. Nothing announces this; it is
 the same "keep clicking" the rest of the story asks for.
 
 **`prefers-reduced-motion` declines the reveal, and with it the sound.** The
-flush has already put both lines on screen in full when the reveal declines, so
-the mode costs nothing but the voice. The Settings dialog still shows both
-ranges; neither does anything in that mode, and the text-speed description says
-so.
+flush has already put Cam's line on screen in full when the reveal declines.
+His talking pose is still held for one fixed beat — 1200 ms — and the reply
+waits behind it, empty and inert, so the turn-taking rhythm survives without
+any character-by-character motion. Space, enter, escape or a pointer press
+ends the beat at once and lands the reply. The beat belongs only to this mode:
+a passage with no Cam line, or a reveal declined because no gesture has woken
+the Voice, shows the neutral pose and no beat. The Settings dialog still shows
+both ranges; neither does anything in that mode, and the text-speed
+description says so.
 
 **Pace and volume are the player's, in SugarCube's own Settings dialog.**
 `settings.js` adds a `Cam` header and two ranges — `revealSpeed` in letters a

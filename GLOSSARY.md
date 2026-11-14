@@ -17,6 +17,13 @@ One of the four sets of Cam's artwork — a neutral and a talking pose each —
 one phase per layout. A layout selects its phase.
 _Avoid_: stage, form
 
+**Pose**:
+One of a phase's two artworks: the neutral pose while Cam is silent, the
+talking pose while his line is spoken — revealed, or held for the
+reduced-motion beat. Each pose carries its own nudge inside the Pixel frame,
+so the two line up while the frame stays put.
+_Avoid_: state, expression, animation
+
 **Stage mode**:
 The display mode in which a `[checker]` passage renders inside the letterboxed
 stage frame instead of the reading shell. Derived from the passage's tags.
@@ -51,8 +58,15 @@ _Avoid_: rail, sidebar, nav, drawer
 The one-character-at-a-time arrival of Cam's line, one letter of voice per
 character. Only Cam's line is revealed; the player's reply arrives whole when
 Cam finishes. A link is never revealed character by character: it arrives in
-one step and is silent.
+one step and is silent. Under reduced motion there is no Reveal; the talking
+pose holds for a beat instead.
 _Avoid_: typewriter, typing, animation, effect
+
+**Beat**:
+The fixed pause under reduced motion in which Cam's talking pose is held and
+the reply waits, standing in for the Reveal's duration. Space, enter, escape
+or a pointer press ends it early.
+_Avoid_: delay, timer, animation, effect
 
 **Voice**:
 The letter sounds the reveal plays — animalese slices, pitched and compressed.

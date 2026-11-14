@@ -53,8 +53,8 @@ still needs nothing but Tweego.
 | `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                                                                                                                                 |
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
-| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry and which frame art each slot uses).                 |
-| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `reveal.js` (Cam's line, a character at a time), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the two Settings-dialog ranges, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, and the per-layout neutral portrait), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
+| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
+| `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the two Settings-dialog ranges, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `story.twee-config.yaml` | Macro descriptions for the editor.                                                                                                                                                                                                                             |
 
@@ -80,26 +80,48 @@ SugarCube.Engine.play("Stage content empty");
    previous composition flashing first — the attribute write is synchronous,
    not deferred to a later frame. With no `$layout`, or a non-numeric
    one, the stage composes as Layout 0; a finite out-of-range value is clamped.
-2. **Bubble.** Play `Stage content long` and scroll the bubble: only the prose
+2. **Cam's poses.** On each layout, watch the portrait while a Cam line is
+   revealed: it switches from that phase's neutral pose to its talking pose on
+   the first revealed character and back when the line lands, and the Pixel
+   frame and slot boxes do not move. Skip mid-line: the pose lands with the
+   text. On phase 2, the neutral body and hand still land together, and the
+   talking pose clears the hand layer. A passage that authors `<<portrait>>`
+   keeps that one image for the whole passage. Check the cam slot advertises
+   its pose:
+
+   ```js
+   document.querySelector('.stage-cam').dataset.pose; // "neutral" or "talking"
+   ```
+
+   To tune a pose, drag its nudge in devtools and watch the built story: the
+   values live in `stage.css` as per-phase, per-pose art pixels. Check each
+   phase's two poses at Layouts 0–3 — especially the close-in scale at
+   Layout 3 — until the character lands on the same spot in both.
+3. **Bubble.** Play `Stage content long` and scroll the bubble: only the prose
    moves, the paper's edge stays put, no line lands on the outline, the paper's
    translucency and shadow do not fade the ink, and the link inside Cam's line
    is still clickable after the line lands. Paper never swallows a click
    beneath it. Play `Stage content empty`: no orphan paper is drawn.
-3. **Settings.** Open Settings from the menu: one Cam header, two ranges,
+4. **Settings.** Open Settings from the menu: one Cam header, two ranges,
    labels Text speed and Letter volume, defaults 62.5 and 25. Change Text
    speed — the current line keeps its pace, the next uses the new one. Drag
    Letter volume — the next letter is audible at once. Reload: saved values
    restore. Corrupt or remove a value (console/local storage) and reload: the
    tuned default returns. Set volume to zero: the line still reveals in
-   silence. Emulate reduced motion: both ranges are present and the line
+   silence. Emulate reduced motion: both ranges are present and Cam's line
    arrives whole.
-4. **Slot state.** During a reveal on `Stage content`, inspect the bubble and
-   reply: the reply is `data-state="empty"`, `is-revealing` and `inert` until
-   Cam lands, then filled and reachable. Space, enter, escape and a pointer
-   press land both lines; tab and the arrow keys do not. `Stage content empty`
-   leaves no stale state, paper, inertness or held reply. Under reduced motion
-   there is no hold and no `inert`. Turn on the debug outline and confirm empty
-   slots are outlined and a revealing slot is exempt:
+5. **Slot state.** During a reveal on `Stage content`, inspect the bubble and
+   reply: the reply's text is empty and it is `is-revealing` and `inert` until
+   Cam lands; its `data-state` stays `filled` so its paper is up, then it lands
+   filled and reachable. Space, enter, escape and a pointer press land both
+   lines; tab and the arrow keys do not. `Stage content empty` leaves no stale
+   state, paper, inertness or held reply. Under reduced motion
+   the talking pose holds for one beat and the reply is held empty and inert
+   for that beat, then lands; space, enter, escape or a pointer press ends the
+   beat at once. A passage with no Cam line, or a refresh-restored line with
+   no gesture, shows no talking beat.
+   Turn on the debug outline and confirm empty slots are outlined and a
+   revealing slot is exempt:
 
    ```js
    document.body.setAttribute("data-stage-debug", "");

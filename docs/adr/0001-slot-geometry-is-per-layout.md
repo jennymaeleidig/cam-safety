@@ -24,3 +24,9 @@ and its aspect is locked to that artwork, so no layout crops a pose under
 `object-fit: fill`. Layout 0's values are still stated twice (on `:root`, as
 the fallback for the moment before `data-layout` exists, and in the layout-0
 block); that duplication is deliberate and must stay in step.
+
+A pose's nudge translates the image inside that box; the box itself never
+moves or changes shape. A nonzero nudge is clipped at the frame's content box
+and can expose the frame's green centre at an edge. That is deliberate: the
+nudge is the only way to line up two artworks drawn at different spots on the
+same canvas without moving the frame.

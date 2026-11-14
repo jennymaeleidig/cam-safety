@@ -83,6 +83,27 @@
   --cam-art-w: 719;
   --cam-art-h: 551;
 
+  /* Cam's per-pose nudges, in artwork design pixels. Each Phase's neutral and
+     talking poses are drawn at slightly different places on the shared canvas,
+     so each pose gets its own pair; zero is no nudge. A Layout block may
+     override the pair it maps below. */
+  --cam-pose-0-neutral-x: 0;
+  --cam-pose-0-neutral-y: 0;
+  --cam-pose-0-talking-x: 0;
+  --cam-pose-0-talking-y: 0;
+  --cam-pose-1-neutral-x: 0;
+  --cam-pose-1-neutral-y: 0;
+  --cam-pose-1-talking-x: 0;
+  --cam-pose-1-talking-y: 0;
+  --cam-pose-2-neutral-x: 0;
+  --cam-pose-2-neutral-y: 0;
+  --cam-pose-2-talking-x: 0;
+  --cam-pose-2-talking-y: 0;
+  --cam-pose-3-neutral-x: 0;
+  --cam-pose-3-neutral-y: 0;
+  --cam-pose-3-talking-x: 0;
+  --cam-pose-3-talking-y: 0;
+
   /* The Design canvas, the stage window, the Design pixel and the rail
      measurements live in measure.css; the Pixel frame's art lives in
      frame.css. */
@@ -129,6 +150,13 @@ body[data-layout="0"] {
   --slot-cam-top: 1125;
   --slot-cam-scale: 1;
 
+  /* cam poses — this Layout shows the phase-0 pair, so those two nudges are
+     the ones the portrait reads. */
+  --cam-neutral-x: var(--cam-pose-0-neutral-x);
+  --cam-neutral-y: var(--cam-pose-0-neutral-y);
+  --cam-talking-x: var(--cam-pose-0-talking-x);
+  --cam-talking-y: var(--cam-pose-0-talking-y);
+
   /* bubble — left, tail points bottom-right */
   --slot-bubble-left: 690;
   --slot-bubble-top: 298;
@@ -160,6 +188,12 @@ body[data-layout="1"] {
   --slot-cam-top: 1125;
   --slot-cam-scale: 1;
 
+  /* cam poses — this Layout shows the phase-1 pair */
+  --cam-neutral-x: var(--cam-pose-1-neutral-x);
+  --cam-neutral-y: var(--cam-pose-1-neutral-y);
+  --cam-talking-x: var(--cam-pose-1-talking-x);
+  --cam-talking-y: var(--cam-pose-1-talking-y);
+
   /* bubble — right of Cam, tail points bottom-left */
   --slot-bubble-left: 1252;
   --slot-bubble-top: 298;
@@ -190,6 +224,12 @@ body[data-layout="2"] {
   --slot-cam-left: 115;
   --slot-cam-top: 30;
   --slot-cam-scale: 1.1;
+
+  /* cam poses — this Layout shows the phase-2 pair */
+  --cam-neutral-x: var(--cam-pose-2-neutral-x);
+  --cam-neutral-y: var(--cam-pose-2-neutral-y);
+  --cam-talking-x: var(--cam-pose-2-talking-x);
+  --cam-talking-y: var(--cam-pose-2-talking-y);
 
   /* bubble — tail points top-left */
   --slot-bubble-left: 1230;
@@ -224,6 +264,12 @@ body[data-layout="3"] {
   --slot-cam-left: -450;
   --slot-cam-top: 250;
   --slot-cam-scale: 1.9;
+
+  /* cam poses — this Layout shows the phase-3 pair */
+  --cam-neutral-x: var(--cam-pose-3-neutral-x);
+  --cam-neutral-y: var(--cam-pose-3-neutral-y);
+  --cam-talking-x: var(--cam-pose-3-talking-x);
+  --cam-talking-y: var(--cam-pose-3-talking-y);
 
   /* bubble — tail points left at Cam */
   --slot-bubble-left: 1275;
@@ -352,6 +398,10 @@ body[data-stage-mode] {
 .stage-cam {
   /* The portrait is artwork, never a target. */
   pointer-events: none;
+  /* The image slides inside this box when its pose is nudged. Clipping at the
+     padding edge keeps the ornament untouched: the Pixel frame's band is a
+     real border, outside the clip. */
+  overflow: hidden;
   /* The content inset is the same empty or filled, so the pose and its
      layered hand stay in one box. */
   --pixel-frame-inset: var(--cam-frame-width);
@@ -419,6 +469,31 @@ body[data-stage-mode] {
      and its transparent pixels show that green. The image carries no
      backdrop of its own: an empty cam slot draws nothing, which is the rule
      every slot look follows. */
+}
+
+/* A pose's nudge: the image slides within the fixed Slot by the running
+   Phase's offset, scaled with the portrait so artwork pixels keep their
+   meaning. The Slot clips, so the frame's band and the composition never
+   move. The offset is selected on the image's own container — the cam Slot
+   for the body, the hand layer for the hand — and the transform itself is
+   stated once. */
+.stage-cam[data-pose="neutral"] .stage-portrait,
+.stage-cam-hand[data-pose="neutral"] .stage-hand {
+  --cam-offset-x: var(--cam-neutral-x);
+  --cam-offset-y: var(--cam-neutral-y);
+}
+
+.stage-cam[data-pose="talking"] .stage-portrait {
+  --cam-offset-x: var(--cam-talking-x);
+  --cam-offset-y: var(--cam-talking-y);
+}
+
+.stage-portrait,
+.stage-hand {
+  transform: translate(
+    calc(var(--stage-unit) * var(--slot-cam-scale) * var(--cam-offset-x, 0)),
+    calc(var(--stage-unit) * var(--slot-cam-scale) * var(--cam-offset-y, 0))
+  );
 }
 
 /* The hand half of a layered pose: an image, not a slot, so it fills the box

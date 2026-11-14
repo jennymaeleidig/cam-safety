@@ -54,13 +54,16 @@
    full; only the voice skips.
 
    prefers-reduced-motion: no reveal at all, and with it no sound. The flush has
-   already put the lines in full on screen when this file declines.
+   already put Cam's line in full on screen when this file declines. If there is
+   a Cam line, his talking pose is still held for one fixed beat, and a reply
+   waits behind it, held empty and inert, so the turn-taking rhythm survives
+   without any character-by-character motion. Space, enter, escape or a pointer
+   press ends the beat early. There is no beat when no Cam line arrived, and no
+   beat when the reveal declines only because no gesture has woken the Voice.
 
-   A line whose letters would be heard is the only line this file reveals. A
-   page restored by refresh has had no gesture yet, so the Voice cannot sound;
-   its lines arrive whole instead of typewriting in silence (Voice.audible()).
-   A muted player is not this case: the silence is their choice, and the reveal
-   still runs. */
+   The portrait's pose is not this file's data: this file asks the Stage to
+   speak, land, hold and abandon, and the Stage writes what is true. The pose
+   follows the same clock as the line. */
 (function () {
   "use strict";
 
@@ -75,6 +78,11 @@
      more voices into the same 75 ms, and the compressor is what keeps that
      sum in range. */
   var LETTERS_PER_FRAME = 2;
+
+  /* The talking pose's beat when prefers-reduced-motion declines the reveal.
+     A starting value, not a measured one: long enough for the pose to read as
+     speech, short enough not to delay a player who asked for no motion. */
+  var BEAT_MS = 1200;
 
   /* Milliseconds per character, from the settings module's semantic read.
      The module owns the dialog's unit, tuned default, clamping and fallback;
@@ -157,6 +165,19 @@
     return entry.plan.steps.length;
   }
 
+  /* A waiting reply is emptied and held; nothing waits when the reply wiki'd
+     down to whitespace. */
+  function queueReply(handle) {
+    if (!handle) {
+      return;
+    }
+    var entry = line(handle);
+    if (total(entry) > 0) {
+      hold(entry);
+      waiting = entry;
+    }
+  }
+
   function paintTo(entry) {
     var steps = entry.plan.steps;
     paint(entry.plan, entry.step > 0 ? steps[entry.step - 1].chars : 0);
@@ -181,6 +202,22 @@
     var stage = win.Stage;
     if (stage && typeof stage.hold === "function") {
       stage.hold(entry.handle);
+    }
+  }
+
+  /* The portrait speaks with the line. */
+  function speak() {
+    var stage = win.Stage;
+    if (stage && typeof stage.speaking === "function") {
+      stage.speaking();
+    }
+  }
+
+  /* The line is whole: the portrait settles. */
+  function silence() {
+    var stage = win.Stage;
+    if (stage && typeof stage.silent === "function") {
+      stage.silent();
     }
   }
 
@@ -235,6 +272,7 @@
     /* Cam's line is revealed in place: its paper stays up while the prose
        grows, so keep the flushed state and only mark it revealing. */
     reveal(entry);
+    speak();
     return advance(entry, now);
   }
 
@@ -243,6 +281,8 @@
   var speaking = null;
   var waiting = null;
   var frame = 0;
+  /* The reduced-motion beat's end, or 0 when no beat is running. */
+  var beat = 0;
 
   function stop() {
     if (frame) {
@@ -253,6 +293,7 @@
 
   function finish() {
     stop();
+    beat = 0;
     if (speaking) {
       land(speaking);
       speaking = null;
@@ -261,10 +302,19 @@
       land(waiting);
       waiting = null;
     }
+    silence();
   }
 
   function tick(now) {
     frame = 0;
+    if (beat) {
+      if (now < beat) {
+        frame = win.requestAnimationFrame(tick);
+        return;
+      }
+      finish();
+      return;
+    }
     if (!speaking) {
       return;
     }
@@ -282,37 +332,53 @@
   Reveal.start = function (handles) {
     handles = handles || {};
     stop();
+    beat = 0;
     if (speaking) {
       abandon(speaking);
       speaking = null;
+      /* The incoming flush has already painted the new passage's portrait;
+         this puts the previous line's pose back to quiet at the same moment
+         its Slot is abandoned. */
+      silence();
     }
     if (waiting) {
       abandon(waiting);
       waiting = null;
     }
-    if (reducedMotion()) {
-      return;
-    }
+
+    var camIn = handles.camLine ? line(handles.camLine) : null;
+    var hasCamLine = !!camIn && total(camIn) > 0;
+
     /* No gesture has woken the voice yet, so a reveal now would type in
-       silence. Leave the flush's lines whole on screen. */
+       silence. Leave the flush's lines whole on screen and the portrait
+       neutral — including under reduced motion, where a restored page should
+       not pretend to speak. */
     var voice = win.Voice;
     if (voice && typeof voice.audible === "function" && !voice.audible()) {
       return;
     }
 
-    var camIn = handles.camLine ? line(handles.camLine) : null;
-    if (!camIn || total(camIn) === 0) {
+    if (reducedMotion()) {
+      if (!hasCamLine) {
+        return;
+      }
+      if (handles.reply) {
+        queueReply(handles.reply);
+      }
+      speak();
+      beat = win.performance.now() + BEAT_MS;
+      frame = win.requestAnimationFrame(tick);
+      return;
+    }
+
+    if (!hasCamLine) {
       /* Nobody speaks: a passage with no Cam line, or a bubble that wiki'd down
          to whitespace. Nothing is revealed, so nothing waits. */
       return;
     }
 
     if (handles.reply) {
-      var queued = line(handles.reply);
-      if (total(queued) > 0) {
-        hold(queued);
-        waiting = queued;
-      }
+      queueReply(handles.reply);
     }
 
     speaking = camIn;
@@ -331,7 +397,7 @@
      has not read. Capture phase and no preventDefault, so the same event still
      belongs to whatever it was for. */
   Reveal.skip = function () {
-    if (speaking || waiting) {
+    if (speaking || waiting || beat) {
       finish();
     }
   };
