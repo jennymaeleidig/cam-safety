@@ -111,6 +111,17 @@
   --stage-bubble-fill: #f8f8f8;
   --pixel-fill: #216b00;
   --pixel-fill-ink: #f5f5f7;
+
+  /* ---- the shadow ----
+     One drop shadow for every framed surface, cast from that surface's own
+     silhouette rather than from a rectangle behind it, so a stepped corner
+     keeps its steps in the shadow. Both lengths scale with the Design pixel,
+     so the light keeps its weight from a phone to a projector: the offset and
+     the blur are stated once here and a surface does not retune them. */
+  --frame-shadow: drop-shadow(
+    0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
+      rgba(0, 0, 0, 0.35)
+  );
 }
 
 .pixel-frame,
@@ -124,4 +135,16 @@
   background-clip: padding-box;
   box-sizing: border-box;
   image-rendering: pixelated;
+}
+
+/* The shadow belongs to the frame, so it is stated once for every surface that
+   wears one: the Menu, the reading card, Cam's portrait and the reply bar take
+   it on the framed element itself, and the speech paper takes it on its slot.
+   On the paper's slot the filter spans the whole slot, so the paper and its
+   pointer are rasterised as one silhouette: the pointer's mouth cannot leave a
+   one-device-pixel seam against the paper's edge, and no shadow crosses the
+   pointer because the pointer is part of the shape that casts it. */
+.pixel-frame,
+.pixel-frame-paper {
+  filter: var(--frame-shadow);
 }

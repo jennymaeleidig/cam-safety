@@ -526,7 +526,8 @@ body[data-stage-mode] {
    main reading surface. The slot owns the paper (its ::before, below); the
    inner prose box is the part that reads and scrolls. The slot itself neither
    scrolls nor clips, so the paper stays fixed while a long line moves inside
-   it. Opacity and shadow live on the paper only, so the ink stays crisp. */
+   it. The frame's shadow is on the slot (frame.css), so paper and pointer
+   cast one silhouette around the prose. */
 .stage-bubble-prose {
   position: relative;
   z-index: 1;
@@ -591,8 +592,8 @@ body[data-stage-mode] {
    The pointer is a second layer, below. This one stays the card: fixed to
    the slot's box, sitting behind the inner prose box and behind the pointer,
    and never intercepting a pointer, so links and choices remain reachable.
-   The shadow is applied here, once to the finished paper, and not to the
-   prose.
+   The shadow is the frame's (frame.css), stated on the slot so paper and
+   pointer cast one silhouette.
 
    A real border reserves the nine-patch, which is why the layer's box is
    border-box and the prose's own padding keeps every line inside the centre. */
@@ -609,20 +610,15 @@ body[data-stage-mode] {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  filter: drop-shadow(
-    0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
-      rgba(0, 0, 0, 0.35)
-  );
 }
 
 /* ---- the speech bubble's pointer ---------------------------------------
    The tail is a separate silhouette with its own art, drawn on the slot's
    ::after so it can be aimed independently: above the paper's layer, so its
    mouth replaces the stretch of the card's outline it opens through, and
-   below the prose. Sitting above also puts it above the paper's drop shadow,
-   so the shadow runs beneath the pointer rather than across it, and the
-   pointer casts none of its own: the card and its pointer share one plane and
-   one shadow.
+   below the prose. The slot's own shadow (frame.css) covers the pointer too,
+   so the card and its pointer share one plane, one silhouette and one
+   shadow, and no shadow crosses the pointer.
 
    The box is the artwork at the paper's pixel scale, and the layout seats it
    by the top-left corner (see the tail knobs above). The art's mouth is its
