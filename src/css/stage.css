@@ -25,7 +25,7 @@
    the background (checker.css) and the menu (the repositioned .rail, below)
    share one box with the frame.
 
-   The five slots and what fills each:
+   The stage's slots and what fills each:
      background     #tmem-bg — the existing animated checkerboard; one layer,
                      reused, not a second background
      cam            .stage-cam — Cam's portrait               (per passage)
@@ -36,6 +36,9 @@
                      its ::before draws the paper nine-patch, its ::after the
                      pointer tail, and its inner .stage-bubble-prose box
                      scrolls the line
+     system card    .stage-system — a pre-game system message (per passage)
+                     the title screen's reading card in the speech bubble's
+                     box, with an inner .reading-card-prose box that scrolls
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
@@ -43,9 +46,10 @@
 
    Slot geometry is data: each layout is one block below, under a
    body[data-layout="N"] selector, holding the same small set of values —
-   the three content slots' boxes (the portrait's as a scale on the artwork's
+   the content slots' boxes (the portrait's as a scale on the artwork's
    own box, not as a box), the menu's visibility, and the tail's piece, aim
-   and seat on the card. The menu and the reply bar take their size from
+   and seat on the card. A layout states only the slots it composes. The menu
+   and the reply bar take their size from
    --rail-unit (measure.css) instead: the reply is the menu's box rotated a
    quarter turn and widened, so the two panels stay one pair in every layout.
    Layout 0 doubles as the fallback on :root for the moment before layout.js
@@ -141,7 +145,12 @@
    one authored pixel further in (--tail-seat) so the card's stepped corner
    is covered too. At a corner, bring the pointer's own outlined edge flush
    with the slot's edge, so its outline continues the card's. The samples in
-   include/images/dialogue/speech-bubble-tail-samples are the reference. */
+   include/images/dialogue/speech-bubble-tail-samples are the reference.
+
+   A layout states only the slots it composes. Layout 4 composes no cam and no
+   speech-bubble, so it has no cam or bubble values and no tail knobs; those
+   elements are hidden under it, and the style rules below keep their layout-0
+   values from :root. */
 
 :root,
 body[data-layout="0"] {
@@ -294,6 +303,28 @@ body[data-layout="3"] {
   --tail-y: 52%;
 }
 
+body[data-layout="4"] {
+  /* The System layout: Layout 0 with Cam and his bubble removed. The system
+     card takes the bubble's box exactly, and the reply bar and the menu keep
+     Layout 0's positions and visibility. Only the slots this layout composes
+     are stated; the cam, its hand and the bubble are hidden rather than
+     placed, so their absence is not a missing box. */
+
+  /* system — the speech bubble's box, in design pixels */
+  --slot-system-left: 690;
+  --slot-system-top: 298;
+  --slot-system-width: 1460;
+  --slot-system-height: 865;
+
+  /* reply — centred on the system card's box, y unchanged */
+  --slot-reply-left: 1420;
+  --slot-reply-top: 1302;
+  --slot-reply-shift-x: -50%;
+
+  /* menu — visible */
+  --slot-menu-display: flex;
+}
+
 /* ---- the frame ---------------------------------------------------------- */
 
 .stage {
@@ -435,6 +466,46 @@ body[data-stage-mode] {
   transform: translateX(var(--slot-reply-shift-x, 0));
 }
 
+/* The system card: the speech bubble's box holding the reading card the title
+   screen wears, so a pre-game message sits in the same framed block the story
+   opens on. Hidden outside the System layout, which is the only layout that
+   places it: hidden rather than unplaced, so the debug outline never reads it
+   as a gap. Its box scales with the stage; its frame and its type are the
+   card's fixed measurements (shell.css). */
+.stage-system {
+  left: calc(var(--stage-unit) * var(--slot-system-left));
+  top: calc(var(--stage-unit) * var(--slot-system-top));
+  width: calc(var(--stage-unit) * var(--slot-system-width));
+  height: calc(var(--stage-unit) * var(--slot-system-height));
+  /* Above the portrait, as the bubble is: the card is prose. */
+  z-index: 2;
+  display: none;
+}
+
+body[data-layout="4"] .stage-system {
+  display: block;
+}
+
+/* The stage instance of the card's prose box: the slot's fixed box is the
+   card, so a message longer than it scrolls inside the frame instead of
+   running past it. The title's instance keeps natural page height. */
+.stage-system .reading-card-prose {
+  box-sizing: border-box;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+}
+
+/* The System layout composes no portrait and no speech-bubble. Their elements
+   stay in the story chrome — the slots are the same on every passage — and are
+   hidden here, so neither draws an empty frame or paper and the debug outline
+   never calls them missing. The hand layer goes with the portrait it halves. */
+body[data-layout="4"] .stage-cam,
+body[data-layout="4"] .stage-bubble,
+body[data-layout="4"] .stage-cam-hand {
+  display: none;
+}
+
 /* ---- slot content — what the content macros put into each slot ----------
    Empty slots draw nothing: every per-slot look below is gated on
    [data-state="filled"], the attribute stage.js writes in the same flush that
@@ -442,7 +513,7 @@ body[data-stage-mode] {
    rather than an empty card. The attribute and not :empty, because only the
    record knows whether a slot has content: a line of wiki output that renders
    to whitespace leaves a slot non-empty and blank. The content macros only
-   record; stage.js writes all three slots in one flush after the passage
+   record; stage.js writes all four slots in one flush after the passage
    renders, so a slot a passage did not fill is written empty. */
 
 /* Cam's portrait: the image fills its slot, so the slot box — whose
@@ -520,6 +591,19 @@ body[data-stage-mode] {
 .stage-cam[data-state="filled"] {
   --pixel-frame-art: var(--cam-frame);
   --pixel-frame-width: var(--cam-frame-image-width);
+}
+
+/* The system card's frame follows the flush's data-state like every other
+   slot look: filled draws the reading card, empty draws nothing — no orphan
+   panel in the bubble's place. The tokens are the shared .reading-card's
+   (shell.css), which the title wears unconditionally because it is always
+   filled; the stage instance is the one that has to unset them when its
+   passage omitted the macro. */
+.stage-system[data-state="empty"] {
+  --pixel-frame-art: none;
+  --pixel-frame-width: 0;
+  --pixel-frame-inset: 0;
+  --pixel-frame-fill: transparent;
 }
 
 /* Cam's speech-bubble: a large, high-contrast card of prose — the stage's

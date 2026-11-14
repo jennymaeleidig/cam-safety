@@ -1,6 +1,6 @@
 /* ===== Layout =====
-   The story's running value is its layout: one of four fixed framed
-   compositions, 0-3, stored in $layout and published on the document body as
+   The story's running value is its layout: one of five fixed framed
+   compositions, 0-4, stored in $layout and published on the document body as
    data-layout. stage.css holds each layout's slot geometry under that
    attribute; checker.css holds each layout's background values under it too.
    This file is the only writer of the attribute, and the only place the
@@ -16,7 +16,7 @@
 
    Normalisation is the whole rule: a non-finite value (including a missing
    $layout, as in an old save) becomes 0; a finite value is rounded and
-   clamped to 0-3. That keeps a corrupt value from breaking the stage and
+   clamped to 0-4. That keeps a corrupt value from breaking the stage and
    makes Layout 0 the fallback before anything has been published.
 
    Applied on the lifecycle's start phase — before the passage renders — so
@@ -30,7 +30,7 @@
 (function () {
   "use strict";
 
-  var LAST = 3;
+  var LAST = 4;
 
   function normalise(value) {
     var n = Number(value);
@@ -58,6 +58,14 @@
     }
     document.body.setAttribute("data-layout", String(layout));
     return layout;
+  };
+
+  /* Read the published layout back through the seam, normalised the same way.
+     Callers that must refuse on a layout — the content macros, whose slot a
+     layout may not compose — ask here rather than reading the attribute
+     through a second private copy of the rule. */
+  Layout.current = function () {
+    return normalise(document.body.getAttribute("data-layout"));
   };
 
   win.Layout = Layout;

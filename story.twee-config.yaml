@@ -1,14 +1,37 @@
 sugarcube-2:
   macros:
     set_layout:
-      description: Sets the current layout (0-3) and publishes it as data-layout. Applies to the passage that contains it, before it is displayed. Renders nothing; a missing argument reports an authoring error and leaves the layout unchanged.
+      description: >-
+        Sets the current layout (0-4) and publishes it as data-layout. Applies
+        to the passage that contains it, before it is displayed. Renders
+        nothing; a missing argument reports an authoring error and leaves the
+        layout unchanged.
       container: false
     cam_line:
-      description: Fills the stage's speech-bubble slot with Cam's line. Renders nothing into the passage. Takes a quoted line, wiki-processed.
+      description: >-
+        Fills the stage's speech-bubble slot with Cam's line. Renders nothing
+        into the passage. Takes a quoted line, wiki-processed. Reports an
+        authoring error on the System layout (4), which has no speech bubble;
+        use system_line there.
       container: false
     player_line:
-      description: Fills the stage's reply-bar slot with the player's line. Renders nothing into the passage. Takes a quoted line, wiki-processed so links and choices work.
+      description: >-
+        Fills the stage's reply-bar slot with the player's line. Renders
+        nothing into the passage. Takes a quoted line, wiki-processed so links
+        and choices work.
+      container: false
+    system_line:
+      description: >-
+        Fills the stage's system-card slot with a system message on the System
+        layout (4). Renders nothing into the passage. Takes a quoted line,
+        wiki-processed; it arrives whole, with no reveal, voice or pose change.
+        Reports an authoring error on Layouts 0-3, which have no system card.
       container: false
     portrait:
-      description: Fills the stage's portrait slot with an image. Renders nothing into the passage. Takes a quoted image path and an optional quoted alt text. Omit it and the slot shows the current layout's neutral pose (images/cam/phase-N/neutral/).
+      description: >-
+        Fills the stage's portrait slot with an image. Renders nothing into the
+        passage. Takes a quoted image path and an optional quoted alt text.
+        Omit it and the slot shows the current layout's neutral pose
+        (images/cam/phase-N/neutral/). Reports an authoring error on the System
+        layout (4), which composes no portrait.
       container: false

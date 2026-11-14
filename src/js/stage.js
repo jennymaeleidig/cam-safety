@@ -1,7 +1,9 @@
 /* ===== The stage's content slots =====
-   Three slots hold one passage's content: Cam's portrait (.stage-cam), Cam's
-   speech-bubble (.stage-bubble) and the player's reply bar (.stage-reply).
-   The frame, the background and the menu persist; these three do not.
+   Four slots hold one passage's content: Cam's portrait (.stage-cam), Cam's
+   speech-bubble (.stage-bubble), the system card (.stage-system) and the
+   player's reply bar (.stage-reply). The frame, the background and the menu
+   persist; these four do not. A layout composes only the slots it states, and
+   the slots it does not compose stay empty and hidden.
 
    One writer. The content macros (registered in StoryInit, story.twee)
    record their content on their Slot while the passage renders; every Slot's
@@ -59,10 +61,14 @@
      whitespace-only wiki output defeats. */
   var slots = {};
 
-  /* A Slot's shape is declared once, by name, rather than inferred in the
-     writer. The bubble's line grows in an inner prose box; every other Slot's
-     prose is the Slot itself. */
-  var SLOT_SHAPES = { bubble: "inner" };
+  /* A Slot's inner prose box, by slot name: the box the writer puts the line
+     in. A slot not named here is its own prose. The bubble and the system
+     card grow their content in an inner box, and the system card's box is the
+     reading card's shared one. */
+  var SLOT_PROSE = {
+    bubble: "stage-bubble-prose",
+    system: "reading-card-prose",
+  };
 
   function createSlot(name) {
     var element = document.querySelector(
@@ -73,7 +79,7 @@
     }
     return {
       element: element,
-      shape: SLOT_SHAPES[name] || "self",
+      proseClass: SLOT_PROSE[name] || null,
       content: null,
       prose: null,
       flushed: false,
@@ -159,7 +165,7 @@
      talking GIF starts at its first frame. The hand layer follows the pose:
      only a neutral pose has one, and a talking pose clears it. */
   function setPose(cam, pose) {
-    if (!cam || cam.authored || cam.pose === pose) {
+    if (!cam || cam.authored || !cam.flushed || cam.pose === pose) {
       return;
     }
     cam.pose = pose;
@@ -257,9 +263,9 @@
       return null;
     }
     var target = s.element;
-    if (s.shape === "inner") {
+    if (s.proseClass) {
       target = document.createElement("div");
-      target.className = "stage-bubble-prose";
+      target.className = s.proseClass;
       s.element.appendChild(target);
     }
     jQuery(target).wiki(String(html));
@@ -283,6 +289,17 @@
      recomputed here — that file is the only writer of the published seam.
      It is already set when the flush runs, since start handlers run before
      render handlers. */
+  function publishedLayout() {
+    return Number(document.body.getAttribute("data-layout"));
+  }
+
+  /* The System layout composes no portrait and no speech-bubble. Read from the
+     published attribute, so the same seam that selects the layout's phase
+     selects whether Cam is on stage at all. */
+  function isSystemLayout() {
+    return publishedLayout() === 4;
+  }
+
   var NEUTRAL_POSE = [
     "images/cam/phase-0/neutral/phase-0-neutral.gif",
     "images/cam/phase-1/neutral/phase-1-neutral.gif",
@@ -301,7 +318,7 @@
      the published attribute, never recomputed from $layout; an unknown index
      falls back to the first pair. */
   function phaseIndex() {
-    var layout = Number(document.body.getAttribute("data-layout"));
+    var layout = publishedLayout();
     return NEUTRAL_POSE[layout] ? layout : 0;
   }
 
@@ -319,16 +336,40 @@
     }
   }
 
+  /* Empty the portrait and its hand layer without painting a replacement: the
+     System layout composes neither, so the slots it does not state are left
+     with nothing rather than with the pose of the layout being left. */
+  function clearCam() {
+    var cam = slot("cam");
+    if (!cam) {
+      return;
+    }
+    cam.element.textContent = "";
+    cam.element.removeAttribute("data-pose");
+    cam.authored = false;
+    cam.neutralSrc = null;
+    cam.talkingSrc = null;
+    publish(cam, false);
+    writeHand(null, null);
+  }
+
   function flush() {
     var cam = slot("cam");
     var bubble = slot("bubble");
+    var system = slot("system");
     var replySlot = slot("reply");
-    writePortrait(cam && cam.content);
-    /* Both lines are written before either is revealed: the reveal decides
-       what waits for what, and it needs the prose in place because it reads
-       its text nodes. Each handle carries the Slot and the element to grow,
-       or is null when the passage omitted that line. */
+    if (isSystemLayout()) {
+      clearCam();
+    } else {
+      writePortrait(cam && cam.content);
+    }
+    /* Every line is written before any is revealed: the reveal decides what
+       waits for what, and it needs the prose in place because it reads its
+       text nodes. Each handle carries the Slot and the element to grow, or is
+       null when the passage omitted that line. The system card is written but
+       not handed to the reveal: a system message arrives whole. */
     var camLine = writeLine(bubble, bubble && bubble.content);
+    writeLine(system, system && system.content);
     var reply = writeLine(replySlot, replySlot && replySlot.content);
     /* Called on every flush, nulls included: a passage with no lines is
        exactly when the previous passage's reveal must be abandoned, or it
@@ -423,6 +464,13 @@
     var reply = slot("reply");
     if (reply) {
       reply.content = html;
+    }
+  };
+
+  stage.setSystemLine = function (html) {
+    var system = slot("system");
+    if (system) {
+      system.content = html;
     }
   };
 

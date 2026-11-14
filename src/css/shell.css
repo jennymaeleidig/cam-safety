@@ -200,7 +200,19 @@ body {
   width: 100%;
   max-width: var(--shell-column-max-width);
   margin: 0 auto;
-  padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
+}
+
+/* ---- the reading card --------------------------------------------------
+   One framed block, worn by the shell's reading card and by the stage's system
+   card: the Pixel frame, the green fill, the card's light ink and its link
+   ink. The title screen is this card's shell instance; a system message is
+   its stage instance. The frame and the type are the card's fixed
+   measurements, not the stage's design pixels — the card's box scales with
+   what holds it, its lettering does not.
+
+   The title's content and rhythm stay in the .title-screen rules below; this
+   block is the surface they sit in. */
+.reading-card {
   /* The reading card takes the same Pixel frame as the menu and the stage's
      slots, so the title screen reads as part of the frame and not as a
      document with a page turned behind it. The frame reserves the ornament,
@@ -214,13 +226,20 @@ body {
 
 /* Links inside the reading card take the card's own ink rather than the
    shell's dark-on-light page links: the card is chrome now, not paper. */
-#passages a {
+.reading-card a {
   color: var(--pixel-fill-ink);
   text-decoration: underline;
 }
 
-#passages a:hover {
+.reading-card a:hover {
   text-decoration: underline;
+}
+
+/* The card's inner prose box: the padding a line of card text keeps from the
+   frame. The title's own divisions sit inside it, and the stage's system card
+   adds a fixed box and scrolling around it (stage.css). */
+.reading-card-prose {
+  padding: clamp(26px, 4vh, 44px) clamp(24px, 4vw, 44px);
 }
 
 /* The title screen is a fixed stack of type, so its rhythm scales with the

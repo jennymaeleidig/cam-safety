@@ -45,3 +45,8 @@ ADR-0004.
 **Documentation follows the model.** The glossary defines Layout, Phase and
 Slot in these terms, ADR-0001 is named per layout, and the README and macro
 descriptions use `<<set_layout>>`.
+
+**A fifth composition joined these four.** ADR-0007 adds Layout 4, the System
+layout, and the reading card it shares with the title screen. The direct-set
+rule, the normalisation rule and the published seam here are unchanged; the
+layout range is now 0–4.

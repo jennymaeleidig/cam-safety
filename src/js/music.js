@@ -39,8 +39,9 @@
     },
   };
 
-  /* One entry per layout, in layout order. */
-  var LAYOUT_TRACK = ["theme", "theme", "theme", "distorted"];
+  /* One entry per layout, in layout order. The System layout keeps the theme
+     of Layout 0, the composition it copies. */
+  var LAYOUT_TRACK = ["theme", "theme", "theme", "distorted", "theme"];
   var TITLE_TRACK = "theme";
 
   /* How long the outgoing and incoming tracks overlap, in milliseconds. */

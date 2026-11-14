@@ -1,8 +1,12 @@
 # Cam Safety
 
-A SugarCube 2 story. A layout (0-3) selects one of four fixed visual-novel
+A SugarCube 2 story. A layout (0-4) selects one of five fixed visual-novel
 stage compositions, and Cam's portrait, speech-bubble and reply bar re-flow
 around it. A passage chooses its layout directly with `<<set_layout>>`.
+
+Layout 4 is the System layout: Layout 0 without Cam or his bubble, holding the
+title screen's reading card. A pre-game system message is written into that
+card with `<<system_line>>`.
 
 ## Prerequisites
 
@@ -56,9 +60,9 @@ still needs nothing but Tweego.
 | Path                     | Purpose                                                                                                                                                                                                                                                        |
 | ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                                                                                                                                 |
-| `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's three slots.                                                                                                                                                  |
+| `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's four slots.                                                                                                                                                    |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
-| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css`, `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
+| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css` (the shell, the rail, and the reading card shared by the title and the system card), `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
 | `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `music.js` (the pair of looping background elements, the crossfade between tracks, and the autoplay gesture), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the Settings dialog's three ranges and mute toggle, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase GIFs, `cam/phase-N/neutral/` and `cam/phase-N/talking/`, plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `include/music/`         | The background tracks — the Jamil theme and its distorted arrangement for Layout 3 — copied to `dist/music/` by the build and played from relative URLs.                                                                                                           |
@@ -74,6 +78,9 @@ SugarCube.Engine.play("Layouts");
 SugarCube.Engine.play("Stage content");
 SugarCube.Engine.play("Stage content long");
 SugarCube.Engine.play("Stage content empty");
+SugarCube.Engine.play("System content");
+SugarCube.Engine.play("System content long");
+SugarCube.Engine.play("System content empty");
 ```
 
 1. **Title and layouts.** Title → Layout 0, and
@@ -148,7 +155,9 @@ SugarCube.Engine.play("Stage content empty");
    mid-crossfade; mute pauses both elements where they are and unmuting
    continues from there. Reload and confirm the volume and mute state restore.
    Check the letter sounds and the music never change each other's loudness.
-   Emulate reduced motion: music still plays, crossfade included.
+   Emulate reduced motion: music still plays, crossfade included. Enter
+   Layout 4: `data-track` stays `"theme"` because the System layout carries
+   Layout 0's track, and the music keeps playing without a restart.
 
    ```js
    document.body.dataset.track; // "theme", then "distorted" in Layout 3
@@ -158,9 +167,45 @@ SugarCube.Engine.play("Stage content empty");
      paused: el.paused,
    }));
    ```
+7. **System layout.** Play `System content`. `document.body.dataset.layout` is
+   `"4"` on the first visible frame, and the card sits exactly where Layout 0's
+   speech bubble sits; the reply bar is in Layout 0's place, the menu is
+   visible, and the background hue matches Layout 0. No portrait, no hand layer
+   and no speech paper or pointer are drawn. The system message is whole at
+   once — no reveal, no letter voice — and its link is clickable immediately;
+   the reply carries the way on. `System content long` scrolls inside the card
+   while the frame stays put. `System content empty` draws no card at all and
+   nothing survives from the previous passage. With reduced motion the card
+   still arrives whole; there is no motion preference of its own. Save on
+   `System content`, reload and continue: Layout 4 and the card come back.
+   Confirm the shared card and the slots:
+
+   ```js
+   document.querySelector(".stage-system").dataset.state; // "filled"
+   document.querySelector(".stage-system .reading-card-prose"); // the card's box
+   document.querySelector(".stage-cam").dataset.state; // "empty" on Layout 4
+   ```
+
+   Turn on the debug outline on `System content empty`: the system slot is
+   outlined as an omitted card, while the hidden cam and bubble are not. The
+   title still carries the same card classes and reads unchanged:
+
+   ```js
+   document.getElementById("passages").classList.contains("reading-card"); // true
+   ```
+
+   Finally, an authoring error: give a Layout 4 passage a `<<cam_line>>` or
+   `<<portrait>>`, or a Layouts 0–3 passage a `<<system_line>>`, and confirm
+   `#passages` reports it rather than the macro vanishing silently.
 
 ## Authoring
 
 A `[checker]` passage's exits belong in `<<player_line>>` (or `<<cam_line>>`),
 never as a bare `[[…]]` link in passage text: stage mode hides `#passages`, so
 a bare link is invisible to the player.
+
+`<<set_layout>>` takes 0–4 and comes first in the passage; the line macros read
+the published layout. On Layout 4 write `<<system_line>>` for a system message
+and use `<<player_line>>` for the way on. `<<cam_line>>` and `<<portrait>>`
+report an authoring error on Layout 4, and `<<system_line>>` reports one on
+Layouts 0–3: each macro refuses on a layout that has no slot for it.

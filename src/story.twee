@@ -20,7 +20,7 @@ Cam Safety
      <<player_line "The player's reply">>
      <<portrait "images/cam/phase-3/talking/phase-3-talking.gif" "alt (opt)">>
    <<set_layout>> chooses this passage's layout directly: it publishes the
-   number (0-3) while the passage renders, before the passage is displayed,
+   number (0-4) while the passage renders, before the passage is displayed,
    so the first visible frame is already composed. It renders nothing.
    <<cam_line>> is spoken: the stage reveals it one character at a time, with a
    letter of voice per character (src/js/reveal.js, src/js/voice.js). While the
@@ -34,17 +34,32 @@ Cam Safety
    layout's neutral and talking artworks (NEUTRAL_POSE and TALKING_POSE in
    src/js/stage.js) — so most passages need no portrait line at all. An
    authored <<portrait>> pins one image for the whole passage instead, with no
-   pose switching. The lines are wiki-processed, so $variables, markup and [[links]] work in
+   pose switching.
+   <<system_line>> is a system message: non-Cam dialogue for the System layout
+   (<<set_layout 4>>), which composes the title screen's reading card in the
+   speech bubble's place. It arrives whole — no reveal, no letter voice, no
+   portrait pose — and its links are clickable at once. It is only valid on
+   Layout 4, as <<cam_line>> and <<portrait>> are only valid on Layouts 0-3:
+   each reports an authoring error on the layout that has no slot for it. The
+   macros read the published layout, so <<set_layout>> comes first.
+   The lines are wiki-processed, so $variables, markup and [[links]] work in
    them. A [checker] passage's exits belong in <<player_line>> (the reply
    bar — or <<cam_line>>, the speech-bubble), never as a bare [[...]] in
    passage text: stage mode hides #passages, so a bare link is invisible to
    the player. */
 <<script>>
 (function () {
+	/* The published layout is the one the macros check: layout.js has already
+	   written it when the passage renders, and this passage's own
+	   <<set_layout>> has run by the time a line macro below it does. */
+	function layout() {
+		return Layout.current();
+	}
+
 	Macro.add("set_layout", {
 		handler : function () {
 			if (this.args.length === 0) {
-				return this.error("missing layout number (0-3)");
+				return this.error("missing layout number (0-4)");
 			}
 			Layout.set(this.args[0]);
 		}
@@ -52,6 +67,9 @@ Cam Safety
 
 	Macro.add("cam_line", {
 		handler : function () {
+			if (layout() === 4) {
+				return this.error("the System layout has no speech bubble; use <<system_line>>");
+			}
 			Stage.setCamLine(this.args[0]);
 		}
 	});
@@ -62,8 +80,20 @@ Cam Safety
 		}
 	});
 
+	Macro.add("system_line", {
+		handler : function () {
+			if (layout() !== 4) {
+				return this.error("a system message needs the System layout (<<set_layout 4>>); this passage is Layout " + layout());
+			}
+			Stage.setSystemLine(this.args[0]);
+		}
+	});
+
 	Macro.add("portrait", {
 		handler : function () {
+			if (layout() === 4) {
+				return this.error("the System layout composes no portrait");
+			}
 			Stage.setPortrait(this.args[0], this.args[1]);
 		}
 	});
@@ -76,13 +106,13 @@ Cam Safety
    src/js/stage.js), and the phase GIFs live in include/images/cam/. */
 
 :: Layouts [scratch] {"position":"0,750"}
-/* Entry point for the four layout scratch passages — open it from the browser
+/* Entry point for the layout scratch passages — open it from the browser
    console:
      SugarCube.Engine.play("Layouts")
    Each link only navigates: the target passage's own <<set_layout>> applies
    while that passage renders, before it is displayed, so the first visible
    frame is already the layout it names. */
-[[Layout 0->Layout 0]] · [[Layout 1->Layout 1]] · [[Layout 2->Layout 2]] · [[Layout 3->Layout 3]]
+[[Layout 0->Layout 0]] · [[Layout 1->Layout 1]] · [[Layout 2->Layout 2]] · [[Layout 3->Layout 3]] · [[Layout 4->Layout 4]]
 
 :: Layout 0 [checker scratch] {"position":"100,750"}
 /* Wide and distant Cam (bottom-right, the default phase-0 neutral pose);
@@ -111,6 +141,40 @@ Cam Safety
 <<set_layout 3>>
 <<cam_line "Layout 3 — right up close. The tail should point left at me, and the menu should be gone.">>
 <<player_line "Layout 3 reply. [[Layouts->Layouts]]">>
+
+:: Layout 4 [checker scratch] {"position":"450,750"}
+/* The System layout: Layout 0 with no portrait and no speech-bubble, and the
+   reading card in the bubble's place. The reply bar and menu stay where
+   Layout 0 puts them. */
+<<set_layout 4>>
+<<system_line "Layout 4 — the System layout. This card is the title screen's reading card, in the speech bubble's place, and it arrives whole.">>
+<<player_line "Layout 4 reply. [[Layouts->Layouts]]">>
+
+:: System content [checker scratch] {"position":"520,750"}
+/* A system message exercising the layout: wiki-processed text and a link that
+   is clickable as soon as the card appears, because nothing is revealed. The
+   reply bar is the way on. Reach it from the browser console:
+     SugarCube.Engine.play("System content") */
+<<set_layout 4>>
+<<system_line "Before the story starts: this is a system message. It is not Cam speaking, so there is no portrait and no speech bubble. Variables and links work here, [[Layouts->Layouts]], and the link is clickable at once.">>
+<<player_line "Understood. [[Layout 0->Layout 0]]">>
+
+:: System content long [checker scratch] {"position":"570,750"}
+/* A system message longer than the card: scroll it and confirm the card's
+   frame stays exactly where it is while the words travel inside it. Reach it
+   from the browser console:
+     SugarCube.Engine.play("System content long") */
+<<set_layout 4>>
+<<system_line "This system message is deliberately longer than the card, so the prose has to scroll inside it while the frame stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the frame rather than paint over it, and the card's shadow should not fade a single letter. Keep reading, because the point is to see the same card hold still while the words travel. A link lives in this message too, [[Layouts->Layouts]], and it should be clickable the moment the card appears: nothing here is revealed a character at a time. That proves a system message arrives whole and scrolls like any other card of prose.">>
+<<player_line "The long system message has landed. [[Layouts->Layouts]]">>
+
+:: System content empty [checker scratch] {"position":"620,750"}
+/* The System layout with no <<system_line>>: no card at all, and nothing left
+   over from the previous passage. The reply bar and menu are still there.
+   Reach it from the browser console:
+     SugarCube.Engine.play("System content empty") */
+<<set_layout 4>>
+<<player_line "No system message drawn. [[Layouts->Layouts]]">>
 
 :: Stage content [checker scratch] {"position":"500,750"}
 /* Bubble and reply bar filled; the portrait slot shows the layout's automatic

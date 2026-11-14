@@ -23,10 +23,10 @@ body {
 /* Palette: one hue drives all four greens, set per layout so the layout
    selects slot geometry (stage.css) and background through the same
    attribute and the same seam. :root is the layout-0 fallback for the moment
-   before layout.js sets data-layout — the trick stage.css uses — and the four
-   blocks below carry each layout's values. All four layouts are green today;
-   giving a layout its own background is a value change here, not a new code
-   path. No JavaScript writes these. */
+   before layout.js sets data-layout — the trick stage.css uses — and the
+   layout blocks below carry each layout's values. All five layouts are green
+   today; giving a layout its own background is a value change here, not a new
+   code path. No JavaScript writes these. */
 :root {
   --tmem-hue: 152;
 }
@@ -45,6 +45,11 @@ body[data-layout="2"] {
 
 body[data-layout="3"] {
   --tmem-hue: 0;
+}
+
+/* The System layout copies Layout 0's presentation, background included. */
+body[data-layout="4"] {
+  --tmem-hue: 152;
 }
 
 /* Wrapper: fixed + viewport-clipped layer behind the text. z-index: -1, not

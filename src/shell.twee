@@ -12,10 +12,12 @@
 
 	Stage mode ([checker] passages that are not [title]; gated on the passage
 	tag classes SugarCube puts on <body>): the letterboxed .stage frame
-	(stage.css), aspect-locked to the 2840:1700 design canvas. Five slots:
+	(stage.css), aspect-locked to the 2840:1700 design canvas. The slots:
 	the background — #tmem-bg, the existing animated checkerboard, declared
 	here and letterboxed into the same box by checker.css
-	the three content slots below, empty until the content macros fill them;
+	the four content slots below, empty until the content macros fill them —
+	Cam's portrait, Cam's speech-bubble, the system card and the player's
+	reply bar; a layout composes only the ones it states;
 	and the menu — the same .rail, repositioned by stage.css into the stage's
 	menu slot.
 
@@ -46,7 +48,7 @@
 <audio id="music-b" loop preload="auto"></audio>
 <div class="shell">
 	<div class="main">
-		<div id="passages" class="pixel-frame"></div>
+		<div id="passages" class="pixel-frame reading-card"></div>
 	</div>
 </div>
 <aside class="rail pixel-frame">
@@ -66,6 +68,11 @@
 	     the paper stays put while the prose scrolls. The pointer tail is
 	     deferred. -->
 	<div class="stage-slot stage-bubble pixel-frame-paper" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
+	<!-- The system card: the title screen's reading card in the speech bubble's
+	     box, for Layout 4's pre-game message. stage.js writes into an inner
+	     .reading-card-prose box, so the frame stays put while a long message
+	     scrolls. Empty draws nothing, and every layout but 4 hides it. -->
+	<div class="stage-slot stage-system pixel-frame reading-card" data-stage-slot="system" data-slot-label="System message"></div>
 	<div class="stage-slot stage-reply pixel-frame" data-stage-slot="reply" data-slot-label="Player reply bar"></div>
 </div>
 <!-- Cam's hand, for a pose that is drawn in two halves. Outside the frame
