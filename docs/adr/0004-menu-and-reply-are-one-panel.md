@@ -6,15 +6,18 @@ both display modes, so entering or leaving the stage does not resize it, and
 the reply bar swaps that box's width and height rather than carrying a size of
 its own.
 
-The width and height are compromises in opposite directions. The title screen
-used to size the menu from the viewport height, and the stage sized it from the
-letterboxed canvas, which made the menu change size on the title-to-stage
-transition. `--rail-unit` now sets the width: the midpoint between the stage's
-design pixel and the shell's height fit, capped so the panel still fits inside
-the stage and the viewport. `--rail-height` sets the height from the stage's
-design pixel, so the panel keeps the stage menu's old top edge while a shorter
-height pulls the top and bottom in around the same centre. Width, padding,
-type and gaps remain `--rail-unit` multiples.
+The title screen used to size the menu from the viewport height, and the stage
+sized it from the letterboxed canvas, which made the menu change size on the
+title-to-stage transition. `--rail-unit` now follows the stage's design pixel —
+the same unit Cam's portrait and the speech bubble scale with — so the menu and
+the reply bar keep their proportion to the rest of the stage at every
+resolution. It is capped only where the panel would not fit inside the stage or
+the viewport; a short window shrinks the panel instead of clipping it.
+`--rail-height` is the same unit times `--rail-h`, so the box keeps its 273:877
+ratio when a cap bites. Width, height, padding, type and gaps remain
+`--rail-unit` multiples. The panel's frame is drawn at that scale too, floored
+at Cam's 16px and capped at 40px, so it stops shrinking with the panel on small
+screens while the label size fits whatever content box the frame leaves.
 
 ## Consequences
 
@@ -29,7 +32,6 @@ ADR-0001's rule that every slot box is stated per layout.
 still follow `--rail-unit`, so the title and stage menus are identical rather
 than merely similar. A short or narrow window shrinks both together.
 
-**The reply keeps the frame and the wide box.** Its height is the menu's
-width, and its width keeps the design-height reference rather than following
-the menu's reduced height, so the player's line stays wide while the menu pulls
-in at the top and bottom.
+**The reply keeps the frame and the wide box.** Its width is the menu's
+height and its height the menu's width, both from `--rail-unit`, so the two
+panels scale together and the player's line stays as wide as the menu is tall.

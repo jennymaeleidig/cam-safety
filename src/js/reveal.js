@@ -10,14 +10,16 @@
    is why this file can be small — at most one line is ever revealed per
    passage, so at most one line ever waits.
 
-   While Cam speaks, the reply is held empty: the Stage publishes it
-   data-state="empty" and inert for the length of the reveal, and filled and
-   reachable the moment the line lands. This file does not write those — it
-   asks the Stage for reveal, hold, land and abandon. The Stage is the only
-   writer of data-state, is-revealing and inert; the flush publishes
-   data-state and records what it gave each slot, while is-revealing and inert
-   are written only by those transitions. So abandoning a line after a newer
-   flush cannot clobber the newer state.
+   While Cam speaks, the reply's paper is up but its message is held: the
+   Stage marks the bar revealing and inert for the length of the reveal, and
+   reachable the moment the line lands. This file empties the prose itself,
+   through the plan below, so the box a player is about to fill stays visible
+   while the words wait. This file does not write the slot's state — it asks
+   the Stage for reveal, hold, land and abandon. The Stage is the only writer
+   of data-state, is-revealing and inert; the flush publishes data-state and
+   records what it gave each slot, while is-revealing and inert are written
+   only by those transitions. So abandoning a line after a newer flush cannot
+   clobber the newer state.
 
    The reveal grows text nodes rather than re-wikifying: jQuery.wiki() output is
    already live on the detached passage element, SugarCube having bound link
@@ -52,7 +54,13 @@
    full; only the voice skips.
 
    prefers-reduced-motion: no reveal at all, and with it no sound. The flush has
-   already put the lines in full on screen when this file declines. */
+   already put the lines in full on screen when this file declines.
+
+   A line whose letters would be heard is the only line this file reveals. A
+   page restored by refresh has had no gesture yet, so the Voice cannot sound;
+   its lines arrive whole instead of typewriting in silence (Voice.audible()).
+   A muted player is not this case: the silence is their choice, and the reveal
+   still runs. */
 (function () {
   "use strict";
 
@@ -289,6 +297,12 @@
       waiting = null;
     }
     if (reducedMotion()) {
+      return;
+    }
+    /* No gesture has woken the voice yet, so a reveal now would type in
+       silence. Leave the flush's lines whole on screen. */
+    var voice = win.Voice;
+    if (voice && typeof voice.audible === "function" && !voice.audible()) {
       return;
     }
 

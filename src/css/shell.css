@@ -11,7 +11,10 @@
    Book template's structure (side menus around a centred #cover/#passages
    page). No template CSS is shipped verbatim — only the layout idea is
    borrowed, then explored in the throwaway layout study and re-laid for
-   flock-cam. */
+   flock-cam.
+
+   Visual reference: Tokimeki Memorial (Konami, 1994) — the title screen and
+   the menu panel follow its green-framed, fixed-composition language. */
 
 /* ===== Story shell layout — compact rail panel + centered reading card =====
    Values borrowed from the layout study (prototype/layout/css/layout-
@@ -35,11 +38,20 @@
      --rail-w / --rail-h       the menu panel's box, in design pixels: the
                                width and height references both display modes
                                share
-     --rail-unit               one design pixel of the panel's width, type
-                               and gaps
+     --rail-unit               one design pixel of the panel's width,
+                               height, type and gaps
+     --rail-menu-advances      the per-column cascade, in character advances:
+                               each action's own rule states its offset
+                               (Saves 6, Restart 9 below Settings)
      --shell-column-max-width  max width of the reading card
      --shell-frame-gap         space between rail and card
      --shell-frame-padding     inset of the whole frame from the viewport */
+
+@font-face {
+  font-family: "Earthbound Beginnings";
+  src: url("fonts/earthbound/earthbound-beginnings.ttf") format("truetype");
+  font-display: swap;
+}
 
 :root {
   --shell-column-max-width: 720px;
@@ -48,39 +60,47 @@
 
   /* The menu panel's box, in design pixels, and the references both display
      modes are sized by. --rail-w sets the width reference, and width,
-     padding, type and gaps are --rail-unit multiples, so the panel's contents
-     scale as one piece rather than reflowing. --rail-h sets the height
-     reference.
+     height, padding, type and gaps are --rail-unit multiples, so the panel's
+     contents scale as one piece rather than reflowing. --rail-h sets the
+     height reference.
 
-     The panel is one size in both modes. --rail-unit sets its width: the
-     midpoint between the stage's design pixel (stage.css) and the shell's
-     height fit, then capped so the panel still fits inside the stage and the
-     viewport. --rail-height sets its height from the stage's design pixel, so
-     the panel keeps the stage menu's old top edge while its top and bottom
-     pull in around the same centre. A short window shrinks the panel instead
-     of clipping it. */
+     The panel is one size in both modes. --rail-unit follows the stage's
+     design pixel (stage.css), the same unit Cam and the speech bubble scale
+     with, so the menu and the reply bar keep their proportion to the rest of
+     the stage at every resolution. It is capped only where the panel would
+     not fit inside the stage or the viewport; a short window shrinks the
+     panel instead of clipping it. --rail-height is the same unit times
+     --rail-h, so the box keeps its 273:877 ratio when a cap bites. */
   --rail-w: 273;
   --rail-h: 877;
-  --rail-unit-shell: min(
-    1px,
-    (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
-      var(--rail-h)
-  );
   --rail-unit: min(
-    1px,
-    (var(--stage-unit) + var(--rail-unit-shell)) / 2,
+    var(--stage-unit),
+    (100vh - var(--shell-frame-padding) * 2 - var(--pixel-inset) * 2) /
+      var(--rail-h),
     (var(--stage-h) - var(--pixel-inset) * 2) / var(--rail-h)
   );
-  --rail-height: calc(
-    var(--stage-unit) * var(--rail-h) - var(--pixel-inset) * 2
-  );
+  --rail-height: calc(var(--rail-unit) * var(--rail-h));
+  --rail-pad-x: calc(var(--rail-unit) * 4);
+  /* The menu is set vertically, one upright column per action, and each
+     column hangs by a number of character advances below the group's top, so
+     the labels align by letter rather than by pixel: the first S of "Saves"
+     sits on the g of "Settings", and the R of "Restart" sits on the e of
+     "Saves". shell.css states those advances per column; shell.js measures
+     one advance (--rail-menu-advance), because it is the face's own vertical
+     metric plus the menu's letter-spacing and differs between fonts and
+     browsers. */
+  /* The panel's frame: 40 design pixels, floored at 16px so it stops
+     shrinking with the panel the way Cam's fixed frame does, and capped at
+     40px. The border is a real inset, so the floor cannot eat the labels;
+     --rail-actions sizes its type to the content box the frame leaves. */
+  --rail-frame-width: clamp(16px, calc(var(--rail-unit) * 40), 40px);
 }
 
 html,
 body {
   margin: 0;
   color: #e6e6e6;
-  font: 16px/1.6 -apple-system, system-ui, sans-serif;
+  font: 16px/1.6 "Earthbound Beginnings", -apple-system, system-ui, sans-serif;
 }
 
 /* SugarCube's core display block (which centers #story with a 2.5em margin)
@@ -124,62 +144,97 @@ body {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1; /* above .stage — see stage.css */
-  width: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
+  width: calc(var(--rail-unit) * var(--rail-w));
   height: var(--rail-height);
   max-height: var(--rail-height);
   overflow: auto;
   display: flex;
   flex-direction: column;
-  /* The panel is tall in both modes now, so its contents sit in the middle of
-     it; a short panel is the exception, not the rule. */
+  /* The menu group is centred in the panel: one element holding the three
+     columns, with the same margin above and below it. A short panel is the
+     exception and scrolls instead. */
   justify-content: center;
   gap: calc(var(--rail-unit) * 22);
-  padding: calc(var(--rail-unit) * 22) calc(var(--rail-unit) * 4);
+  padding: calc(var(--rail-unit) * 22) var(--rail-pad-x);
   background: var(--pixel-fill);
   /* Clip the fallback to the padding box so the border image's transparent
      corner pixels keep showing the checkerboard, as they do on the cam. */
   background-clip: padding-box;
-  /* The rail is a framed surface in both modes: the same nine-patch, at the
-     same 16px as every other framed surface. The real border
-     reserves the ornament, and the narrow horizontal padding keeps the title
-     on one line inside the small stage-mode panel. The green background above
-     is the failed-image fallback. */
+  /* The rail is a framed surface in both modes: the same nine-patch as the
+     other panels, drawn at the panel's own scale (--rail-frame-width) so the
+     border never crowds the menu labels on a small screen. The real border
+     reserves the ornament, and the narrow horizontal padding leaves room for
+     the longest label. The green background above is the failed-image
+     fallback. */
   border-style: solid;
   border-color: transparent;
-  border-width: var(--frame-width);
+  border-width: var(--rail-frame-width);
   border-image: var(--frame);
+  border-image-width: var(--rail-frame-width);
   image-rendering: pixelated;
   box-sizing: border-box;
 }
 
-.rail-title {
-  margin: 0;
-  font-size: calc(var(--rail-unit) * 26);
-  font-weight: 700;
-  line-height: 1.2;
-}
-
 .rail-actions {
   display: flex;
-  flex-direction: column;
-  gap: calc(var(--rail-unit) * 14);
-  font-size: calc(var(--rail-unit) * 26);
+  /* Columns, not rows: the menu reads down through each label, then across to
+     the next, like Japanese vertical setting. --rail-unit*24 is the panel's
+     design type; the three columns plus their gaps fit the frame's content
+     box on every screen because the whole panel scales together. */
+  flex-direction: row;
+  align-items: flex-start;
+  justify-content: center;
+  gap: calc(var(--rail-unit) * 20);
+  font-size: calc(var(--rail-unit) * 24);
+  /* The group is one box: hug the columns rather than stretching to the
+     panel's width, and centre that box. The rail then has a single element
+     whose top and bottom are the menu's own, so centring it leaves equal
+     margins above and below. */
+  width: fit-content;
+  margin-inline: auto;
 }
 
 .rail-actions a {
-  padding: calc(var(--rail-unit) * 2) 0;
+  /* Upright Latin in a vertical line: S, then e below it, and so on. */
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  /* A gap between the characters, so the word reads as a column of separate
+     letters rather than a run. In vertical setting letter-spacing advances
+     down the column, not across it. */
+  letter-spacing: 0.35em;
+  /* The line box is the column's width; tighter than body's 1.6 so three
+     columns stay clear of the frame. */
+  line-height: 1.2;
+  padding: 0 calc(var(--rail-unit) * 2);
   color: #e6e6e6;
   text-decoration: none;
+  /* The cascade: each column hangs below the group's top by whole character
+     advances, so the labels align by letter. The offsets are
+     the composition:
+       Settings  0 advances
+       Saves     6  — its first S sits on Settings's g
+       Restart   9  — its R sits on Saves's e
+     One advance is --rail-menu-advance em, measured by shell.js after the
+     face loads; the fallback is the Earthbound face at this letter-spacing
+     (one advance is 1.3083em). */
+  margin-top: calc(
+    var(--rail-menu-advance, 1.3083) * var(--rail-menu-advances, 0) * 1em
+  );
 }
 
+.rail-actions a:nth-child(2) {
+  --rail-menu-advances: 6;
+}
+
+.rail-actions a:nth-child(3) {
+  --rail-menu-advances: 9;
+}
+
+/* No underline, hovered or not: in a vertical column the underline runs beside
+   the letters and reads as a second column. Hover brightens the letters
+   instead, so a clickable action still answers the pointer. */
 .rail-actions a:hover {
-  text-decoration: underline;
-}
-
-.rail-icon {
-  display: inline-block;
-  width: 1.3em;
-  opacity: 0.85;
+  color: #fff;
 }
 
 /* ---- centered reading card --------------------------------------------- */
@@ -220,12 +275,49 @@ body {
   text-decoration: underline;
 }
 
+/* The title screen is a fixed stack of type, so its rhythm scales with the
+   viewport height: on a short window it tightens instead of running past the
+   card. */
+.title-screen {
+  /* One break size for both of the title's divisions — Cam's name to Start,
+     and Start to the credits — so the card reads as two even beats. In rem,
+     not em: the credits are smaller type, and an em gap there would be a
+     shorter break than the same em on the Start line. */
+  --title-gap: 1.45rem;
+}
+
+.title-screen h1 {
+  margin: 0.5em 0 0.6em;
+  font-size: clamp(22px, 5vh, 32px);
+  line-height: 1.15;
+}
+
+.title-screen p {
+  margin: 0.5em 0;
+}
+
+/* The same break under the title as under Start. */
+.title-screen h1 + p {
+  margin-top: var(--title-gap);
+}
+
+/* The licence block is set apart from the Start line: a player reads Start
+   first, and the credits should not crowd the choice. */
+.title-screen > p:not(.title-credit) + .title-credit {
+  margin-top: var(--title-gap);
+}
+
+/* Each credit is its own line; a little air between them keeps four
+   attributions from reading as one paragraph. */
+.title-credit + .title-credit {
+  margin-top: 0.9em;
+}
+
 /* The title screen's licence line. Smaller and quieter than the Start line, but
    it is text, not chrome: it must stay legible on the card, so it dims rather
    than hides. */
 .title-credit {
-  margin-top: 1.2em;
-  font-size: 0.72em;
-  line-height: 1.5;
+  font-size: clamp(10px, 1.6vh, 11.5px);
+  line-height: 1.4;
   opacity: 0.72;
 }

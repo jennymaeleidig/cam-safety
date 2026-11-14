@@ -1,3 +1,14 @@
+/* Citation: JustAJoke — Pixel Speech Balloon [free for any use, per the
+   pack's comments]
+   Source: https://justajoke.itch.io/pixel-speech-balloon
+   The dialogue art is adapted from that pack: border.png (the painted
+   nine-patch frame), speech.png (the speech paper) and the tail pieces
+   (speech-tail-right.png / speech-tail-iso.png).
+
+   Visual reference: Tokimeki Memorial (Konami, 1994) — the setting's green
+   palette, the title screen, Cam's portrait framing and the player's dialogue
+   border follow its visual-novel language. */
+
 /* ===== Stage — letterboxed visual-novel frame for [checker] passages =====
    Shown only in stage mode: the current passage is tagged [checker] and not
    [title]. That predicate is written down once, in stage-mode.js, which
@@ -22,9 +33,9 @@
                      outside the frame, for the pose that is cut in two; see
                      the hand layer below
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
-                     its ::before draws the paper nine-patch and its inner
-                     .stage-bubble-prose box scrolls the line; the pointer
-                     tail is deferred
+                     its ::before draws the paper nine-patch, its ::after the
+                     pointer tail, and its inner .stage-bubble-prose box
+                     scrolls the line
      player bar     .stage-reply — the player's reply bar      (per passage)
      menu           .rail — the existing rail (settings / saves / restart),
                      repositioned into the menu slot; chrome, shared with the
@@ -33,8 +44,8 @@
    Slot geometry is data: each layout is one block below, under a
    body[data-layout="N"] selector, holding the same small set of values —
    the three content slots' boxes (the portrait's as a scale on the artwork's
-   own box, not as a box), the menu's visibility, and the tail's aim (kept for
-   the deferred tail). The menu and the reply bar take their size from
+   own box, not as a box), the menu's visibility, and the tail's piece, aim
+   and seat on the card. The menu and the reply bar take their size from
    --rail-unit (shell.css) instead: the reply is the menu's box rotated a
    quarter turn, so the two panels stay one pair in every layout. Layout 0
    doubles as the fallback on :root for the moment before layout.js sets the
@@ -56,8 +67,8 @@
    The stage is one fixed canvas, so its chrome is drawn in design pixels and
    scaled with --stage-unit — the menu keeps its proportions at any viewport,
    shrinking with the frame rather than reflowing out of its slot. The
-   nine-patch frame is the one exception: it is pixel art drawn at its own
-   source pixels so the painted corners stay crisp (see --frame-width below).
+   nine-patch frame is the one exception: it is pixel art, so its weight is
+   set in CSS pixels rather than design pixels (see --frame-width below).
 
    Debug affordance: set a data-stage-debug attribute on <body> to outline the
    empty slots. Off by default, so the shipped stage carries no debug chrome. */
@@ -87,25 +98,13 @@
   --cam-art-w: 719;
   --cam-art-h: 551;
 
-  /* Tail box size; roughly half of it pokes out past the bubble's edge. */
-  --tail-size: calc(var(--stage-unit) * 140);
-
-  /* How far the pointer slides along its own aim, in design pixels. The box
-     above is centred on the anchor, so it is the one value that could
-     lengthen the tail — but it widens the base at the same time, and the base
-     is the part the card hides. This one moves the whole triangle tip-ward
-     after the rotation: the silhouette keeps its angle and only its reach
-     changes. Signed, per layout, and the sign follows the aim rather than the
-     page — at --tail-rotate: 90deg the pointer aims left, so a positive reach
-     travels into NEGATIVE x. 0 is where the pointer has always sat. */
-  --tail-reach: 0;
-
   /* ---- the nine-patch frame: one language for every framed surface ------
      Every framed surface takes the painted dialogue border as a nine-patch
      (Godot NinePatchRect-style). The source is cut 16 | 32 | 16 on both
      axes: 16 x 16 corners, a 32 x 32 centre. `fill` keeps that centre — it
-     is the panel's green — and the frame is drawn at 16 CSS px on every
-     side, so the corners stay square and 16 x 16 at 1:1.
+     is the panel's green — and the frame is drawn at 32 CSS px on every
+     side, two source pixels per authored pixel, so the painted ornament
+     reads at the panels' scale.
 
      The image is painted above the element's background and below its
      content. Every framed surface reserves a real border width, so its
@@ -113,20 +112,22 @@
      ornament. The speech bubble is prose, not chrome, and takes no frame.
 
      The cam portrait is the exception. It keeps the full 16 x 16 cut and
-     draws the border image at that full 16px, so every corner keeps its
-     painted art. Its real border — the content inset — stays 7px top/bottom
-     and 13px sides. The extra 9px/3px of border image paints inward behind
-     the portrait, which covers it; the visible ornament is therefore the
-     native 7px/13px band with no green padding between it and the portrait.
-     Every other framed surface keeps the square 16px cut, width and inset.
+     draws the border image at its native 16px, so every corner keeps its
+     painted art 1:1. Its real border — the content inset — stays 7px
+     top/bottom and 13px sides. The extra 9px/3px of border image paints
+     inward behind the portrait, which covers it; the visible ornament is
+     therefore the native 7px/13px band with no green padding between it and
+     the portrait. The menu and reply draw the frame at their own scale
+     (--rail-frame-width, shell.css); every other framed surface keeps the
+     square 32px cut, width and inset.
 
      The width is deliberately CSS pixels, not design pixels: the source's
-     corners are 16 x 16 and pixel art is authored to be seen at its own
-     size. Scaling the frame with the stage would lose the ornament. Replace
-     the source and the values below and every framed surface follows. */
+     corners are 16 x 16 and the frame is chrome drawn at a fixed weight
+     rather than a design-pixel box. Replace the source and the values below
+     and every framed surface follows. */
   --frame-src: url("images/dialogue/border.png");
   --frame-slice: 16;
-  --frame-width: 16px;
+  --frame-width: 32px;
   --cam-frame-slice: 16;
   --cam-frame-width: 7px 13px;
   --cam-frame-image-width: 16px;
@@ -145,22 +146,41 @@
      a 2px black outline and a #f8f8f8 centre. The authored pixels are 16px;
      a linear --speech-scale enlarges them while keeping each source pixel a
      whole block. image-rendering: pixelated does the nearest-neighbour
-     sampling. The tail is deferred; this layer draws the card only. */
+     sampling. */
   --speech-src: url("images/dialogue/speech.png");
   --speech-slice: 16;
   --speech-scale: 2;
   --speech-width: calc(16px * var(--speech-scale));
+  /* The outline inside the slice: 2 source px, so the paper's visible edge
+     sits this far inside the slot. The pointer's mouth is set on that edge. */
+  --speech-line: calc(2px * var(--speech-scale));
   --speech-outset: 0;
   --speech-repeat: stretch;
   --speech: var(--speech-src) var(--speech-slice) fill / var(--speech-width) /
     var(--speech-outset) var(--speech-repeat);
 
-  /* The bubble's fallback paper and the alpha the whole layer is flattened to.
-     The image paints its own centre over this fill; the fill is clipped to the
-     padding box so a failed image still leaves a legible panel without filling
-     in the image's transparent corners. */
+  /* The pointer's art, drawn at the paper's own pixel scale: one source pixel
+     is --speech-scale CSS px, so the pointer's 2px outline weighs exactly what
+     the card's does and the two silhouettes read as one shape. That makes the
+     pointer a fixed CSS size rather than a design size, like the frame and
+     the paper's own outline. Two pieces: a wedge for a corner (16 x 16 source
+     px) and a symmetric pointer for an edge (26 x 16 source px). */
+  --speech-tail-right: url("images/dialogue/speech-tail-right.png");
+  --speech-tail-iso: url("images/dialogue/speech-tail-iso.png");
+  --tail-size: calc(var(--speech-scale) * 16px);
+  --tail-point: calc(var(--speech-scale) * 26px);
+  /* One authored pixel of the art — the size of the card's outline and its
+     corner step, at 2 source px. The pointer's mouth is seated this far
+     inside the card's paper edge, so the card's outline band and the stepped
+     corner under it are both covered where the mouth opens through them.
+     Both papers are opaque, so the overlap does not show. */
+  --tail-seat: calc(var(--speech-scale) * 2px);
+
+  /* The bubble's fallback paper. The image paints its own centre over this
+     fill; the fill is clipped to the padding box so a failed image still
+     leaves a legible panel without filling in the image's transparent
+     corners. */
   --stage-bubble-fill: #f8f8f8;
-  --stage-bubble-alpha: 0.94;
 
   /* The panel fill matches the border image's centre green. It stays as the
      background fallback: if the image fails to load, the text surfaces remain
@@ -191,13 +211,23 @@
    :root so the stage has a complete layout before the layout attribute
    exists.
 
-   Tail knobs: --tail-anchor-x / --tail-anchor-y place the pointer's centre
-   along the bubble's edge (0 = left/top, 1 = right/bottom, 0.5 = middle) —
-   positions by convention, not a clamp: a negative anchor puts the pointer's
-   base outside the bubble's left or top edge, past 1 outside the right or
-   bottom. --tail-rotate aims it at Cam (the triangle points down at 0deg);
-   --tail-reach then pushes it further along that aim, so a pointer can lean
-   out past the bubble's foot. */
+   A reply's --slot-reply-left is its left edge, like every other slot's; the
+   bar's width comes from the rail box, not from the layout, so a layout that
+   wants the bar centred on something states that point as the
+   left and pulls the bar back by half its own width with
+   --slot-reply-shift-x: -50%. The percentage is the bar's, so the centring
+   survives any rail size.
+
+   Tail knobs: --tail-art names the piece and --tail-w / --tail-h its size;
+   --tail-rotate aims it. The mouth is the box's top edge at 0deg and the box
+   turns about that edge's centre, so --tail-x / --tail-y seat the box's
+   top-left corner on the card: x along the slot's width, y down the slot.
+   Seat the mouth on the card's paper edge — the slot inset by --speech-line —
+   so the pointer's first row of paper covers the card's outline band, then
+   one authored pixel further in (--tail-seat) so the card's stepped corner
+   is covered too. At a corner, bring the pointer's own outlined edge flush
+   with the slot's edge, so its outline continues the card's. The samples in
+   include/images/dialogue/speech-bubble-tail-samples are the reference. */
 
 :root,
 body[data-layout="0"] {
@@ -212,17 +242,23 @@ body[data-layout="0"] {
   --slot-bubble-width: 1460;
   --slot-bubble-height: 865;
 
-  /* reply */
-  --slot-reply-left: 841;
+  /* reply — centred on the bubble's box, y unchanged */
+  --slot-reply-left: 1420;
   --slot-reply-top: 1302;
+  --slot-reply-shift-x: -50%;
 
   /* menu — visible */
   --slot-menu-display: flex;
 
-  --tail-anchor-x: 1;
-  --tail-anchor-y: 1;
-  --tail-rotate: -45deg;
-  --tail-reach: 0;
+  /* tail — the corner wedge: mouth on the paper's bottom edge, seated one
+     pixel in, outlined edge flush with the slot's right edge, so it
+     continues both edges outward */
+  --tail-art: var(--speech-tail-right);
+  --tail-w: var(--tail-size);
+  --tail-h: var(--tail-size);
+  --tail-rotate: 0deg;
+  --tail-x: calc(100% - var(--tail-size));
+  --tail-y: calc(100% - var(--speech-line) - var(--tail-seat));
 }
 
 body[data-layout="1"] {
@@ -237,17 +273,23 @@ body[data-layout="1"] {
   --slot-bubble-width: 1460;
   --slot-bubble-height: 865;
 
-  /* reply */
-  --slot-reply-left: 1400;
+  /* reply — centred on the bubble's box, y unchanged */
+  --slot-reply-left: 1982;
   --slot-reply-top: 1302;
+  --slot-reply-shift-x: -50%;
 
   /* menu — visible */
   --slot-menu-display: flex;
 
-  --tail-anchor-x: 0;
-  --tail-anchor-y: 0.95;
-  --tail-rotate: 65deg;
-  --tail-reach: 20;
+  /* tail — the wedge turned a quarter turn into the bottom-left corner:
+     mouth on the paper's left edge, seated one pixel in, outlined edge flush
+     with the slot's bottom edge */
+  --tail-art: var(--speech-tail-right);
+  --tail-w: var(--tail-size);
+  --tail-h: var(--tail-size);
+  --tail-rotate: 90deg;
+  --tail-x: calc(var(--speech-line) + var(--tail-seat) - var(--tail-size) / 2);
+  --tail-y: calc(100% - var(--tail-size) / 2);
 }
 
 body[data-layout="2"] {
@@ -262,17 +304,21 @@ body[data-layout="2"] {
   --slot-bubble-width: 1460;
   --slot-bubble-height: 865;
 
-  /* reply */
-  --slot-reply-left: 843;
+  /* reply — nudged right of the old placement, not centred */
+  --slot-reply-left: 1143;
   --slot-reply-top: 1314;
 
   /* menu — visible */
   --slot-menu-display: flex;
 
-  --tail-anchor-x: 0;
-  --tail-anchor-y: 0.12;
+  /* tail — the edge pointer aiming left, high on the paper's left edge to
+     face Cam */
+  --tail-art: var(--speech-tail-iso);
+  --tail-w: var(--tail-point);
+  --tail-h: var(--tail-size);
   --tail-rotate: 90deg;
-  --tail-reach: 50;
+  --tail-x: calc(var(--speech-line) - var(--tail-point) / 2);
+  --tail-y: 14%;
 }
 
 body[data-layout="3"] {
@@ -292,17 +338,21 @@ body[data-layout="3"] {
   --slot-bubble-width: 1460;
   --slot-bubble-height: 865;
 
-  /* reply */
-  --slot-reply-left: 843;
+  /* reply — centred on the bubble's box, y unchanged */
+  --slot-reply-left: 2005;
   --slot-reply-top: 1314;
+  --slot-reply-shift-x: -50%;
 
   /* menu — hidden in this layout */
   --slot-menu-display: none;
 
-  --tail-anchor-x: 0;
-  --tail-anchor-y: 0.5;
+  /* tail — the edge pointer aiming left, a touch below the paper's middle */
+  --tail-art: var(--speech-tail-iso);
+  --tail-w: var(--tail-point);
+  --tail-h: var(--tail-size);
   --tail-rotate: 90deg;
-  --tail-reach: 50;
+  --tail-x: calc(var(--speech-line) - var(--tail-point) / 2);
+  --tail-y: 52%;
 }
 
 /* ---- the frame ---------------------------------------------------------- */
@@ -438,12 +488,19 @@ body[data-stage-mode] {
 .stage-reply {
   left: calc(var(--stage-unit) * var(--slot-reply-left));
   top: calc(var(--stage-unit) * var(--slot-reply-top));
-  /* The wide panel: its height is the menu's width, but its width keeps the
-     design-height reference rather than following the menu's reduced height,
-     so the player's line stays wide. The frame turns with the box. Only the
-     slot's position is per layout. */
-  width: calc(var(--rail-unit) * var(--rail-h) - var(--pixel-inset) * 2);
-  height: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
+  /* The wide panel: the menu's box turned a quarter turn, so its width is
+     the menu's height and its height the menu's width. Both follow
+     --rail-unit, the same unit the menu uses, so the pair scales together at
+     every resolution. The frame turns with the box. Only the slot's position
+     is per layout.
+
+     --slot-reply-shift-x moves the bar off its left edge after placement; a
+     layout centring the bar on a point states that point as the left and
+     -50% here. The value is the bar's own width, so it lands on the centre
+     whatever the rail measures. */
+  width: calc(var(--rail-unit) * var(--rail-h));
+  height: calc(var(--rail-unit) * var(--rail-w));
+  transform: translateX(var(--slot-reply-shift-x, 0));
 }
 
 /* ---- slot content — what the content macros put into each slot ----------
@@ -549,17 +606,20 @@ body[data-stage-mode] {
    <<player_line>> inherits the bar's ink, not the shell's dark-on-light
    page links. */
 .stage-reply[data-state="filled"] {
-  padding: calc(var(--stage-unit) * 28) calc(var(--stage-unit) * 40);
+  padding: calc(var(--stage-unit) * 20) calc(var(--stage-unit) * 40);
   background: var(--pixel-fill);
   background-clip: padding-box;
   color: var(--pixel-fill-ink);
   /* The frame is a real border here: the bar keeps its slot box, but its
      content box sits inside the ornament, so no line of the reply can land on
-     the band. The green background above is the failed-image fallback. */
+     the band. It follows --rail-frame-width, the menu's frame, so the two
+     panels stay one box at every resolution. The green background above is
+     the failed-image fallback. */
   border-style: solid;
   border-color: transparent;
-  border-width: var(--frame-width);
+  border-width: var(--rail-frame-width);
   border-image: var(--frame);
+  border-image-width: var(--rail-frame-width);
   image-rendering: pixelated;
   font-size: calc(var(--stage-unit) * 38);
   line-height: 1.3;
@@ -583,12 +643,11 @@ body[data-stage-mode] {
    paper; the fallback background is clipped to the padding box so the
    image's transparent corners keep showing the checkerboard through.
 
-   The tail is deliberately not drawn yet. It is a separate silhouette that
-   would sit outside this outline, and the tail art is its own piece of work;
-   this paper layer is its future home. The layer is fixed to the slot's box,
-   sits behind the inner prose box and never intercepts a pointer, so links
-   and choices remain reachable. Opacity and shadow are applied here, once to
-   the finished paper, and not to the prose.
+   The pointer is a second layer, below. This one stays the card: fixed to
+   the slot's box, sitting behind the inner prose box and behind the pointer,
+   and never intercepting a pointer, so links and choices remain reachable.
+   The shadow is applied here, once to the finished paper, and not to the
+   prose.
 
    A real border reserves the nine-patch, which is why the layer's box is
    border-box and the prose's own padding keeps every line inside the centre. */
@@ -598,8 +657,6 @@ body[data-stage-mode] {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  /* The group's opacity, applied once to the finished paper. */
-  opacity: var(--stage-bubble-alpha);
   filter: drop-shadow(
     0 calc(var(--stage-unit) * 18) calc(var(--stage-unit) * 48)
       rgba(0, 0, 0, 0.35)
@@ -612,11 +669,45 @@ body[data-stage-mode] {
   image-rendering: pixelated;
 }
 
+/* ---- the speech bubble's pointer ---------------------------------------
+   The tail is a separate silhouette with its own art, drawn on the slot's
+   ::after so it can be aimed independently: above the paper's layer, so its
+   mouth replaces the stretch of the card's outline it opens through, and
+   below the prose. Sitting above also puts it above the paper's drop shadow,
+   so the shadow runs beneath the pointer rather than across it, and the
+   pointer casts none of its own: the card and its pointer share one plane and
+   one shadow.
+
+   The box is the artwork at the paper's pixel scale, and the layout seats it
+   by the top-left corner (see the tail knobs above). The art's mouth is its
+   top edge, and the box is turned about that edge's centre, so a quarter turn
+   aims it at a left or right edge without moving the mouth's seat. Where the
+   piece is rotated a quarter turn the footprint follows the art's other axis,
+   which is why --tail-w and --tail-h are both stated rather than one size. */
+.stage-bubble[data-state="filled"]::after {
+  content: "";
+  position: absolute;
+  left: var(--tail-x);
+  top: var(--tail-y);
+  width: var(--tail-w);
+  height: var(--tail-h);
+  /* Above the paper (0) and below the prose (1). */
+  z-index: 0;
+  pointer-events: none;
+  background-image: var(--tail-art);
+  background-size: 100% 100%;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  transform-origin: 50% 0;
+  transform: rotate(var(--tail-rotate));
+}
+
 /* Debug only: outline the slots that are still empty. The attribute flips to
    "filled" the moment stage.js writes content, so this never hides real
-   content. A slot that is revealing is exempt: a waiting reply is deliberately
-   held empty until it lands (stage.js, at the reveal's request), which is not a
-   gap in the authoring to be outlined. */
+   content. A slot that is revealing is exempt: Cam's line is growing into an
+   already-filled slot, and a waiting reply keeps its filled bar while the
+   reveal holds its message (stage.js, at the reveal's request), so neither is
+   a gap in the authoring to be outlined. */
 body[data-stage-debug] .stage-slot[data-state="empty"] {
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 10px;
@@ -650,7 +741,7 @@ body[data-stage-mode] .rail {
   display: var(--slot-menu-display);
   top: calc((100vh - var(--rail-height)) / 2);
   left: calc((100vw - var(--stage-w)) / 2 + var(--pixel-inset));
-  width: calc(var(--rail-unit) * var(--rail-w) - var(--pixel-inset) * 2);
+  width: calc(var(--rail-unit) * var(--rail-w));
   height: var(--rail-height);
   max-height: var(--rail-height);
   transform: none;

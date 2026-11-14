@@ -34,8 +34,11 @@
    squashes, are what make that safe to allow.
 
    The context is created on the first gesture, never at load: one made before
-   a gesture starts suspended and logs a warning. Until it is running, letters
-   are silence — the line still reveals. */
+   a gesture starts suspended and logs a warning. This file also reports
+   whether a letter would be heard at all (Voice.audible()), so the reveal can
+   decline to typewrite in silence — a page restored by refresh has had no
+   gesture, and nothing here can make it sound. A muted player is not that
+   case: the reveal still runs, because the silence is their choice. */
 (function () {
   "use strict";
 
@@ -70,6 +73,10 @@
   var LETTER_SECONDS = (letters && letters.secondsPerLetter) || 0.075;
 
   var audio = { ctx: null, buffer: null, comp: null, master: null };
+  /* Whether a gesture has woken the graph on this page. A new context's state
+     can still read "suspended" for a moment after resume() queues the work, so
+     the line that follows the waking gesture must not be judged by state. */
+  var awake = false;
 
   function ensure() {
     if (audio.ctx) {
@@ -176,12 +183,27 @@
       return;
     }
     var ctx = ensure();
-    if (ctx && ctx.state === "suspended") {
-      ctx.resume();
+    if (ctx) {
+      awake = true;
+      if (ctx.state === "suspended") {
+        ctx.resume();
+      }
     }
   }
 
   Voice.wake = wake;
+
+  /* Whether a letter spoken now would be heard. The reveal asks this before a
+     line starts: a page restored by refresh has had no gesture to wake the
+     graph, so its lines arrive whole rather than type in silence. Muted is not
+     silence here — it is a choice — so the reveal still runs. */
+  Voice.audible = function () {
+    if (level() <= 0) {
+      return true;
+    }
+    return awake;
+  };
+
   document.addEventListener("pointerdown", wake, true);
   document.addEventListener("keydown", wake, true);
 })();

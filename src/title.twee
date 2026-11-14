@@ -1,11 +1,16 @@
-:: Title [title checker]  {"position":"100,100"}
+:: Title [title checker nobr]  {"position":"100,100"}
 <div class="title-screen">
 	<h1><<print Story.name>></h1>
 	<p>
 		<<link "Start" "Layout 0">><</link>>
 		<<if Save.browser.size > 0>> · <<link "Load">><<run UI.saves()>>><</link>><</if>>
 	</p>
-	<!-- Licence term, not decoration: the letter sounds are CC BY 4.0 and the
-	     attribution belongs where a player can see it (docs/adr/0002). -->
+	<!-- Licence terms, not decoration: the letter sounds and the checkerboard
+	     background are both CC BY 4.0, and their attributions belong where a
+	     player can see them (docs/adr/0002). The visual-design reference is
+	     cited alongside them. -->
 	<p class="title-credit">Letter sounds: <a href="https://github.com/jeff-hykin/animalese" target="_blank" rel="noopener">animalese</a>, after Josh Simmons' recording (CC BY 4.0).</p>
+	<p class="title-credit">Background: scrolling checkerboard pattern by <a href="https://codepen.io/liamj/pen/GRGRgMj" target="_blank" rel="noopener">Liam J</a> (CC BY 4.0), adapted.</p>
+	<p class="title-credit">Speech balloon art: <a href="https://justajoke.itch.io/pixel-speech-balloon" target="_blank" rel="noopener">Pixel Speech Balloon</a> by JustAJoke, adapted.</p>
+	<p class="title-credit">Visual design after Tokimeki Memorial (Konami, 1994): setting, title, Cam and the dialogue borders.</p>
 </div>

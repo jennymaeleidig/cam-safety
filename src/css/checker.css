@@ -6,7 +6,9 @@
    selectors renamed to #tmem-bg/.pattern, --tmem-hue variable for per-layout
    overrides, prefers-reduced-motion support added) */
 
-/* ===== Tokimeki-style animated checkerboard background ===== */
+/* ===== Tokimeki-style animated checkerboard background =====
+   Visual reference: Tokimeki Memorial (Konami, 1994) — the setting's
+   checkerboard and green palette. */
 
 html,
 body {

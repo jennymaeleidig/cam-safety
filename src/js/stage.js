@@ -33,9 +33,10 @@
    The visible state has one writer: this file. The flush publishes data-state
    and records what it gave each slot; is-revealing and inert are written only
    by the transitions the reveal requests. reveal marks Cam's growing line as
-   revealing while keeping the flushed paper, hold publishes a waiting reply
-   empty, land publishes a slot filled and reachable, and abandon puts back the
-   state the most recent flush gave that slot. The flush records that state
+   revealing while keeping the flushed paper, hold marks a waiting reply as
+   revealing and inert while keeping the flushed bar — its prose is already
+   empty — land publishes a slot filled and reachable, and abandon puts back
+   the state the most recent flush gave that slot. The flush records that state
    here, so abandoning a line that a newer flush has already replaced cannot
    clobber the newer state. A passage start clears the record, so an abandon
    can never restore state from a passage before a failed or absent flush. */
@@ -241,8 +242,9 @@
   /* ---- transitions requested by the reveal ----------------------------
      reveal  Cam's line is growing: keep the data-state the flush published
              (its paper stays up), and mark it revealing and inert.
-     hold    a waiting reply has not landed: publish it empty, and mark it
-             revealing and inert.
+     hold    a waiting reply has not landed: its bar keeps the flushed paper,
+             because the reveal has already emptied its prose, and it is marked
+             revealing and inert so it cannot be read or entered early.
      land    the line is whole: filled, not revealing, reachable.
      abandon the new flush has already rewritten the slot; drop the transient
              class and inertness and put back the state that flush gave it. */
@@ -260,7 +262,9 @@
     if (!slot) {
       return;
     }
-    setState(slot, false);
+    /* The bar stays up while its message waits: the reveal has emptied the
+       prose already, so the slot keeps the filled state the flush published
+       and only the box is showing. */
     slot.classList.add("is-revealing");
     slot.setAttribute("inert", "");
   }
