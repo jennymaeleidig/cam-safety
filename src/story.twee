@@ -11,42 +11,10 @@ Cam Safety
 
 :: StoryInit
 /* Content macros: each records one stage slot's content (src/js/stage.js,
-   which writes the slots once per passage), and renders nothing into
+   which writes the slots once per passage) and renders nothing into
    #passages, so the stage owns all visible content for [checker] passages.
-
-   Authoring:
-     <<set_layout 2>>
-     <<cam_line "Cam's line">>
-     <<player_line "The player's reply">>
-     <<portrait "images/cam/phase-3/talking/phase-3-talking.gif" "alt (opt)">>
-   <<set_layout>> chooses this passage's layout directly: it publishes the
-   number (0-4) while the passage renders, before the passage is displayed,
-   so the first visible frame is already composed. It renders nothing.
-   <<cam_line>> is spoken: the stage reveals it one character at a time, with a
-   letter of voice per character (src/js/reveal.js, src/js/voice.js). While the
-   line is being revealed the portrait shows the layout's talking pose, then
-   settles back to neutral when the line lands.
-   <<player_line>> is the player's own line and is not: it arrives whole, once
-   Cam has finished, and its links are silent and never half-revealed. Neither
-   line is revealed under prefers-reduced-motion; the talking pose still gets
-   one short beat and the reply waits behind it.
-   An omitted <<portrait>> leaves the automatic pose pair in place — the
-   layout's neutral and talking artworks (NEUTRAL_POSE and TALKING_POSE in
-   src/js/stage.js) — so most passages need no portrait line at all. An
-   authored <<portrait>> pins one image for the whole passage instead, with no
-   pose switching. The phase GIFs live in include/images/cam/.
-   <<system_line>> is a system message: non-Cam dialogue for the System layout
-   (<<set_layout 4>>), which composes the title screen's reading card in the
-   speech bubble's place. It arrives whole — no reveal, no letter voice, no
-   portrait pose — and its links are clickable at once. It is only valid on
-   Layout 4, as <<cam_line>> and <<portrait>> are only valid on Layouts 0-3:
-   each reports an authoring error on the layout that has no slot for it. The
-   macros read the published layout, so <<set_layout>> comes first.
-   The lines are wiki-processed, so $variables, markup and [[links]] work in
-   them. A [checker] passage's exits belong in <<player_line>> (the reply
-   bar — or <<cam_line>>, the speech-bubble), never as a bare [[...]] in
-   passage text: stage mode hides #passages, so a bare link is invisible to
-   the player. */
+   Authoring is documented in docs/authoring.md; story.twee-config.yaml carries
+   the descriptions the editor shows. */
 <<script>>
 (function () {
 	/* The published layout is the one the macros check: layout.js has already
