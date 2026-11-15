@@ -56,8 +56,6 @@
 		<a href="#" title="Settings" data-shell-action="settings">Settings</a>
 		<a href="#" title="Saves" data-shell-action="saves">Saves</a>
 		<a href="#" title="Restart" data-shell-action="restart">Restart</a>
-		<!-- Prev/next, disabled: remove the comment markers below to re-enable (one line) -->
-		<!-- <a href="#" title="Previous passage" data-shell-action="back">&#8249; Back</a> <a href="#" title="Next passage" data-shell-action="forward">Next &#8250;</a> -->
 	</nav>
 </aside>
 <div class="stage stage-window">
@@ -65,8 +63,8 @@
 	<!-- The bubble slot owns its surface: the speech nine-patch is drawn on
 	     .stage-bubble::before by the Pixel frame's paper variant (frame.css),
 	     and stage.js writes the line into an inner .stage-bubble-prose box, so
-	     the paper stays put while the prose scrolls. The pointer tail is
-	     deferred. -->
+	     the paper stays put while the prose scrolls. The pointer tail is the
+	     slot's ::after, placed per layout. -->
 	<div class="stage-slot stage-bubble pixel-frame-paper" data-stage-slot="bubble" data-slot-label="Cam speech-bubble"></div>
 	<!-- The system card: the title screen's reading card in the speech bubble's
 	     box, for Layout 4's pre-game message. stage.js writes into an inner

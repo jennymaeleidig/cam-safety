@@ -20,13 +20,13 @@ body {
   z-index: 10;
 }
 
-/* Palette: one hue drives all four greens, set per layout so the layout
-   selects slot geometry (stage.css) and background through the same
-   attribute and the same seam. :root is the layout-0 fallback for the moment
-   before layout.js sets data-layout — the trick stage.css uses — and the
-   layout blocks below carry each layout's values. All five layouts are green
-   today; giving a layout its own background is a value change here, not a new
-   code path. No JavaScript writes these. */
+/* Palette: one hue drives the four shades of each checkerboard, set per
+   layout so the layout selects slot geometry (stage.css) and background
+   through the same attribute and the same seam. :root is the layout-0
+   fallback for the moment before layout.js sets data-layout — the trick
+   stage.css uses — and the layout blocks below carry each layout's values.
+   Each layout sets its own hue today (152, 200, 45, 0, 152); changing one is
+   a value change here, not a new code path. No JavaScript writes these. */
 :root {
   --tmem-hue: 152;
 }
@@ -173,4 +173,10 @@ body[data-stage-mode] #tmem-bg {
   #tmem-bg .pattern {
     animation: none;
   }
+}
+
+/* The player's Background animations toggle, written onto the body by
+   settings.js. */
+body.no-background-animation #tmem-bg .pattern {
+  animation: none;
 }

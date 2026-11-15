@@ -41,10 +41,10 @@
 (function () {
   "use strict";
 
-  /* window.Stage has no declaration for the editor's TypeScript server
-     (TS2568), so window is widened for this create-or-keep assignment. */
+  /* types/story-globals.d.ts types window.Stage for the editor. */
   var win = /** @type {any} */ (window);
-  var Stage = /** @type {any} */ (win.Stage = win.Stage || {});
+  win.Stage = win.Stage || {};
+  var Stage = /** @type {any} */ (win.Stage);
 
   var startHandlers = [];
   var renderHandlers = [];

@@ -34,7 +34,7 @@ Cam Safety
    layout's neutral and talking artworks (NEUTRAL_POSE and TALKING_POSE in
    src/js/stage.js) — so most passages need no portrait line at all. An
    authored <<portrait>> pins one image for the whole passage instead, with no
-   pose switching.
+   pose switching. The phase GIFs live in include/images/cam/.
    <<system_line>> is a system message: non-Cam dialogue for the System layout
    (<<set_layout 4>>), which composes the title screen's reading card in the
    speech bubble's place. It arrives whole — no reveal, no letter voice, no
@@ -99,11 +99,6 @@ Cam Safety
 	});
 })();
 <</script>>
-
-/* Cam's portrait needs no story variable: a [checker] passage that omits
-   <<portrait>> shows the current layout's neutral pose and switches to its
-   talking pose while Cam's line is revealed (NEUTRAL_POSE and TALKING_POSE in
-   src/js/stage.js), and the phase GIFs live in include/images/cam/. */
 
 :: Layouts [scratch] {"position":"0,750"}
 /* Entry point for the layout scratch passages — open it from the browser

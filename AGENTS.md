@@ -12,4 +12,4 @@ Default five-role vocabulary, label strings equal to their names. See `docs/agen
 
 ### Domain docs
 
-Single-context: `GLOSSARY.md` at the repo root, ADRs in `docs/adr/`. See `docs/agents/domain.md`.
+Single-context: `GLOSSARY.md` at the repo root. See `docs/agents/domain.md`.

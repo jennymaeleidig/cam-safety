@@ -10,26 +10,21 @@
    framed, centred reading page beside a left settings rail follows the Simple
    Book template's structure (side menus around a centred #cover/#passages
    page). No template CSS is shipped verbatim — only the layout idea is
-   borrowed, then explored in the throwaway layout study and re-laid for
-   flock-cam.
+   borrowed, then re-laid for flock-cam.
 
    Visual reference: Tokimeki Memorial (Konami, 1994) — the title screen and
    the menu panel follow its green-framed, fixed-composition language. */
 
 /* ===== Story shell layout — compact rail panel + centered reading card =====
-   Values borrowed from the layout study (prototype/layout/css/layout-
-   prototype.css; Variant A "Book" is faithful to the Simple Book template, see
-   citation above): the rail is variant C/D's panel — a title over a column of
-   actions — but sized in design pixels (--rail-w / --rail-h / --rail-unit,
-   from measure.css; the same box the stage's menu slot occupies), and framed like
-   variant A's floating rail (vertically centred, never edge-to-edge) — with
-   the stage's nine-patch frame and green fill in place of variant A's border
-   + 12px radius and the study's #242429 panel, see .rail below. The reading
-   column keeps variant A's page card *layout* — a wide centred block — but
-   takes the story's own frame instead of the study's paper: the same green
-   fill and painted border as every other framed surface (see #passages
-   below). The card is what keeps the text legible over the animated
-   checkerboard, which keeps ownership of the page background.
+   The rail is a title over a column of actions, sized in design pixels
+   (--rail-w / --rail-h / --rail-unit, from measure.css; the same box the
+   stage's menu slot occupies), vertically centred and never edge-to-edge. It
+   is framed with the stage's nine-patch frame and green fill, so the panel is
+   the same framed surface as the stage's slots. The reading column is a wide
+   centred block that takes the story's own frame: the same green fill and
+   painted border as every other framed surface (see #passages below). The
+   card is what keeps the text legible over the animated checkerboard, which
+   keeps ownership of the page background.
 
    Layout module only — frames whatever renders into #passages, no
    per-passage markup.
@@ -109,7 +104,6 @@ body {
   z-index: 1; /* above .stage — see stage.css */
   width: calc(var(--rail-unit) * var(--rail-w));
   height: var(--rail-height);
-  max-height: var(--rail-height);
   overflow: auto;
   display: flex;
   flex-direction: column;
@@ -231,10 +225,6 @@ body {
   text-decoration: underline;
 }
 
-.reading-card a:hover {
-  text-decoration: underline;
-}
-
 /* The card's inner prose box: the padding a line of card text keeps from the
    frame. The title's own divisions sit inside it, and the stage's system card
    adds a fixed box and scrolling around it (stage.css). */
@@ -263,19 +253,16 @@ body {
   margin: 0.5em 0;
 }
 
-/* The same break under the title as under Start. */
-.title-screen h1 + p {
-  margin-top: var(--title-gap);
-}
-
-/* The licence block is set apart from the Start line: a player reads Start
-   first, and the credits should not crowd the choice. */
+/* The same break under the title as under Start, and before the licence
+   block: a player reads Start first, and the credits should not crowd the
+   choice. */
+.title-screen h1 + p,
 .title-screen > p:not(.title-credit) + .title-credit {
   margin-top: var(--title-gap);
 }
 
-/* Each credit is its own line; a little air between them keeps four
-   attributions from reading as one paragraph. */
+/* Each credit is its own line; a little air between them keeps the credits
+   from reading as one paragraph. */
 .title-credit + .title-credit {
   margin-top: 0.9em;
 }

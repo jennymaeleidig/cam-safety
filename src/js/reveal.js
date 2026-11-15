@@ -16,11 +16,7 @@
    reachable the moment the line lands. This file empties the prose itself,
    through the plan below, so the box a player is about to fill stays visible
    while the words wait. This file does not write the slot's state — it asks
-   the Stage for reveal, hold, land and abandon. The Stage is the only writer
-   of data-state, is-revealing and inert; the flush publishes data-state and
-   records what it gave each slot, while is-revealing and inert are written
-   only by those transitions. So abandoning a line after a newer flush cannot
-   clobber the newer state.
+   the Stage for reveal, hold, land and abandon.
 
    The reveal grows text nodes rather than re-wikifying: jQuery.wiki() output is
    already live on the detached passage element, SugarCube having bound link
@@ -47,6 +43,11 @@
    is long enough to exceed it, so no passage can make the player wait, however
    slowly they set the pace.
 
+   The typewriter toggle is asked at the same moment: when it is off, the
+   flush's whole lines are landed at once, with no reveal, no beat and no
+   sound. A changed toggle therefore lands on the next passage, like a changed
+   pace.
+
    A frame that catches up — a stalled frame, or a tab returning from the
    background — can owe a hundred characters. It gets to speak two of them:
    beyond that the letters would start in a single instant and sum into the
@@ -68,7 +69,8 @@
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var Reveal = /** @type {any} */ (win.Reveal = win.Reveal || {});
+  win.Reveal = win.Reveal || {};
+  var Reveal = /** @type {any} */ (win.Reveal);
 
   var MAX_MS = 6000;
   var MIN_MS = 4;
@@ -112,30 +114,36 @@
     var nodes = [];
     var steps = [];
     var at = 0;
-    var node;
-    while ((node = walker.nextNode())) {
-      var full = node.nodeValue || "";
-      if (!full) {
-        continue;
-      }
-      nodes.push({ node: node, full: full, start: at });
-      var end = at + full.length;
-      if (node.parentElement && node.parentElement.closest("a")) {
-        steps.push({ chars: end, letter: "" });
-      } else {
-        for (var i = 0; i < full.length; i += 1) {
-          steps.push({ chars: at + i + 1, letter: full.charAt(i) });
+    var full;
+    var end;
+    var i;
+    var node = walker.nextNode();
+    while (node) {
+      full = node.nodeValue || "";
+      if (full) {
+        nodes.push({ node: node, full: full, start: at });
+        end = at + full.length;
+        if (node.parentElement && node.parentElement.closest("a")) {
+          steps.push({ chars: end, letter: "" });
+        } else {
+          for (i = 0; i < full.length; i += 1) {
+            steps.push({ chars: at + i + 1, letter: full.charAt(i) });
+          }
         }
+        at = end;
       }
-      at = end;
+      node = walker.nextNode();
     }
     return { nodes: nodes, steps: steps };
   }
 
   function paint(planned, chars) {
-    for (var i = 0; i < planned.nodes.length; i += 1) {
-      var entry = planned.nodes[i];
-      var take = chars - entry.start;
+    var i;
+    var entry;
+    var take;
+    for (i = 0; i < planned.nodes.length; i += 1) {
+      entry = planned.nodes[i];
+      take = chars - entry.start;
       if (take <= 0) {
         entry.node.nodeValue = "";
       } else if (take >= entry.full.length) {
@@ -186,59 +194,48 @@
   /* Each transition asks the Stage, which owns data-state, is-revealing and
      inert. The Stage is absent only if that file failed to load, in which case
      the flush has already put both lines on screen in full. */
+  function askStage(method, handle) {
+    var stage = win.Stage;
+    if (stage && typeof stage[method] === "function") {
+      stage[method](handle);
+    }
+  }
 
   /* Cam's growing line keeps the paper the flush gave it. Used when Cam
      starts speaking. */
   function reveal(entry) {
-    var stage = win.Stage;
-    if (stage && typeof stage.reveal === "function") {
-      stage.reveal(entry.handle);
-    }
+    askStage("reveal", entry.handle);
   }
 
-  /* Hide the line's paper and its text. Used for the line waiting its turn. */
+  /* Empty the line's text; the Stage keeps its paper up and marks the Slot
+     inert. Used for the line waiting its turn. */
   function hold(entry) {
     paint(entry.plan, 0);
-    var stage = win.Stage;
-    if (stage && typeof stage.hold === "function") {
-      stage.hold(entry.handle);
-    }
+    askStage("hold", entry.handle);
   }
 
   /* The portrait speaks with the line. */
   function speak() {
-    var stage = win.Stage;
-    if (stage && typeof stage.speaking === "function") {
-      stage.speaking();
-    }
+    askStage("speaking");
   }
 
   /* The line is whole: the portrait settles. */
   function silence() {
-    var stage = win.Stage;
-    if (stage && typeof stage.silent === "function") {
-      stage.silent();
-    }
+    askStage("silent");
   }
 
   /* Show all of it, at once. Also what skipping does. */
   function land(entry) {
     entry.step = total(entry);
     paintTo(entry);
-    var stage = win.Stage;
-    if (stage && typeof stage.land === "function") {
-      stage.land(entry.handle);
-    }
+    askStage("land", entry.handle);
   }
 
   /* Forget the line without restoring it: the incoming passage's flush is
      about to rewrite the Slot anyway, and the Stage restores the state that
      flush published. */
   function abandon(entry) {
-    var stage = win.Stage;
-    if (stage && typeof stage.abandon === "function") {
-      stage.abandon(entry.handle);
-    }
+    askStage("abandon", entry.handle);
   }
 
   /* Show as much as `now` has earned, and report whether the line is done. */
@@ -249,8 +246,9 @@
       want = steps.length;
     }
     var spoken = 0;
+    var step;
     while (entry.step < want) {
-      var step = steps[entry.step];
+      step = steps[entry.step];
       if (step.letter && spoken < LETTERS_PER_FRAME) {
         if (win.Voice) {
           win.Voice.letter(step.letter);
@@ -330,7 +328,7 @@
      with no lines is exactly when the previous passage's reveal has to be
      dropped, or it would hold and then paint Slots the flush has emptied. */
   Reveal.start = function (handles) {
-    handles = handles || {};
+    var input = handles || {};
     stop();
     beat = 0;
     if (speaking) {
@@ -346,8 +344,26 @@
       waiting = null;
     }
 
-    var camIn = handles.camLine ? line(handles.camLine) : null;
+    var camIn = input.camLine ? line(input.camLine) : null;
     var hasCamLine = !!camIn && total(camIn) > 0;
+
+    /* The typewriter is off: the flush already wrote both lines whole, so
+       land them where they stand and leave the portrait neutral. */
+    var settings = win.CamSettings;
+    if (
+      settings &&
+      typeof settings.revealEnabled === "function" &&
+      !settings.revealEnabled()
+    ) {
+      if (camIn) {
+        land(camIn);
+      }
+      if (input.reply) {
+        land(line(input.reply));
+      }
+      silence();
+      return;
+    }
 
     /* No gesture has woken the voice yet, so a reveal now would type in
        silence. Leave the flush's lines whole on screen and the portrait
@@ -362,8 +378,8 @@
       if (!hasCamLine) {
         return;
       }
-      if (handles.reply) {
-        queueReply(handles.reply);
+      if (input.reply) {
+        queueReply(input.reply);
       }
       speak();
       beat = win.performance.now() + BEAT_MS;
@@ -377,8 +393,8 @@
       return;
     }
 
-    if (handles.reply) {
-      queueReply(handles.reply);
+    if (input.reply) {
+      queueReply(input.reply);
     }
 
     speaking = camIn;

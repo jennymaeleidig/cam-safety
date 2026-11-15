@@ -21,12 +21,6 @@
       restart: function () {
         sc.UI.restart();
       },
-      back: function () {
-        sc.Engine.backward();
-      },
-      forward: function () {
-        sc.Engine.forward();
-      },
     };
   }
 

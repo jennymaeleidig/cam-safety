@@ -15,23 +15,18 @@
    The attribute is valueless — present means stage mode, absent means shell
    mode — matching the existing data-stage-debug affordance.
 
-   Applied on the lifecycle's start phase (like the layout, and for the same
-   reason: it must be in place before the passage renders), and also
-   once at load from whatever classes <body> already carries, so the attribute
-   is never a lagging copy of the mode it names.
-
-   The load-time call is thorough rather than load-bearing: SugarCube has not
-   navigated yet when story JavaScript runs, so by then <body> carries no
-   passage classes and nothing is set. The shell then shows for the first
-   paint, which is right for the title the story starts on. A story that ever
-   started on a [checker] passage would show the shell for one paint before the
-   start phase corrected it. */
+   Applied on the lifecycle's start phase, like the layout, and for the same
+   reason: it must be in place before the passage renders. SugarCube has not
+   navigated yet when story JavaScript runs, so <body> carries no passage
+   classes at load and the shell shows for the first paint — right for the
+   title the story starts on. A story that ever started on a [checker] passage
+   would show the shell for one paint before the start phase corrected it. */
 (function () {
   "use strict";
 
   function isStageMode(tags) {
     var list = tags || [];
-    return list.indexOf("checker") !== -1 && list.indexOf("title") === -1;
+    return list.includes("checker") && !list.includes("title");
   }
 
   function applyMode(tags) {
@@ -42,29 +37,11 @@
     }
   }
 
-  /* The load-time entry point: the same predicate, fed from the classes
-     SugarCube has already put on <body> instead of from the event. Story
-     JavaScript runs from the ready callback, so the body exists by now. */
-  function applyModeFromBody() {
-    var classes = document.body.classList;
-    var tags = [];
-    if (classes.contains("checker")) {
-      tags.push("checker");
-    }
-    if (classes.contains("title")) {
-      tags.push("title");
-    }
-    applyMode(tags);
-  }
-
   /* boot.js, which loads before this file, creates window.Stage (see its
-     header). The editor's TypeScript server has no declaration for it and
-     reports TS2568, so window is widened for this one read. */
+     header). */
   var stage = /** @type {any} */ (window).Stage;
 
   stage.onPassageStart(function (ctx) {
     applyMode(ctx.tags);
   });
-
-  applyModeFromBody();
 })();

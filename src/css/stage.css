@@ -30,8 +30,8 @@
                      reused, not a second background
      cam            .stage-cam — Cam's portrait               (per passage)
                      .stage-hand carries the same drawing's hand in a layer
-                     outside the frame, for the pose that is cut in two; see
-                     the hand layer below
+                     outside the frame, for the poses cut in two; see the hand
+                     layer below
      speech-bubble  .stage-bubble — Cam's speech-bubble       (per passage)
                      its ::before draws the paper nine-patch, its ::after the
                      pointer tail, and its inner .stage-bubble-prose box
@@ -63,8 +63,8 @@
    For the cam slot the box is the artwork's own box times the layout's
    --slot-cam-scale, so its width:height ratio is always the artwork's and the
    portrait never crops: closing in is scale, and only scale. A framing that
-   is a different SHAPE — the tall close-in once planned for layout 3 — cannot
-   be reached this way. It needs artwork at that shape, and then --cam-art-w/h
+   is a different SHAPE cannot be reached this way. It needs artwork at that
+   shape, and then --cam-art-w/h
    change for every layout at once; making the ratio a per-layout value is the
    change that would reopen it. Nothing here assumes that stays impossible.
 
@@ -124,9 +124,8 @@
 
    Every layout states its full box, including values that repeat across
    layouts. That is deliberate: a layout is a composition that may be retuned
-   alone, so a repeated value is not a shared constant — see
-   docs/adr/0001-slot-geometry-is-per-layout.md. Layout 0 also applies on
-   :root so the stage has a complete layout before the layout attribute
+   alone, so a repeated value is not a shared constant. Layout 0 also applies
+   on :root so the stage has a complete layout before the layout attribute
    exists.
 
    A reply's --slot-reply-left is its left edge, like every other slot's; the
@@ -230,8 +229,8 @@ body[data-layout="1"] {
 
 body[data-layout="2"] {
   /* cam — upper-left, top-left corner held, scale 1.1 */
-  --slot-cam-left: 115;
-  --slot-cam-top: 30;
+  --slot-cam-left: 45;
+  --slot-cam-top: 15;
   --slot-cam-scale: 1.1;
 
   /* cam poses — this Layout shows the phase-2 pair */
@@ -246,7 +245,7 @@ body[data-layout="2"] {
   --slot-bubble-width: 1460;
   --slot-bubble-height: 865;
 
-  /* reply — nudged right of the old placement, not centred */
+  /* reply — placed by its left edge at 1143, not centred */
   --slot-reply-left: 1143;
   --slot-reply-top: 1314;
 
@@ -264,11 +263,10 @@ body[data-layout="2"] {
 }
 
 body[data-layout="3"] {
-  /* cam — left, flush to the gutter, still at scale 1. The close-in this
-     layout is for is one value here — --slot-cam-scale above 1 — and the box
-     keeps the artwork's aspect, so getting closer never crops the pose. A
-     framing
-     of a different SHAPE is a different decision; see the framing note in the
+  /* cam — left, flush to the gutter, scale 1.9. The close-in this layout is
+     for is one value here — --slot-cam-scale above 1 — and the box keeps the
+     artwork's aspect, so getting closer never crops the pose. A framing of a
+     different SHAPE is a different decision; see the framing note in the
      header. */
   --slot-cam-left: -450;
   --slot-cam-top: 250;
@@ -339,9 +337,10 @@ body[data-stage-mode] .stage {
 }
 
 /* ---- the hand layer -----------------------------------------------------
-   One pose is drawn in two halves: phase 2's neutral body and its hand, on the
-   same canvas. The hand has to rest ON the menu while the body stays behind
-   it, and that cannot be arranged from inside the frame — the frame is
+   Phase 2's two poses are each drawn in two halves: a body and its hand, on
+   the same canvas. The hand has to rest ON the menu while the body stays
+   behind it, and
+   that cannot be arranged from inside the frame — the frame is
    position: fixed, which makes it a stacking context, so nothing within it can
    outrank the menu (shell.css, .rail, z-index 1) whatever z-index it asks for.
    This layer is therefore the frame's own window drawn again outside it — same
@@ -353,7 +352,7 @@ body[data-stage-mode] .stage {
    paints is the hand image and nothing else — no backdrop, so the menu shows
    through the transparent pixels, and no frame, which belongs to the picture
    and stays with the body below the menu. An empty layer draws nothing, so
-   the twelve poses that are one image need no gate beyond having no hand. */
+   the six poses that are one image need no gate beyond having no hand. */
 .stage-cam-hand {
   display: none;
   /* Above the menu (1). The bubble's z-index 2 is inside the frame's own
@@ -386,16 +385,15 @@ body[data-stage-mode] {
 
 /* A line being revealed or waiting its turn is `inert` (reveal.js), so its
    links need no pointer rule here: inert covers the pointer, the keyboard and
-   the accessibility tree in one attribute. The class only marks the slot for
-   the debug outline below. */
+   the accessibility tree in one attribute. */
 
-/* The portrait's box. Phase 2's neutral pose is one drawing cut in two — a body
+/* The portrait's box. Phase 2's poses are each one drawing cut in two — a body
    and a hand on the same canvas — and the halves have to land back on each
    other pixel for pixel, so they state their box once, here, instead of each
    writing it: a second copy would drift the moment a layout is retuned and the
    hand would come off the wrist. The body reads it inside .stage, under the
    menu; the hand reads it in .stage-cam-hand, above the menu. Same box either
-   way, so a layered pose sits exactly where the single image used to. */
+   way, so a layered pose sits exactly where a single-image pose does. */
 .stage-cam,
 .stage-hand {
   /* The artwork's own box, scaled by the layout. The gutter is baked into each
@@ -518,8 +516,7 @@ body[data-layout="4"] .stage-cam-hand {
 
 /* Cam's portrait: the image fills its slot, so the slot box — whose
    width/height are per-layout values above — is the framing window. That is
-   what makes the wide → tall framing change visible rather than letterboxed
-   whitespace.
+   what makes a layout's close-in visible rather than letterboxed whitespace.
 
    Pixel art: scale it with nearest-neighbour, never the browser's smooth
    resample. `pixelated` is the spec name (Chrome 41+, Safari 10+, Firefox
@@ -554,7 +551,8 @@ body[data-layout="4"] .stage-cam-hand {
   --cam-offset-y: var(--cam-neutral-y);
 }
 
-.stage-cam[data-pose="talking"] .stage-portrait {
+.stage-cam[data-pose="talking"] .stage-portrait,
+.stage-cam-hand[data-pose="talking"] .stage-hand {
   --cam-offset-x: var(--cam-talking-x);
   --cam-offset-y: var(--cam-talking-y);
 }
@@ -730,17 +728,11 @@ body[data-layout="4"] .stage-cam-hand {
 
 /* Debug only: outline the slots that are still empty. The attribute flips to
    "filled" the moment stage.js writes content, so this never hides real
-   content. A slot that is revealing is exempt: Cam's line is growing into an
-   already-filled slot, and a waiting reply keeps its filled bar while the
-   reveal holds its message (stage.js, at the reveal's request), so neither is
-   a gap in the authoring to be outlined. */
+   content, and a revealing or held slot is already filled rather than a gap
+   in the authoring. */
 body[data-stage-debug] .stage-slot[data-state="empty"] {
   border: 1px dashed rgba(255, 255, 255, 0.4);
   border-radius: 10px;
-}
-
-body[data-stage-debug] .stage-slot.is-revealing {
-  border-style: none;
 }
 
 body[data-stage-debug] .stage-slot:empty::before {

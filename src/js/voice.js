@@ -28,10 +28,9 @@
    16 ms apart, pitch 0.8: straight to the output they peak at 1.31 with 7
    sample steps over 0.25 (clipping); through the envelope, compressor and
    volume above they peak at 0.23 with no step over 0.25. The peak difference
-   is mostly VOLUME; the steps are the fault this file exists to remove. See
-   docs/research/animalese-typewriter.md §7. The player can raise either the
-   volume or the pace above what was measured; the compressor, and the sum it
-   squashes, are what make that safe to allow.
+   is mostly VOLUME; the steps are the fault this file exists to remove. The
+   player can raise either the volume or the pace above what was measured; the
+   compressor, and the sum it squashes, are what make that safe to allow.
 
    The context is created on the first gesture, never at load: one made before
    a gesture starts suspended and logs a warning. This file also reports
@@ -100,7 +99,7 @@
   }
 
   /* The library is 8-bit unsigned; Web Audio wants floats in [-1, 1]. Built
-     once, synchronously, from base64 — 86k letters, a few milliseconds, and no
+     once, synchronously, from base64 — 86k samples, a few milliseconds, and no
      fetch, which file:// would block. */
   function library(ctx) {
     if (audio.buffer) {
@@ -184,8 +183,6 @@
       }
     }
   }
-
-  Voice.wake = wake;
 
   /* Whether a letter spoken now would be heard. The reveal asks this before a
      line starts: a page restored by refresh has had no gesture to wake the

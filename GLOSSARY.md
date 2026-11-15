@@ -58,8 +58,9 @@ writes into its slots once the passage has rendered.
 _Avoid_: buffer, state, draft, payload
 
 **Design canvas**:
-The 2840 × 1700 canvas a layout's composition is drawn against. Every stage
-measurement is either a fraction of it or a design pixel on it.
+The 2840 × 1700 canvas a layout's composition is drawn against. Stage
+composition measurements are design pixels on it or derived from them; the
+Pixel frame's weight is the one CSS-pixel exception.
 _Avoid_: resolution, viewport, screen, aspect ratio
 
 **Pixel frame**:

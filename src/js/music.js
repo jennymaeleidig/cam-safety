@@ -239,17 +239,13 @@
   /* The title selects the title track; every other passage selects its
      published layout's track. A passage's <<set_layout>> runs while the
      passage renders, so the render phase -- not the start phase -- is the
-     first point at which data-layout names the incoming passage's layout. A
-     missing or non-finite value falls back to Layout 0, the layout fallback. */
+     first point at which data-layout names the incoming passage's layout.
+     Layout.current() normalises a missing or non-finite value to Layout 0. */
   function trackFor(tags) {
-    if (tags && tags.indexOf("title") !== -1) {
+    if (tags && tags.includes("title")) {
       return TITLE_TRACK;
     }
-    var layout = Number(document.body.getAttribute("data-layout"));
-    if (!isFinite(layout)) {
-      layout = 0;
-    }
-    return LAYOUT_TRACK[layout] || null;
+    return LAYOUT_TRACK[win.Layout.current()] || null;
   }
 
   var stage = win.Stage;

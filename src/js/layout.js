@@ -7,8 +7,8 @@
    running value is normalised.
 
    Everything else reads the published seam, data-layout, and never recomputes
-   a layout: stage.js reads the attribute for Cam's neutral pose, and the
-   stylesheets key their per-layout blocks on body[data-layout="N"]. The
+   a layout: stage.js and music.js ask Layout.current() for the layout, and
+   the stylesheets key their per-layout blocks on body[data-layout="N"]. The
    <<set_layout>> macro (story.twee) and the lifecycle's start phase both
    delegate here, so there is one writer rather than one per entry point. The
    start-phase publisher owns the running-value read: it takes
@@ -34,15 +34,14 @@
 
   function normalise(value) {
     var n = Number(value);
-    if (!isFinite(n)) {
+    if (!Number.isFinite(n)) {
       n = 0;
     }
     return Math.min(LAST, Math.max(0, Math.round(n)));
   }
 
   /* boot.js, which loads before this file, creates window.Stage (see its
-     header). The editor's TypeScript server has no declarations for these
-     story globals, so window is widened for them. */
+     header). */
   var win = /** @type {any} */ (window);
   var stage = win.Stage;
 

@@ -54,11 +54,9 @@
      itself, so a Slot's shape is data here rather than a branch in the
      writer.
 
-     A Slot's visible state is written nowhere else. publish() is the flush's
-     write, which also records what the Slot was given so abandon can restore
-     it; the transitions below change the element without changing that
-     record. stage.css reads data-state and never guesses from :empty, which
-     whitespace-only wiki output defeats. */
+     publish() is the flush's write; it also records what the Slot was given so
+     abandon can restore it. The transitions below change the element without
+     changing that record. */
   var slots = {};
 
   /* A Slot's inner prose box, by slot name: the box the writer puts the line
@@ -119,7 +117,7 @@
   function paintPortrait(cam, src, alt, pose) {
     var img = document.createElement("img");
     img.className = "stage-portrait";
-    img.setAttribute("src", src);
+    img.setAttribute("src", displaySource(src));
     img.setAttribute("alt", alt);
     cam.element.appendChild(img);
     cam.pose = pose;
@@ -146,7 +144,12 @@
       /* A pose drawn in two layers lifts its hand out here; every other pose
          has none, and this clears whatever the last passage left. */
       writeHand(handFor(cam.neutralSrc), "neutral");
+      preload(cam.neutralSrc);
       preload(cam.talkingSrc);
+      preload(handFor(cam.neutralSrc));
+      preload(handFor(cam.talkingSrc));
+      preload(STILL[cam.neutralSrc]);
+      preload(STILL[cam.talkingSrc]);
       return;
     }
     cam.authored = true;
@@ -161,28 +164,65 @@
 
   /* ---- switching the portrait's pose -----------------------------------
      The Reveal decides when Cam is speaking; this file owns what that means
-     for the portrait. The swap replaces the one image's source, so the
+     for the portrait, and the player's Cam-animations toggle decides whether
+     it happens at all. The swap replaces the body image's source, so the
      talking GIF starts at its first frame. The hand layer follows the pose:
-     only a neutral pose has one, and a talking pose clears it. */
+     a pose with a hand in the table shows it, and one without clears the
+     layer.
+
+     Whether the player wants Cam's portrait to change pose. A build without
+     the settings module keeps the animations on. */
+  function camAnimations() {
+    var settings = /** @type {any} */ (window).CamSettings;
+    return settings && typeof settings.camAnimations === "function"
+      ? settings.camAnimations()
+      : true;
+  }
+
+  /* The image a pose should show: the GIF itself while animations are on, and
+     its still while they are off. A split pose's still is the composite image
+     that carries its body and hand together. A source with no still in the
+     table — an authored portrait — keeps its own image. */
+  function displaySource(src) {
+    var path = String(src);
+    return camAnimations() ? path : STILL[path] || path;
+  }
+
+  /* Paint whatever pose the slot currently names, through the animated or
+     still source rule. Also rebuilds the hand layer from the same pose. */
+  function repaintPortrait(cam) {
+    if (!cam) {
+      return;
+    }
+    var src = cam.neutralSrc;
+    if (!cam.authored && cam.pose === "talking") {
+      src = cam.talkingSrc;
+    }
+    var img = cam.element.querySelector(".stage-portrait");
+    if (img) {
+      img.setAttribute("src", displaySource(src));
+    }
+    writeHand(handFor(src), cam.authored ? null : cam.pose);
+  }
+
   function setPose(cam, pose) {
-    if (!cam || cam.authored || !cam.flushed || cam.pose === pose) {
+    if (
+      !cam ||
+      cam.authored ||
+      !cam.flushed ||
+      cam.pose === pose ||
+      !camAnimations()
+    ) {
       return;
     }
     cam.pose = pose;
     cam.element.setAttribute("data-pose", pose);
-    var img = cam.element.querySelector(".stage-portrait");
-    if (img) {
-      img.setAttribute(
-        "src",
-        pose === "talking" ? cam.talkingSrc : cam.neutralSrc,
-      );
-    }
-    var hand = pose === "neutral" ? handFor(cam.neutralSrc) : null;
-    writeHand(hand, hand ? "neutral" : null);
+    repaintPortrait(cam);
   }
 
-  /* Warm the talking artwork so the instant swap never waits on a fetch or a
-     decode. The cache is keyed by path; an already-warm pose is left alone. */
+  /* Warm every source a pose can show — body, hand and still — so the pose
+     swap and the animations toggle never wait on a fetch or a decode. The
+     cache is keyed by path; an already-warm source is left alone. */
   var preloaded = {};
 
   function preload(src) {
@@ -194,8 +234,8 @@
   }
 
   /* ---- the hand layer: poses drawn in two halves ------------------------
-     Phase 2's neutral pose is a body and a hand on the same canvas, split so
-     the hand can rest on the menu while the body stays behind it: in that
+     Phase 2's two poses are each a body and a hand on the same canvas, split
+     so the hand can rest on the menu while the body stays behind it: in that
      composition the menu rises across the portrait, and a gesture buried
      behind the panel would be gone.
 
@@ -211,16 +251,20 @@
      through the hand's transparent pixels, and no frame, which belongs to the
      picture and stays with the body below the menu. */
   var HAND_LAYER = {
-    "images/cam/phase-2/neutral/phase-2-neutral.gif":
+    "images/cam/phase-2/neutral/phase-2-neutral-body.gif":
       "images/cam/phase-2/neutral/phase-2-neutral-hand.gif",
+    "images/cam/phase-2/talking/phase-2-talking-body.gif":
+      "images/cam/phase-2/talking/phase-2-talking-hand.gif",
   };
 
   function handFor(src) {
     return HAND_LAYER[src] || null;
   }
 
-  /* The layer carries the pose its image belongs to: only a neutral pose has a
-     hand, and an authored portrait's hand takes no pose offset. */
+  /* The layer carries the pose its image belongs to, and an authored
+     portrait's hand takes no pose offset. When the animations are off, a
+     built-in pose's body is already its composite still, so the separate
+     hand is left out. */
   function writeHand(src, pose) {
     var layer = document.querySelector(".stage-cam-hand");
     if (!layer) {
@@ -232,12 +276,12 @@
     } else {
       layer.removeAttribute("data-pose");
     }
-    if (!src) {
+    if (!src || (pose && !camAnimations())) {
       return;
     }
     var img = document.createElement("img");
     img.className = "stage-hand";
-    img.setAttribute("src", String(src));
+    img.setAttribute("src", displaySource(String(src)));
     /* Decorative: the body image already names Cam, so a second alt would
        announce the same portrait twice. */
     img.setAttribute("alt", "");
@@ -285,12 +329,11 @@
      Paths are relative to the built story.html: the build copies
      include/images beside it as dist/images (the assets: copy task).
 
-     The layout is read from the body attribute layout.js owns, never
-     recomputed here — that file is the only writer of the published seam.
-     It is already set when the flush runs, since start handlers run before
-     render handlers. */
+     The layout is read through layout.js's published seam, never recomputed
+     here — that file owns the normalisation and the attribute. It is already
+     set when the flush runs, since start handlers run before render handlers. */
   function publishedLayout() {
-    return Number(document.body.getAttribute("data-layout"));
+    return window.Layout.current();
   }
 
   /* The System layout composes no portrait and no speech-bubble. Read from the
@@ -303,16 +346,42 @@
   var NEUTRAL_POSE = [
     "images/cam/phase-0/neutral/phase-0-neutral.gif",
     "images/cam/phase-1/neutral/phase-1-neutral.gif",
-    "images/cam/phase-2/neutral/phase-2-neutral.gif",
+    "images/cam/phase-2/neutral/phase-2-neutral-body.gif",
     "images/cam/phase-3/neutral/phase-3-neutral.gif",
   ];
 
   var TALKING_POSE = [
     "images/cam/phase-0/talking/phase-0-talking.gif",
     "images/cam/phase-1/talking/phase-1-talking.gif",
-    "images/cam/phase-2/talking/phase-2-talking.gif",
+    "images/cam/phase-2/talking/phase-2-talking-body.gif",
     "images/cam/phase-3/talking/phase-3-talking.gif",
   ];
+
+  /* A split pose's still is its composite image: the body and the hand cut
+     apart for animation, drawn together for the still, so the hand layer can
+     stay empty while the animations are off. */
+  var POSE_STILL = {
+    "images/cam/phase-2/neutral/phase-2-neutral-body.gif":
+      "images/cam/phase-2/neutral/phase-2-neutral.png",
+    "images/cam/phase-2/talking/phase-2-talking-body.gif":
+      "images/cam/phase-2/talking/phase-2-talking.png",
+  };
+
+  /* First-frame stills: one PNG beside every built-in GIF, named by the GIF's
+     path with the extension changed, unless the pose has a composite still of
+     its own above. The Cam-animations toggle swaps a GIF for its still. Built
+     from the pose tables, so a new pose has no second list to update. */
+  var STILL = {};
+
+  function addStill(src) {
+    if (src) {
+      STILL[src] =
+        POSE_STILL[src] || String(src).replace(/\.gif$/i, ".png");
+    }
+  }
+
+  NEUTRAL_POSE.forEach(addStill);
+  TALKING_POSE.forEach(addStill);
 
   /* The Phase a layout selects, as the index of its artwork pair. Read from
      the published attribute, never recomputed from $layout; an unknown index
@@ -374,7 +443,7 @@
     /* Called on every flush, nulls included: a passage with no lines is
        exactly when the previous passage's reveal must be abandoned, or it
        would hold and then paint Slots this flush has just emptied.
-       Loaded after this file (reveal.js); absent only if it failed to load, in
+       Loaded before this file (reveal.js); absent only if it failed to load, in
        which case every line is already on screen in full. */
     var reveal = /** @type {any} */ (window).Reveal;
     if (reveal) {
@@ -429,9 +498,7 @@
      with shell.twee's data-stage-slot attributes. An omitted alt falls back
      to "Cam" here so the macros stay pass-through. */
 
-  /* boot.js, which loads before this file, creates window.Stage; the editor's
-     TypeScript server has no declaration for it (TS2568), so window is
-     widened for this one read. */
+  /* boot.js, which loads before this file, creates window.Stage. */
   var stage = (/** @type {any} */ (window)).Stage;
 
   /* reveal and hold ask for the same visible state: the Slot is busy, keeps
@@ -453,26 +520,35 @@
     setPose(slot("cam"), "neutral");
   };
 
-  stage.setCamLine = function (html) {
-    var bubble = slot("bubble");
-    if (bubble) {
-      bubble.content = html;
+  /* The Cam-animations toggle asks for this after either side of the switch:
+     repaint the current portrait through the new source rule, and settle a
+     talking pose to neutral when the animations go off. */
+  stage.refreshCam = function () {
+    var cam = slot("cam");
+    if (!cam || !cam.flushed) {
+      return;
     }
+    if (!cam.authored && !camAnimations()) {
+      cam.pose = "neutral";
+      cam.element.setAttribute("data-pose", "neutral");
+    }
+    repaintPortrait(cam);
   };
 
-  stage.setPlayerLine = function (html) {
-    var reply = slot("reply");
-    if (reply) {
-      reply.content = html;
-    }
-  };
+  /* One setter per named Slot: a content macro hands over the line, and the
+     Slot it lands in stays private to this file. */
+  function contentSetter(name) {
+    return function (html) {
+      var s = slot(name);
+      if (s) {
+        s.content = html;
+      }
+    };
+  }
 
-  stage.setSystemLine = function (html) {
-    var system = slot("system");
-    if (system) {
-      system.content = html;
-    }
-  };
+  stage.setCamLine = contentSetter("bubble");
+  stage.setPlayerLine = contentSetter("reply");
+  stage.setSystemLine = contentSetter("system");
 
   stage.setPortrait = function (src, alt) {
     var cam = slot("cam");

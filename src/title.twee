@@ -8,7 +8,7 @@
 		</p>
 		<!-- Licence terms, not decoration: the letter sounds and the checkerboard
 		     background are both CC BY 4.0, and their attributions belong where a
-		     player can see them (docs/adr/0002). The font is CC BY-ND 3.0 and
+		     player can see them. The font is CC BY-ND 3.0 and
 		     carries the same obligation; the visual-design reference is cited
 		     alongside them. -->
 		<p class="title-credit">Letter sounds: <a href="https://github.com/jeff-hykin/animalese" target="_blank" rel="noopener">animalese</a>, after Josh Simmons' recording (CC BY 4.0).</p>

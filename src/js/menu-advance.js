@@ -28,7 +28,8 @@
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var MenuAdvance = /** @type {any} */ (win.MenuAdvance = win.MenuAdvance || {});
+  win.MenuAdvance = win.MenuAdvance || {};
+  var MenuAdvance = /** @type {any} */ (win.MenuAdvance);
 
   var MAX_TRIES = 250;
   var RETRY_MS = 16;
@@ -36,9 +37,6 @@
      type. Seeded before the first measurement so a Menu that is never laid
      out still hangs by whole letters. */
   var FALLBACK_ADVANCE = 1.3083;
-
-  /* The last measured advance, in em of the menu's type; null until measured. */
-  MenuAdvance.advance = null;
 
   MenuAdvance.measure = function () {
     var list = /** @type {HTMLElement} */ (
@@ -75,7 +73,6 @@
         return null;
       }
       var em = advance / fontSize;
-      MenuAdvance.advance = em;
       list.style.setProperty("--rail-menu-advance", String(em));
       return em;
     }
@@ -92,7 +89,7 @@
       if (!face || typeof face.check !== "function") {
         return true;
       }
-      return face.check("16px " + family);
+      return face.check(`16px ${family}`);
     }
 
     return new Promise(function (resolve) {
@@ -110,11 +107,12 @@
          cap keeps a menu that is hidden in the current layout from polling
          forever. */
       function attempt() {
+        var advance;
         if (done) {
           return;
         }
         if (faceReady()) {
-          var advance = setAdvance();
+          advance = setAdvance();
           if (advance != null) {
             finish(advance);
             return;
@@ -130,7 +128,7 @@
 
       attempt();
       if (face && typeof face.load === "function") {
-        face.load("16px " + family).then(attempt, attempt);
+        face.load(`16px ${family}`).then(attempt, attempt);
       }
     });
   };

@@ -4,7 +4,6 @@
    objects stay untyped because SugarCube 2 ships no type declarations. */
 
 declare const jQuery: any;
-declare const SugarCube: any;
 
 interface Window {
   Stage: any;

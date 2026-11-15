@@ -88,12 +88,12 @@ passage on each `:uiupdate` (docs `#code-passage-storyinterface`; `src/engine.js
 binds a `:uiupdate` handler per element and reads the attribute once, at init).
 Options:
 
-| Option                                                                        | Trade-offs                                                                                                                                                                                                        |
-| ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `<<player_line "… [[Next->X]]">>` via `$(slot).wiki()` (current scratch pair) | Works today; per-element handlers. Engine enforces nothing: every `[checker]` passage must put its exits in a content macro.                                                                                      |
-| `data-passage` on `.stage-reply`, e.g. `data-passage="Player replies"`        | Engine-managed, refreshes each navigation at `:uiupdate` — which runs _after_ macros, so it would overwrite `<<player_line>>`. Attribute is fixed at init, so one passage must branch on `State.passage`/`$vars`. |
-| Keep `#passages` visible and CSS-position it over the reply slot              | No engine support needed; the docs only require the element to exist. But passage prose lands there too, so `[checker]` passages become link-only, and `.shell { display:none }` must become positioning.         |
-| `<<link>>` into the slot instead of `[[…]]`                                   | Same handler; useful for block content or scripted links, otherwise no gain. Avoid `<<choice>>` (deprecated).                                                                                                     |
+| Option                                                                                                     | Trade-offs                                                                                                                                                                                                        |
+| ---------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `<<player_line "… [[Next->X]]">>` via `$(slot).wiki()` (the current `<<cam_line>>`/`<<player_line>>` pair) | Works today; per-element handlers. Engine enforces nothing: every `[checker]` passage must put its exits in a content macro.                                                                                      |
+| `data-passage` on `.stage-reply`, e.g. `data-passage="Player replies"`                                     | Engine-managed, refreshes each navigation at `:uiupdate` — which runs _after_ macros, so it would overwrite `<<player_line>>`. Attribute is fixed at init, so one passage must branch on `State.passage`/`$vars`. |
+| Keep `#passages` visible and CSS-position it over the reply slot                                           | No engine support needed; the docs only require the element to exist. But passage prose lands there too, so `[checker]` passages become link-only, and `.shell { display:none }` must become positioning.         |
+| `<<link>>` into the slot instead of `[[…]]`                                                                | Same handler; useful for block content or scripted links, otherwise no gain. Avoid `<<choice>>` (deprecated).                                                                                                     |
 
 **Unverified:** none of the above was inferred; every behaviour cited was read from
 the 2.37.3 source or the official docs. I did not test in a built story.
@@ -109,7 +109,7 @@ engine state that is intentionally invisible. Make the convention explicit:
 2. State in `story.twee`'s content-macro comment that every `[checker]` passage's
    exits belong in `<<player_line>>` (or `<<cam_line>>`), since its own links render
    into hidden `#passages`.
-3. Nothing automated enforces this. The textual guard that did is gone (section 6);
-   verification is the manual pass in README's Verification section.
+3. Nothing automated enforces this; the earlier textual guard is gone.
+   Verification is the manual pass in README's Verification section.
 4. Only if engine-managed refresh is wanted later, adopt `data-passage` on
    `.stage-reply` and drop `<<player_line>>` for that slot — do not run both.

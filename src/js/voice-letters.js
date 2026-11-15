@@ -18,7 +18,7 @@
    Header stripped and re-encoded here.
 
    LICENCE: the samples are CC BY 4.0, attribution to Josh Simmons required;
-   the wrapper code is MIT. See docs/adr/0002-cam-speaks-aloud.md. */
+   the wrapper code is MIT. */
 window.VoiceLetters = window.VoiceLetters || {};
 window.VoiceLetters.sampleRate = 44100;
 window.VoiceLetters.secondsPerLetter = 0.075;
