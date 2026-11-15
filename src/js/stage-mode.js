@@ -6,9 +6,9 @@
    the shell, so the story has a distinct start.
 
    SugarCube already puts those tags on <body> as classes, and that stays the
-   source of truth. But a selector fragment is not a name: `body.checker:not
-   (.title)` was restated in eight rules across stage.css and checker.css, so
-   the story's central distinction existed only as a copy-paste. This file
+   source of truth. The same selector, `body.checker:not(.title)`, was
+   restated in eight rules across stage.css and checker.css, so the story's
+   central distinction existed only as a copy-paste. This file
    writes the predicate down once and publishes the answer as one attribute;
    the CSS reads the attribute.
 

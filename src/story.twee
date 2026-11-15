@@ -160,7 +160,7 @@ Cam Safety
    from the browser console:
      SugarCube.Engine.play("System content long") */
 <<set_layout 4>>
-<<system_line "This system message is deliberately longer than the card, so the prose has to scroll inside it while the frame stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the frame rather than paint over it, and the card's shadow should not fade a single letter. Keep reading, because the point is to see the same card hold still while the words travel. A link lives in this message too, [[Layouts->Layouts]], and it should be clickable the moment the card appears: nothing here is revealed a character at a time. That proves a system message arrives whole and scrolls like any other card of prose.">>
+<<system_line "This system message is deliberately longer than the card, so the prose has to scroll inside it while the frame stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the frame rather than paint over it, and the card's shadow should not fade a single letter. The same card should hold still while the words travel. A link lives in this message too, [[Layouts->Layouts]], and it should be clickable the moment the card appears: nothing here is revealed a character at a time. The message is whole and scrolls like any other card of prose.">>
 <<player_line "The long system message has landed. [[Layouts->Layouts]]">>
 
 :: System content empty [checker scratch] {"position":"620,750"}
@@ -187,11 +187,12 @@ Cam Safety
    line proves links stay bound and clickable after the reveal grows the
    prose. Reach it from the browser console:
      SugarCube.Engine.play("Stage content long") */
-<<cam_line "This line is deliberately longer than the bubble, so the prose has to scroll inside it while the paper stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the black outline rather than paint over it, and the paper's translucency and shadow should not fade a single letter. Keep reading, because the point is to see the same card hold still while the words travel. A link lives in this line too, [[Layouts->Layouts]], and once the line has landed it should still be a link you can click. That proves the reveal grew the text nodes in place instead of replacing the markup.">>
+<<cam_line "This line is deliberately longer than the bubble, so the prose has to scroll inside it while the paper stays exactly where it is. Watch the card's edge: it should not move at all. The text should stop at the black outline rather than paint over it, and the paper's translucency and shadow should not fade a single letter. The same card should hold still while the words travel. A link lives in this line too, [[Layouts->Layouts]], and once the line has landed it should still be a link you can click. The reveal grew the text nodes in place instead of replacing the markup.">>
 <<player_line "The long line has landed. [[Layouts->Layouts]]">>
 
 :: Stage content empty [checker scratch] {"position":"600,750"}
 /* No content macros: the bubble and reply slots must be empty — nothing left
    over from the previous passage — and the cam slot must show the layout's
-   neutral pose, not a portrait the previous passage overrode. Use the
-   browser's Back button to return. */
+   neutral pose, not a portrait the previous passage overrode. Reach this
+   passage from the browser console:
+     SugarCube.Engine.play("Stage content empty") */

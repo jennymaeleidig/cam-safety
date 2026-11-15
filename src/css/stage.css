@@ -54,7 +54,7 @@
    quarter turn and widened, so the two panels stay one pair in every layout.
    Layout 0 doubles as the fallback on :root for the moment before layout.js
    sets the attribute (and if it ever doesn't). A new or
-   re-tuned layout is a value change, not a fork: no markup or structure
+   re-tuned layout is a value change: no markup or structure
    changes. The layout itself is applied before the passage renders
    (layout.js), so the stage is already in the right layout when content
    arrives. Changing the layout changes these values with no transition, so
@@ -62,7 +62,7 @@
 
    For the cam slot the box is the artwork's own box times the layout's
    --slot-cam-scale, so its width:height ratio is always the artwork's and the
-   portrait never crops: closing in is scale, and only scale. A framing that
+   portrait never crops: closing in changes only the scale. A framing that
    is a different SHAPE cannot be reached this way. It needs artwork at that
    shape, and then --cam-art-w/h
    change for every layout at once; making the ratio a per-layout value is the

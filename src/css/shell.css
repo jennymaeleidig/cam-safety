@@ -16,7 +16,7 @@
    the menu panel follow its green-framed, fixed-composition language. */
 
 /* ===== Story shell layout — compact rail panel + centered reading card =====
-   The rail is a title over a column of actions, sized in design pixels
+   The rail is a column of actions, sized in design pixels
    (--rail-w / --rail-h / --rail-unit, from measure.css; the same box the
    stage's menu slot occupies), vertically centred and never edge-to-edge. It
    is framed with the stage's nine-patch frame and green fill, so the panel is
@@ -29,7 +29,7 @@
    Layout module only — frames whatever renders into #passages, no
    per-passage markup.
 
-   Tunable knobs — a second layout is a value change, not a fork:
+   Tunable knobs — a second layout is a value change:
      --shell-column-max-width  max width of the reading card
      --shell-frame-gap         space between rail and card
      --rail-menu-advances      the per-column cascade, in character advances:
@@ -125,8 +125,8 @@ body {
 
 .rail-actions {
   display: flex;
-  /* Columns, not rows: the menu reads down through each label, then across to
-     the next, like Japanese vertical setting. --rail-unit*30 is the panel's
+  /* The menu is set in columns: it reads down through each label, then across
+     to the next, like Japanese vertical setting. --rail-unit*30 is the panel's
      design type; the three columns plus their gaps fit the frame's content
      box on every screen because the whole panel scales together. */
   flex-direction: row;

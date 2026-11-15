@@ -5,8 +5,8 @@
    persist; these four do not. A layout composes only the slots it states, and
    the slots it does not compose stay empty and hidden.
 
-   One writer. The content macros (registered in StoryInit, story.twee)
-   record their content on their Slot while the passage renders; every Slot's
+   The content macros (registered in StoryInit, story.twee) record their
+   content on their Slot while the passage renders; every Slot's
    content is cleared when a passage starts and written in one flush after the
    render. A passage that omits a macro therefore shows an empty Slot because
    the flush wrote nothing there — never because something cleared it first.
@@ -31,8 +31,8 @@
    output that renders to whitespace leaves a slot non-empty yet drawing
    nothing, and only this file knows the difference.
 
-   The visible state has one writer: this file. The flush publishes data-state
-   and records what it gave each slot; is-revealing and inert are written only
+   This file is the only writer of the visible state. The flush publishes
+   data-state and records what it gave each slot; is-revealing and inert are written only
    by the transitions the reveal requests. reveal marks Cam's growing line as
    revealing while keeping the flushed paper, hold marks a waiting reply as
    revealing and inert while keeping the flushed bar — its prose is already
@@ -239,7 +239,7 @@
      composition the menu rises across the portrait, and a gesture buried
      behind the panel would be gone.
 
-     The table is the authority, not a path convention — a pose with one file
+     The table is the authority. A pose with one file
      stays one file, and giving a pose a hand is an entry here rather than a
      guess at a filename, where a missing asset would fail silently. Keyed by
      the pose the story asked for, so <<portrait>> keeps naming one image and
@@ -294,8 +294,9 @@
      The bubble owns two layers inside its one Slot: the paper is its ::before
      (the Pixel frame's paper variant) and the line goes into the inner prose
      box the Slot's shape declares, so the paper stays fixed while a long line
-     scrolls and never lands on its outline. Every other Slot is a single
-     element whose own box scrolls. */
+     scrolls and never lands on its outline. The system card does the same
+     through the reading card's prose box; the reply bar is a single element
+     whose own box scrolls. */
   function writeLine(s, html) {
     if (!s) {
       return null;

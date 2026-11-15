@@ -3,7 +3,7 @@
    were tuned at. settings.js builds the Settings dialog's controls and its
    semantic reads from these specs, and uses the converted values below as its
    fallback when a setting is missing or corrupt. reveal.js, voice.js, music.js
-   and stage.js call the settings module and carry no default. Nothing else
+   and stage.js call the settings module for their values. Nothing else
    states a tuned default.
 
    The specs carry the dialog's units: letters a second for Text speed (a

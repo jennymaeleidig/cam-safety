@@ -24,16 +24,15 @@
    place, so a link interrupted by a new passage is still a link.
 
    A revealing or held slot is also inert, which is what makes its links
-   genuinely unreachable: not just unclickable with the pointer but unfocusable
-   and out of the accessibility tree, so a held reply cannot be tabbed to and
+   genuinely unreachable: unclickable with the pointer, unfocusable, and out
+   of the accessibility tree, so a held reply cannot be tabbed to and
    entered before the player has seen it. The skip listener is on the document
    in the capture phase, so clicking inert content still skips.
 
    Links are not revealed character by character and are not sounded. A link's
    text is one step of the reveal, appearing whole the moment its first
-   character would have, and it does not advance the clock: a link costs zero
-   milliseconds, so a link-heavy line does not stall while the link sits on
-   screen. A link is a word to act on, not a word to hear.
+   character would have, and it costs one step rather than one per character,
+   so a link-heavy line does not stall while the link sits on screen.
 
    Pacing is asked of the settings module as milliseconds per character
    (settings.js, window.CamSettings.msPerChar(), the "Text speed" range). This
@@ -420,7 +419,10 @@
 
   function isSkipKey(ev) {
     return (
-      ev.key === " " || ev.key === "Spacebar" || ev.key === "Enter" || ev.key === "Escape"
+      ev.key === " " ||
+      ev.key === "Spacebar" ||
+      ev.key === "Enter" ||
+      ev.key === "Escape"
     );
   }
 

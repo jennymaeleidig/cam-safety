@@ -18,9 +18,10 @@
         and stopping it at full amplitude is a step edge — a click, once per
         character. A per-letter gain envelope ramps in and out (FADE_MS), which
         removes it without touching the attack.
-     2. A letter is 75 ms and characters arrive every 16 ms, so four or five
-        voices overlap and sum; four at full scale is 4.0, and everything past
-        1.0 is clamped by the output — grit on every loud letter. One
+     2. A letter is 75 ms and characters arrive every 20 ms at the shipped
+        pace, so four voices overlap and sum; four at full scale is 4.0, and
+        everything past 1.0 is clamped by the output — grit on every loud
+        letter. One
         compressor on the sum, rather than a quieter voice, keeps the level up
         when only one letter is sounding.
 
@@ -42,7 +43,8 @@
   "use strict";
 
   var win = /** @type {any} */ (window);
-  var Voice = /** @type {any} */ (win.Voice = win.Voice || {});
+  win.Voice = win.Voice || {};
+  var Voice = /** @type {any} */ (win.Voice);
   var letters = win.VoiceLetters || null;
 
   var PITCH = 0.8;
@@ -108,7 +110,8 @@
     var bin = win.atob(letters.pcmBase64);
     var buffer = ctx.createBuffer(1, bin.length, letters.sampleRate);
     var channel = buffer.getChannelData(0);
-    for (var i = 0; i < bin.length; i += 1) {
+    var i;
+    for (i = 0; i < bin.length; i += 1) {
       channel[i] = (bin.charCodeAt(i) - 127) / 128;
     }
     audio.buffer = buffer;

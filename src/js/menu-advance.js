@@ -5,9 +5,9 @@
    "Saves"'s e. shell.css states those offsets per column; this file measures
    the one advance they are counted in.
 
-   The advance is the face's, not a stylesheet number: an upright Latin column
-   advances by the font's own vertical metric plus the menu's letter-spacing,
-   which differs between fonts and browsers. It is the distance between two
+   The advance comes from the font face. An upright Latin column advances by
+   the font's own vertical metric plus the menu's letter-spacing, which differs
+   between fonts and browsers. It is the distance between two
    adjacent letters, read from their ranges (the column's own box does not
    include the letter-spacing past its last letter). It is measured again after
    the face has loaded, because a fallback face measures differently; the

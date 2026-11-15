@@ -21,8 +21,7 @@ _Avoid_: system screen, pre-game layout, interstitial
 
 **System message**:
 Non-Cam dialogue on the System layout, written with `<<system_line>>`. It
-arrives whole — no Reveal, no Voice, no Pose — and its links work at once. It
-is not a line of dialogue: the reply bar stays the player's.
+arrives whole — no Reveal, no Voice, no Pose — and its links work at once. The reply bar stays the player's.
 _Avoid_: notice, pre-game text, narration
 
 **System card**:
@@ -48,8 +47,9 @@ stage frame instead of the reading shell. Derived from the passage's tags.
 _Avoid_: checker mode, play mode, stage
 
 **Slot**:
-One of the named boxes a layout composes a passage into: Cam's portrait, Cam's
-speech-bubble, the system card, the player's reply bar, the menu.
+One of the four named boxes a layout composes a passage into: Cam's portrait,
+Cam's speech-bubble, the system card, and the player's reply bar. The menu is
+a separate panel.
 _Avoid_: region, area, pane, layer
 
 **The record**:
@@ -64,8 +64,10 @@ Pixel frame's weight is the one CSS-pixel exception.
 _Avoid_: resolution, viewport, screen, aspect ratio
 
 **Pixel frame**:
-The painted nine-patch border and green panel that every framed surface in
-the story takes: 16 × 16 painted corners, stretched edges and a green centre.
+The painted nine-patch border and green panel that the story's framed panels
+and slots take: 16 × 16 painted corners, stretched edges and a green centre.
+The speech paper is a prose variant with its own black outline and light
+centre.
 _Avoid_: border, outline, chrome, bevel
 
 **Reading card**:
@@ -83,8 +85,9 @@ _Avoid_: rail, sidebar, nav, drawer
 The one-character-at-a-time arrival of Cam's line, one letter of voice per
 character. Only Cam's line is revealed; the player's reply arrives whole when
 Cam finishes. A link is never revealed character by character: it arrives in
-one step and is silent. Under reduced motion there is no Reveal; the talking
-pose holds for a beat instead.
+one step and is silent. Under reduced motion, when a Cam line is present and
+the Voice is awake, there is no Reveal; the talking pose holds for a beat
+instead.
 _Avoid_: typewriter, typing, animation, effect
 
 **Beat**:
@@ -95,18 +98,18 @@ _Avoid_: delay, timer, animation, effect
 
 **Voice**:
 The letter sounds the reveal plays — animalese slices, pitched and compressed.
-One voice, Cam's; the reply has none.
+Only Cam has a voice; the reply has none.
 _Avoid_: audio, sfx, blip, sample
 
 **Music**:
 The one looping background layer, playing a single Track at a time — a Track
-change overlaps the two for the Crossfade. Separate from Cam's Voice: the
-Voice belongs to the Reveal, Music to the scene. A gain of zero — a zero Music
+change overlaps the two for the Crossfade. The Voice belongs to the Reveal
+and Music to the scene; the two are separate. A gain of zero — a zero Music
 volume or the mute toggle — freezes the Track where it is.
 _Avoid_: soundtrack, BGM, audio
 
 **Track**:
-One looping background song. A passage selects a Track; the title, Layouts
+One looping background track. A passage selects a Track; the title, Layouts
 0–2 and the System layout share the Jamil theme, and Layout 3 has its own
 distorted arrangement of it. Each layout's Track is one entry in the track
 table.

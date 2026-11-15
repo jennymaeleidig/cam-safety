@@ -14,10 +14,10 @@
    start-phase publisher owns the running-value read: it takes
    State.variables.layout itself, so no other module passes the layout down.
 
-   Normalisation is the whole rule: a non-finite value (including a missing
-   $layout, as in an old save) becomes 0; a finite value is rounded and
-   clamped to 0-4. That keeps a corrupt value from breaking the stage and
-   makes Layout 0 the fallback before anything has been published.
+   A non-finite value (including a missing $layout, as in an old save)
+   becomes 0; a finite value is rounded and clamped to 0-4. That keeps a
+   corrupt value from breaking the stage and makes Layout 0 the fallback
+   before anything has been published.
 
    Applied on the lifecycle's start phase — before the passage renders — so
    the saved/restored layout is already published when content arrives. A

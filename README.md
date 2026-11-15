@@ -61,7 +61,7 @@ still needs nothing but Tweego.
 | `src/story.twee`         | Story data, `StoryInit`, the content macros, and the passages.                                                                                                                                                                                                 |
 | `src/shell.twee`         | `StoryInterface`: the one `#passages` container, the background layer, the rail, and the stage's four slots.                                                                                                                                                    |
 | `src/title.twee`         | Title screen.                                                                                                                                                                                                                                                  |
-| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css` (the shell, the rail, and the reading card shared by the title and the system card), `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art each slot uses).                 |
+| `src/css/`               | `measure.css` (the Design canvas, stage window, Design pixel and rail measurements), `frame.css` (the Pixel frame: one nine-patch protocol and its art tokens), `checker.css` (background + per-layout background values), `shell.css` (the shell, the rail, and the reading card shared by the title and the system card), `stage.css` (per-layout slot geometry, the per-pose portrait nudges, and which frame art the cam, bubble and reply slots use; the system card takes the reading card's frame from `shell.css`).                 |
 | `src/js/`                | Story JavaScript, merged in lexical order: `boot.js` (the passage lifecycle, must stay first), `layout.js` (the running layout and its published `data-layout`), `menu-advance.js` (the Menu's measured character advance), `music.js` (the pair of looping background elements, the crossfade between tracks, and the autoplay gesture), `reveal.js` (Cam's line, a character at a time, and the reduced-motion beat), `settings-defaults.js` (the tuned defaults and their converted fallbacks), `settings.js` (the Settings dialog's ranges and toggles, their semantic reads and their fallback rule), `shell.js` (rail actions), `stage-mode.js` (the display mode, derived from the passage tags), `stage.js` (the Slots, their content and visible state, the per-layout neutral and talking poses, and the pose transition), `voice-letters.js` (the generated letter library), `voice.js` (a letter per character). |
 | `include/images/`        | Source artwork: Cam's per-phase art in `cam/phase-N/neutral/` and `cam/phase-N/talking/` — single-image poses, phase 2's split body and hand poses, and their PNG stills — plus the dialogue frame, speech and tail art in `dialogue/`. Copied to `dist/images/` by the build, never read from `src/`.                                                                                                        |
 | `include/music/`         | The background tracks — the Jamil theme and its distorted arrangement for Layout 3 — copied to `dist/music/` by the build and played from relative URLs.                                                                                                           |
@@ -98,8 +98,8 @@ SugarCube.Engine.play("System content empty");
    frame and slot boxes do not move. Skip mid-line: the pose lands with the
    text. On phase 2, each pose's body and hand land together in both poses, and
    the hand stays above the menu. A passage that authors `<<portrait>>`
-   keeps that one image for the whole passage. Check the cam slot advertises
-   its pose:
+   keeps that one image for the whole passage and carries no pose marker. On
+   an automatic portrait, check the cam slot advertises its pose:
 
    ```js
    document.querySelector('.stage-cam').dataset.pose; // "neutral" or "talking"
@@ -118,13 +118,13 @@ SugarCube.Engine.play("System content empty");
    (default 50), Cam volume (default 25), and the toggles Mute cam (off),
    Typewriter text (on) and Cam animations (on). The System header holds Music
    volume (default 40), Mute music (off) and Background animations (on). Only
-   titles are shown; no descriptions. Change Text speed — the current line
-   keeps its pace, the next uses the new one. Drag Cam volume — the next letter
+   titles are shown; no descriptions. Change Text speed: the current line
+   keeps its pace, the next uses the new one. Drag Cam volume: the next letter
    is audible at once. Turn Typewriter text off: the next line and its reply
    arrive whole, with no reveal, beat or letter sound. Turn Cam animations
    off: the portrait holds its neutral pose and shows its still instead of
-   animating — on phase 2 the body and hand appear as their composite still;
-   turn it back on and the current portrait animates again. Turn Background
+   animating; on phase 2 the body and hand appear as their composite still.
+   Turn it back on and the current portrait animates again. Turn Background
    animations off: the checkerboard stops scrolling
    without changing colour. Reload: saved values restore. Corrupt or remove a value
    (console/local storage) and reload: the tuned default returns. Set volume to
@@ -202,7 +202,8 @@ SugarCube.Engine.play("System content empty");
 
    Finally, an authoring error: give a Layout 4 passage a `<<cam_line>>` or
    `<<portrait>>`, or a Layouts 0–3 passage a `<<system_line>>`, and confirm
-   `#passages` reports it rather than the macro vanishing silently.
+   the error is reported rather than the macro vanishing silently. Stage mode
+   hides `#passages`, so inspect it in the DOM or the console.
 
 ## Authoring
 

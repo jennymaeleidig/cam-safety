@@ -1,6 +1,6 @@
 /* ===== Background music: one looping track at a time, selected by passage =====
    The story's background layer, separate from Cam's Voice. One track plays at
-   a time, and a track change crossfades: the new song starts on the idle media
+   a time, and a track change crossfades: the new track starts on the idle media
    element while the old one fades out of the other.
 
    A passage selects a track on the passage-render lifecycle, after the
@@ -8,8 +8,8 @@
    selection is published as body[data-track] -- the same seam idiom as
    data-layout and data-stage-mode. TITLE_TRACK names the title explicitly;
    every other passage reads the published layout's entry in LAYOUT_TRACK.
-   Layout 3 names its own distorted track. A same-track selection leaves the
-   elements alone; a different one begins a crossfade.
+   Layout 3 names its own distorted track. A same-track selection does not
+   crossfade; a different one begins a crossfade.
 
    The gain is window.CamSettings.musicGain(), a gain in [0, 1], read through
    Music.refreshGain() when a music setting changes. Each element's volume is

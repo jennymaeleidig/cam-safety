@@ -15,9 +15,9 @@
      window.CamSettings.musicGain()            gain in [0, 1], zero when muted (Music asks)
      window.CamSettings.backgroundAnimations() whether the background scrolls (settings applies)
 
-   No consumer knows letters a second, percent or a mute flag, and none
-   carries its own copy of a setting's default or a fallback branch. This
-   module is always defined; the fallback rule lives inside it.
+   No consumer knows letters a second, percent or a mute flag, and each
+   guards only against this module being absent. The tuned defaults and the
+   fallback rule for a stored value live here.
 
    Three ranges and five toggles in SugarCube's own Settings dialog — the
    rail's Settings button, UI.settings() — because that dialog is native to the story
@@ -35,9 +35,9 @@
 
    Units are the dialog's: letters a second (a speed, so higher is faster, which
    is also the direction of a range input's left-to-right), percent for the two
-   volumes, and a boolean for every toggle. The defaults are the numbers the
-   reveal was measured at, the music and Cam's voice were tuned to by ear, and
-   the animations were chosen to run (settings-defaults.js), so the story opens
+   volumes, and a boolean for every toggle. The defaults are the story's tuned
+   opening values: the music and Cam's voice were tuned by ear, and the
+   animations were chosen to run (settings-defaults.js), so the story opens
    as tuned.
 
    Fallbacks: a setting that is missing, non-finite or unreadable (an editor
