@@ -119,7 +119,7 @@
     img.className = "stage-portrait";
     img.setAttribute("src", displaySource(src));
     img.setAttribute("alt", alt);
-    cam.element.appendChild(img);
+    cam.element.append(img);
     cam.pose = pose;
     if (pose) {
       cam.element.setAttribute("data-pose", pose);
@@ -285,7 +285,7 @@
     /* Decorative: the body image already names Cam, so a second alt would
        announce the same portrait twice. */
     img.setAttribute("alt", "");
-    layer.appendChild(img);
+    layer.append(img);
   }
 
   /* Returns a handle for the Reveal — the Slot and the prose element it must
@@ -311,7 +311,7 @@
     if (s.proseClass) {
       target = document.createElement("div");
       target.className = s.proseClass;
-      s.element.appendChild(target);
+      s.element.append(target);
     }
     jQuery(target).wiki(String(html));
     publish(s, true);

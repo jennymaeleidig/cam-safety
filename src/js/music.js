@@ -53,7 +53,7 @@
   var players = ["music", "music-b"]
     .map(function (id) {
       var el = /** @type {HTMLAudioElement} */ (
-        document.getElementById(id)
+        document.querySelector("#" + id)
       );
       return el ? { el: el, level: 0 } : null;
     })

@@ -17,8 +17,9 @@ TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -o dist/story.html src
 `tweego: watch` and `run: build + open`. Pass `src/` alone: adding `src/js` or
 `src/css` with `-m` compiles those files a second time.
 
-`npm install` adds the language servers pi-lens runs over `src/`; the build
-itself needs only Tweego.
+`mise install` provisions the language servers and ESLint that pi-lens runs
+over `src/`; the build itself needs only Tweego. `mise run lint` lints
+`src/js/` with the rules in `eslint.config.mjs`.
 
 ## Docs
 
