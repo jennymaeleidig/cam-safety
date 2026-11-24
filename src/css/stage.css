@@ -264,10 +264,7 @@ body[data-layout="2"] {
   --tail-h: var(--tail-size);
   --tail-rotate: 90deg;
   --tail-x: calc(var(--speech-line) - var(--tail-point) / 2);
-  --tail-y: max(
-    calc(var(--speech-width) + var(--tail-w) / 2),
-    14%
-  );
+  --tail-y: max(calc(var(--speech-width) + var(--tail-w) / 2), 14%);
 }
 
 body[data-layout="3"] {

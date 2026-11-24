@@ -75,7 +75,9 @@
   }
 
   function stamp() {
-    return typeof win.performance === "object" ? win.performance.now() : Date.now();
+    return typeof win.performance === "object"
+      ? win.performance.now()
+      : Date.now();
   }
 
   function other(player) {

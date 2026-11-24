@@ -67,7 +67,9 @@ const recommendedRules = [
   "valid-typeof",
 ];
 
-const rules = Object.fromEntries(recommendedRules.map((rule) => [rule, "error"]));
+const rules = Object.fromEntries(
+  recommendedRules.map((rule) => [rule, "error"]),
+);
 
 export default [
   {

@@ -68,7 +68,9 @@
   var MUSIC_MUTED = defaults && defaults.musicMuted;
   var BACKGROUND_ANIMATIONS = defaults && defaults.backgroundAnimations;
 
-  var CamSettings = /** @type {any} */ (win.CamSettings = win.CamSettings || {});
+  var CamSettings = /** @type {any} */ (
+    win.CamSettings = win.CamSettings || {}
+  );
 
   /* A setting's stored value, or undefined when SugarCube is not there. Ask
      SugarCube each time rather than reading the object once: it replaces its

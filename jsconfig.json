@@ -5,7 +5,9 @@
     "noEmit": true,
     "target": "ES2020",
     "lib": ["ES2020", "DOM"],
-    "module": "none",
+    /* "none" is removed in TypeScript 7; with no import/export in the
+       story's scripts, "preserve" still treats every file as a script. */
+    "module": "preserve",
     "strict": false,
     /* The story's JS carries no annotations, so the editor does not
        type-check it; ESLint (eslint.config.mjs) owns JS lint. */

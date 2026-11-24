@@ -167,7 +167,11 @@
 
     source.connect(envelope);
     envelope.connect(audio.comp);
-    source.start(start, index * letters.secondsPerLetter, LETTER_SECONDS * PITCH);
+    source.start(
+      start,
+      index * letters.secondsPerLetter,
+      LETTER_SECONDS * PITCH,
+    );
   };
 
   /* Called from the first gesture. Browsers will not start audio without one,

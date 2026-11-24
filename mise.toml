@@ -8,3 +8,6 @@ node = "24.22.3"
 
 [tasks.lint]
 run = "eslint src/js"
+
+[tasks.format]
+run = "npm run format"

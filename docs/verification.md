@@ -33,13 +33,14 @@ SugarCube.Engine.play("System content empty");
    an automatic portrait, check the cam slot advertises its pose:
 
    ```js
-   document.querySelector('.stage-cam').dataset.pose; // "neutral" or "talking"
+   document.querySelector(".stage-cam").dataset.pose; // "neutral" or "talking"
    ```
 
    To tune a pose, drag its nudge in devtools and watch the built story: the
    values live in `stage.css` as per-phase, per-pose art pixels. Check each
    phase's two poses at Layouts 0–3 — especially the close-in scale at
    Layout 3 — until the character lands on the same spot in both.
+
 3. **Bubble.** Play `Stage content long` and scroll the bubble: only the prose
    moves, the paper's edge stays put, no line lands on the outline, the paper's
    translucency and shadow do not fade the ink, and the link inside Cam's line
@@ -77,6 +78,7 @@ SugarCube.Engine.play("System content empty");
    ```js
    document.body.setAttribute("data-stage-debug", "");
    ```
+
 6. **Music.** Start the story and enter Layouts 0–3. The title track begins,
    and `document.body.dataset.track` is `"theme"`. Moving between the title and
    Layouts 0–2 never restarts it: the playing element's `currentTime` keeps
@@ -104,6 +106,7 @@ SugarCube.Engine.play("System content empty");
      paused: el.paused,
    }));
    ```
+
 7. **System layout.** Play `System content`. `document.body.dataset.layout` is
    `"4"` on the first visible frame, and the card sits exactly where Layout 0's
    speech bubble sits; the reply bar is in Layout 0's place, the menu is

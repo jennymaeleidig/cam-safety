@@ -19,5 +19,6 @@ dist/
 !.vscode/
 .vscode/*
 !.vscode/tasks.json
-# Node toolchain (language servers for the editor) — not build input
+# Node toolchain: language servers for the editor, plus Prettier, Husky and
+# lint-staged behind `npm install` — not build input
 node_modules/

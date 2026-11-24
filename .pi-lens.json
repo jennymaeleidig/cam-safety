@@ -9,9 +9,7 @@
   ],
   "rules": {
     "no-any-type": {
-      "ignorePaths": [
-        "types/"
-      ]
+      "ignorePaths": ["types/"]
     }
   }
 }

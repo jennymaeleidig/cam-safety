@@ -376,8 +376,7 @@
 
   function addStill(src) {
     if (src) {
-      STILL[src] =
-        POSE_STILL[src] || String(src).replace(/\.gif$/i, ".png");
+      STILL[src] = POSE_STILL[src] || String(src).replace(/\.gif$/i, ".png");
     }
   }
 
@@ -500,7 +499,7 @@
      to "Cam" here so the macros stay pass-through. */
 
   /* boot.js, which loads before this file, creates window.Stage. */
-  var stage = (/** @type {any} */ (window)).Stage;
+  var stage = /** @type {any} */ (window).Stage;
 
   /* reveal and hold ask for the same visible state: the Slot is busy, keeps
      its flushed paper, and is inert. They stay two names because the Reveal

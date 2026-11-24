@@ -23,6 +23,21 @@ TWEEGO_PATH=.storyformats tweego -f sugarcube-2 -o dist/story.html src
 over `src/`; the build itself needs only Tweego. `mise run lint` lints
 `src/js/` with the rules in `eslint.config.mjs`.
 
+## Formatting
+
+Prettier owns the whitespace and line breaks in every file it can parse:
+`src/js/`, `src/css/`, the Markdown and JSON, and the configs at the root. Its
+settings live in `.prettierrc` and its exclusions in `.prettierignore`; `.twee`
+is not Prettier's and is never rewritten. `npm install` pulls Prettier, Husky
+and lint-staged into `node_modules/`; `mise run format` rewrites the tree and
+`npm run format:check` reports what would change without writing.
+
+Husky points the repository's hooks at `.husky/`. Its `pre-commit` hook hands
+the staged files to lint-staged, which runs Prettier on each format it handles
+and stages the result, so a commit carries the formatted text. Unrelated
+working-tree edits are left as they were. Bypass the hook with `git commit
+--no-verify`.
+
 ## Docs
 
 - `docs/authoring.md`: passages, the content macros, the layouts.

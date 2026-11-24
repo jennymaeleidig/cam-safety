@@ -58,7 +58,11 @@ html,
 body {
   margin: 0;
   color: #e6e6e6;
-  font: 16px/1.6 "Earthbound Beginnings", -apple-system, system-ui, sans-serif;
+  font:
+    16px/1.6 "Earthbound Beginnings",
+    -apple-system,
+    system-ui,
+    sans-serif;
 }
 
 /* SugarCube's core display block (which centers #story with a 2.5em margin)

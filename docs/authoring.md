@@ -17,13 +17,13 @@ from the console or the DOM.
 
 ## Macros
 
-| Macro | Slot | Takes |
-| --- | --- | --- |
-| `<<set_layout N>>` | none | an integer 0–4 |
-| `<<cam_line "…">>` | speech bubble | a quoted line |
-| `<<player_line "…">>` | reply bar | a quoted line |
-| `<<system_line "…">>` | system card | a quoted line, Layout 4 only |
-| `<<portrait "path" "alt">>` | Cam's portrait | an image path, optional alt |
+| Macro                       | Slot           | Takes                        |
+| --------------------------- | -------------- | ---------------------------- |
+| `<<set_layout N>>`          | none           | an integer 0–4               |
+| `<<cam_line "…">>`          | speech bubble  | a quoted line                |
+| `<<player_line "…">>`       | reply bar      | a quoted line                |
+| `<<system_line "…">>`       | system card    | a quoted line, Layout 4 only |
+| `<<portrait "path" "alt">>` | Cam's portrait | an image path, optional alt  |
 
 `<<set_layout>>` comes first in the passage. It publishes the layout while the
 passage renders, before it is displayed, so the first frame is already
@@ -43,13 +43,13 @@ card.
 
 ## Layouts
 
-| Layout | Composes | Menu | Track |
-| --- | --- | --- | --- |
-| 0 | Wide, Cam bottom-right, phase 0; bubble tail bottom-right | shown | theme |
-| 1 | Cam bottom-left, phase 1; tail bottom-left | shown | theme |
-| 2 | Cam upper-left, phase 2; tail top-left | shown | theme |
-| 3 | Close-in on the left, phase 3; tail left-mid | hidden | distorted |
-| 4 | System card in the bubble's box, no portrait or bubble | shown | theme |
+| Layout | Composes                                                  | Menu   | Track     |
+| ------ | --------------------------------------------------------- | ------ | --------- |
+| 0      | Wide, Cam bottom-right, phase 0; bubble tail bottom-right | shown  | theme     |
+| 1      | Cam bottom-left, phase 1; tail bottom-left                | shown  | theme     |
+| 2      | Cam upper-left, phase 2; tail top-left                    | shown  | theme     |
+| 3      | Close-in on the left, phase 3; tail left-mid              | hidden | distorted |
+| 4      | System card in the bubble's box, no portrait or bubble    | shown  | theme     |
 
 Slot geometry, the background palette and the tail's aim live in
 `src/css/stage.css` and `src/css/checker.css`, keyed on `body[data-layout]`.

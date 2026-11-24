@@ -21,13 +21,7 @@
       "dependsOrder": "sequence",
       "type": "shell",
       "command": "tweego",
-      "args": [
-        "-f",
-        "sugarcube-2",
-        "-o",
-        "dist/story.html",
-        "src"
-      ],
+      "args": ["-f", "sugarcube-2", "-o", "dist/story.html", "src"],
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
@@ -51,14 +45,7 @@
       "dependsOrder": "sequence",
       "type": "shell",
       "command": "tweego",
-      "args": [
-        "-w",
-        "-f",
-        "sugarcube-2",
-        "-o",
-        "dist/story.html",
-        "src"
-      ],
+      "args": ["-w", "-f", "sugarcube-2", "-o", "dist/story.html", "src"],
       "options": {
         "cwd": "${workspaceFolder}",
         "env": {
