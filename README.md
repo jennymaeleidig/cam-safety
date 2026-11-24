@@ -2,7 +2,9 @@
 
 ## Build
 
-Tweego on `PATH`, and the SugarCube 2 story format in `.storyformats/`. Copy
+[Twine](https://twinery.org/) stories compile with [Tweego](https://github.com/tmedwards/tweego)
+on `PATH`, and use the [SugarCube 2](https://www.motoslave.net/sugarcube/2/) story
+format in `.storyformats/`. Copy
 the assets beside the story, then compile `src/`:
 
 ```sh

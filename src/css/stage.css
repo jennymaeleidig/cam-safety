@@ -253,13 +253,21 @@ body[data-layout="2"] {
   --slot-menu-display: flex;
 
   /* tail — the edge pointer aiming left, high on the paper's left edge to
-     face Cam */
+     face Cam. The seat is the authored fraction of the slot's height, floored
+     so the mouth stays wholly below the card's corner slice. The pointer is
+     drawn at the paper's fixed pixel scale, so it does not shrink with the
+     stage while the fraction does: on a short card the fraction alone seats
+     the mouth past the card's top edge. The quarter turn puts --tail-w along
+     the edge, so half of it is the mouth's reach above and below the seat. */
   --tail-art: var(--speech-tail-iso);
   --tail-w: var(--tail-point);
   --tail-h: var(--tail-size);
   --tail-rotate: 90deg;
   --tail-x: calc(var(--speech-line) - var(--tail-point) / 2);
-  --tail-y: 14%;
+  --tail-y: max(
+    calc(var(--speech-width) + var(--tail-w) / 2),
+    14%
+  );
 }
 
 body[data-layout="3"] {
@@ -292,13 +300,20 @@ body[data-layout="3"] {
   /* menu — hidden in this layout */
   --slot-menu-display: none;
 
-  /* tail — the edge pointer aiming left, a touch below the paper's middle */
+  /* tail — the edge pointer aiming left, a touch below the paper's middle.
+     The fraction is held between the two distances that keep the whole mouth,
+     which is a fixed number of pixels, on the paper's left edge however short
+     the card gets. See the seat note in Layout 2. */
   --tail-art: var(--speech-tail-iso);
   --tail-w: var(--tail-point);
   --tail-h: var(--tail-size);
   --tail-rotate: 90deg;
   --tail-x: calc(var(--speech-line) - var(--tail-point) / 2);
-  --tail-y: 52%;
+  --tail-y: clamp(
+    calc(var(--tail-w) / 2 + var(--tail-seat)),
+    52%,
+    calc(100% - var(--tail-w) / 2 - var(--tail-seat))
+  );
 }
 
 body[data-layout="4"] {

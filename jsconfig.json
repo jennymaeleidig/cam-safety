@@ -1,15 +1,14 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "checkJs": true,
+    "checkJs": false,
     "noEmit": true,
     "target": "ES2020",
     "lib": ["ES2020", "DOM"],
     "module": "none",
     "strict": false,
-    /* The story's JS carries no annotations; keeping implicit any off makes
-       tsserver report infer-from-usage as suggestions (7043-7047) rather than
-       errors. .pi-lens.json filters that suggestion family, so it stays quiet. */
+    /* The story's JS carries no annotations, so the editor does not
+       type-check it; ESLint (eslint.config.mjs) owns JS lint. */
     "noImplicitAny": false
   },
   "include": ["src/js/**/*.js", "types/**/*.d.ts"],
